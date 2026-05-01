@@ -1,23 +1,26 @@
-import { personal } from '../data/resume'
+import { useApp } from '../context/AppContext'
 
 export default function Footer() {
+  const { c, t } = useApp()
+
   return (
     <footer style={{
       padding: '24px',
-      borderTop: '1px solid rgba(8,74,138,0.1)',
-      background: '#E5DDD0',
+      borderTop: `1px solid ${c.border}`,
+      background: c.bg3,
       textAlign: 'center',
-      color: 'rgba(8,74,138,0.45)',
+      color: c.dim,
       fontSize: 13,
+      transition: 'background 0.3s',
     }}>
-      © 2025 · {personal.name} · {personal.location} ·{' '}
+      {t.footer.copy}{' '}
       <a
-        href={`mailto:${personal.email}`}
-        style={{ color: '#37a8de', textDecoration: 'none', transition: 'color 0.2s' }}
-        onMouseOver={e => e.target.style.color = '#084a8a'}
-        onMouseOut={e => e.target.style.color = '#37a8de'}
+        href="mailto:brunochavesuk@icloud.com"
+        style={{ color: c.accent, textDecoration: 'none', transition: 'color 0.2s' }}
+        onMouseOver={e => e.currentTarget.style.color = c.primary}
+        onMouseOut={e => e.currentTarget.style.color = c.accent}
       >
-        {personal.email}
+        brunochavesuk@icloud.com
       </a>
     </footer>
   )

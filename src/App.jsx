@@ -1,3 +1,4 @@
+import { AppProvider, useApp } from './context/AppContext'
 import Navbar     from './components/Navbar'
 import Hero       from './components/Hero'
 import About      from './components/About'
@@ -7,9 +8,10 @@ import Education  from './components/Education'
 import Contact    from './components/Contact'
 import Footer     from './components/Footer'
 
-export default function App() {
+function AppContent() {
+  const { c } = useApp()
   return (
-    <div className="bg-[#F2EBDF] text-[#084a8a] min-h-screen">
+    <div style={{ background: c.bg1, color: c.primary, minHeight: '100vh', transition: 'background 0.3s, color 0.3s' }}>
       <Navbar />
       <Hero />
       <About />
@@ -19,5 +21,13 @@ export default function App() {
       <Contact />
       <Footer />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   )
 }

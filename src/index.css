@@ -4,14 +4,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── CSS Custom Properties (Light / Dark) ─────────────────────────────── */
+:root {
+  --bg1:          #F2EBDF;
+  --bg2:          #EBE4D2;
+  --bg3:          #E5DDD0;
+  --primary:      #084a8a;
+  --accent:       #37a8de;
+  --card:         #ffffff;
+  --muted:        rgba(8,74,138,0.65);
+  --border:       rgba(8,74,138,0.10);
+  --border-light: rgba(8,74,138,0.07);
+  --pill-bg:      rgba(8,74,138,0.06);
+  --pill-border:  rgba(8,74,138,0.14);
+  --pill-text:    #084a8a;
+  --scroll-bg:    #F2EBDF;
+  --ghost-c:      #084a8a;
+  --ghost-hover:  rgba(8,74,138,0.07);
+}
+
+html.dark {
+  --bg1:          #0f172a;
+  --bg2:          #111827;
+  --bg3:          #0a1120;
+  --primary:      #e2e8f0;
+  --accent:       #38bdf8;
+  --card:         #1e293b;
+  --muted:        rgba(226,232,240,0.65);
+  --border:       rgba(226,232,240,0.10);
+  --border-light: rgba(226,232,240,0.06);
+  --pill-bg:      rgba(226,232,240,0.07);
+  --pill-border:  rgba(226,232,240,0.16);
+  --pill-text:    #e2e8f0;
+  --scroll-bg:    #0f172a;
+  --ghost-c:      #e2e8f0;
+  --ghost-hover:  rgba(226,232,240,0.08);
+}
+
 /* ── Base ─────────────────────────────────────────────────────────────── */
 @layer base {
   * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
 
   ::-webkit-scrollbar       { width: 5px; }
-  ::-webkit-scrollbar-track { background: #F2EBDF; }
-  ::-webkit-scrollbar-thumb { background: #37a8de; border-radius: 99px; }
+  ::-webkit-scrollbar-track { background: var(--scroll-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
 
   section { scroll-margin-top: 72px; }
 }
@@ -20,6 +57,12 @@
 @layer utilities {
   .gradient-text {
     background: linear-gradient(135deg, #37a8de, #084a8a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  html.dark .gradient-text {
+    background: linear-gradient(135deg, #38bdf8, #93c5fd);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -42,18 +85,18 @@
   .btn-ghost {
     @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm no-underline;
     background: transparent;
-    border: 1.5px solid #084a8a;
-    color: #084a8a;
+    border: 1.5px solid var(--ghost-c);
+    color: var(--ghost-c);
     transition: background 0.2s, transform 0.2s;
   }
   .btn-ghost:hover {
-    background: rgba(8, 74, 138, 0.07);
+    background: var(--ghost-hover);
     transform: translateY(-2px);
   }
 
   .card {
-    background: #ffffff;
-    border: 1px solid rgba(8, 74, 138, 0.1);
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 16px;
     transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
   }
@@ -62,23 +105,26 @@
     transform: translateY(-3px);
     box-shadow: 0 12px 32px rgba(8, 74, 138, 0.09);
   }
+  html.dark .card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
 
   .skill-pill {
     @apply inline-block px-3 py-1.5 rounded-full text-[13px] cursor-default;
-    background: rgba(8, 74, 138, 0.06);
-    border: 1px solid rgba(8, 74, 138, 0.14);
-    color: #084a8a;
+    background: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    color: var(--pill-text);
     transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
   .skill-pill:hover {
     background: rgba(55, 168, 222, 0.12);
     border-color: rgba(55, 168, 222, 0.45);
-    color: #37a8de;
+    color: var(--accent);
   }
 
   .section-label {
     @apply text-xs font-semibold tracking-[3px] uppercase;
-    color: #37a8de;
+    color: var(--accent);
   }
 }
 
@@ -136,3 +182,26 @@
   50%       { opacity: 0.5;  transform: scale(1.04); }
 }
 .pulse-ring { animation: pulseRing 4s ease-in-out infinite; }
+
+/* ── Dark mode theme-toggle ───────────────────────────────────────────── */
+.theme-toggle {
+  width: 34px; height: 34px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--primary);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+}
+.theme-toggle:hover { border-color: var(--accent); transform: scale(1.1); }
+
+/* ── Flag language buttons ────────────────────────────────────────────── */
+.flag-btn {
+  background: none; border: 2px solid transparent;
+  border-radius: 7px; padding: 1px 3px;
+  font-size: 19px; cursor: pointer; line-height: 1;
+  transition: border-color 0.2s, transform 0.15s, opacity 0.2s;
+  opacity: 0.55;
+}
+.flag-btn:hover  { opacity: 1; transform: scale(1.18); }
+.flag-btn.active { border-color: var(--accent); opacity: 1; }

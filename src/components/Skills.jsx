@@ -1,29 +1,29 @@
-import { skills } from '../data/resume'
 import Reveal from './Reveal'
+import { useApp } from '../context/AppContext'
 
 export default function Skills() {
+  const { c, t } = useApp()
+  const s = t.skills
+
   return (
-    <section id="skills" style={{ padding: '96px 24px', background: '#F2EBDF' }}>
+    <section id="skills" style={{ padding: '96px 24px', background: c.bg1, transition: 'background 0.3s' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* Header */}
         <Reveal>
           <div style={{ textAlign: 'center', marginBottom: 52 }}>
-            <span className="section-label">Habilidades</span>
-            <h2 style={{ fontSize: 'clamp(28px,5vw,42px)', fontWeight: 900, margin: '12px 0 0', letterSpacing: -1, color: '#084a8a' }}>
-              Stack <span className="gradient-text">completa</span>
+            <span className="section-label">{s.label}</span>
+            <h2 style={{ fontSize: 'clamp(28px,5vw,42px)', fontWeight: 900, margin: '12px 0 0', letterSpacing: -1, color: c.primary }}>
+              {s.heading1} <span className="gradient-text">{s.heading2}</span>
             </h2>
           </div>
         </Reveal>
 
         {/* Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-          {skills.map((group, i) => (
+          {s.categories.map((group, i) => (
             <Reveal key={group.cat} delay={i * 80}>
-              <div
-                className="card"
-                style={{ padding: 24, border: `1px solid ${group.border}` }}
-              >
+              <div className="card" style={{ padding: 24, border: `1px solid ${group.border}` }}>
                 {/* Category header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
                   <div style={{
@@ -34,9 +34,8 @@ export default function Skills() {
                   }}>
                     {group.icon}
                   </div>
-                  <h3 style={{ fontWeight: 700, fontSize: 15, color: '#084a8a', margin: 0 }}>{group.cat}</h3>
+                  <h3 style={{ fontWeight: 700, fontSize: 15, color: c.primary, margin: 0 }}>{group.cat}</h3>
                 </div>
-
                 {/* Pills */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {group.items.map(skill => (
