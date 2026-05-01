@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 
 const FLAGS = [
-  { code: 'pt', src: 'https://flagcdn.com/w28/br.png', label: 'Português' },
-  { code: 'en', src: 'https://flagcdn.com/w28/us.png', label: 'English'   },
-  { code: 'es', src: 'https://flagcdn.com/w28/es.png', label: 'Español'   },
+  { code: 'pt', src: '/flag-br.svg', label: 'Português' },
+  { code: 'en', src: '/flag-us.svg', label: 'English'   },
+  { code: 'es', src: '/flag-es.svg', label: 'Español'   },
 ]
 
 export default function Navbar() {
