@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 
 const FLAGS = [
-  { code: 'pt', flag: '🇧🇷', label: 'Português' },
-  { code: 'en', flag: '🇺🇸', label: 'English'   },
-  { code: 'es', flag: '🇪🇸', label: 'Español'   },
+  { code: 'pt', src: 'https://flagcdn.com/w28/br.png', label: 'Português' },
+  { code: 'en', src: 'https://flagcdn.com/w28/us.png', label: 'English'   },
+  { code: 'es', src: 'https://flagcdn.com/w28/es.png', label: 'Español'   },
 ]
 
 export default function Navbar() {
@@ -54,8 +54,8 @@ export default function Navbar() {
           <span style={{ color: c.primary, fontWeight: 700, fontSize: 15 }}>Bruno Chaves</span>
         </a>
 
-        {/* Desktop links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 26 }} className="hidden md:flex">
+        {/* Desktop links — inline display NOT set, Tailwind controls show/hide */}
+        <div className="hidden md:flex" style={{ alignItems: 'center', gap: 26 }}>
           {links.map(l => (
             <a
               key={l.href} href={l.href}
@@ -76,7 +76,7 @@ export default function Navbar() {
           <div style={{ width: 1, height: 22, background: c.border, flexShrink: 0 }} />
 
           {/* Language flags */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {FLAGS.map(f => (
               <button
                 key={f.code}
@@ -84,7 +84,7 @@ export default function Navbar() {
                 className={`flag-btn${lang === f.code ? ' active' : ''}`}
                 title={f.label}
               >
-                {f.flag}
+                <img src={f.src} alt={f.label} width={22} height={16} style={{ display: 'block', borderRadius: 2 }} />
               </button>
             ))}
           </div>
@@ -95,17 +95,16 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile: flags + dark + hamburger */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} className="md:hidden">
+        {/* Mobile: flags + dark + hamburger — inline display NOT set */}
+        <div className="flex md:hidden" style={{ alignItems: 'center', gap: 5 }}>
           {FLAGS.map(f => (
             <button
               key={f.code}
               onClick={() => setLang(f.code)}
               className={`flag-btn${lang === f.code ? ' active' : ''}`}
-              style={{ fontSize: 15 }}
               title={f.label}
             >
-              {f.flag}
+              <img src={f.src} alt={f.label} width={20} height={15} style={{ display: 'block', borderRadius: 2 }} />
             </button>
           ))}
           <button onClick={toggleDark} className="theme-toggle" style={{ width: 30, height: 30, fontSize: 14 }}>
