@@ -43,8 +43,17 @@ export default function Navbar() {
         height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
 
-        {/* Logo */}
-        <a href="#hero" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+        {/* Hamburguer mobile — fica no lugar do logo, só no mobile */}
+        <button
+          className="flex md:hidden"
+          onClick={() => setOpen(!open)}
+          style={{ background: 'none', border: 'none', color: c.primary, fontSize: 26, cursor: 'pointer', padding: '4px 6px', alignItems: 'center' }}
+        >
+          {open ? '✕' : '☰'}
+        </button>
+
+        {/* Logo — só no desktop */}
+        <a href="#hero" className="hidden md:flex" style={{ textDecoration: 'none', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
             background: 'linear-gradient(135deg, #37a8de, #084a8a)',
@@ -95,7 +104,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile: flags + dark + hamburger — inline display NOT set */}
+        {/* Mobile: bandeiras + toggle — direita, sem hamburguer */}
         <div className="flex md:hidden" style={{ alignItems: 'center', gap: 5 }}>
           {FLAGS.map(f => (
             <button
@@ -109,12 +118,6 @@ export default function Navbar() {
           ))}
           <button onClick={toggleDark} className="theme-toggle" style={{ width: 30, height: 30, fontSize: 14 }}>
             {isDark ? '☀️' : '🌙'}
-          </button>
-          <button
-            onClick={() => setOpen(!open)}
-            style={{ background: 'none', border: 'none', color: c.primary, fontSize: 24, cursor: 'pointer', padding: 4 }}
-          >
-            {open ? '✕' : '☰'}
           </button>
         </div>
       </div>
