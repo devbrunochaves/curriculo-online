@@ -1,10 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
-import { format } from 'date-fns'
+import { format, addMonths, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
-const parseBRL = str => { if (!str) return 0; return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0 }
+const fmt      = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
+const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
+
+/** Determina o month_ref de um lançamento considerando o fechamento do cartão */
+function getMonthRef(dateStr, closingDay) {
+  if (!dateStr) return format(new Date(), 'yyyy-MM')
+  const d = new Date(dateStr + 'T12:00:00')
+  const day = d.getDate()
+  // Se não tem fechamento OU compra é antes do fechamento → mês atual
+  if (!closingDay || day < closingDay) return format(d, 'yyyy-MM')
+  // Compra no dia do fechamento ou depois → próxima fatura
+  return format(addMonths(d, 1), 'yyyy-MM')
+}
 
 export default function NovaCompra() {
   const navigate = useNavigate()
@@ -15,17 +27,19 @@ export default function NovaCompra() {
   const [people, setPeople]   = useState([])
   const [categories, setCats] = useState([])
 
-  const [date, setDate]       = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [description, setDesc]= useState('')
-  const [cardId, setCardId]   = useState('')
-  const [catId, setCatId]     = useState('')
-  const [total, setTotal]     = useState('')
-  const [isFixed, setIsFixed] = useState(false)
-  const [notes, setNotes]     = useState('')
-  const [splits, setSplits]   = useState({})
-  const [saving, setSaving]   = useState(false)
-  const [error, setError]     = useState('')
-  const [success, setSuccess] = useState(false)
+  const [date, setDate]             = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [description, setDesc]      = useState('')
+  const [cardId, setCardId]         = useState('')
+  const [catId, setCatId]           = useState('')
+  const [total, setTotal]           = useState('')
+  const [isFixed, setIsFixed]       = useState(false)
+  const [notes, setNotes]           = useState('')
+  const [splits, setSplits]         = useState({})   // { personId: amountStr }
+  const [isInstallment, setIsInst]  = useState(false)
+  const [installments, setInst]     = useState(2)
+  const [saving, setSaving]         = useState(false)
+  const [error, setError]           = useState('')
+  const [success, setSuccess]       = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -53,6 +67,29 @@ export default function NovaCompra() {
     load()
   }, [editId])
 
+  // ── Cartão selecionado e cálculo de mês ──────────────────────────────────
+  const selectedCard = useMemo(() => cards.find(c => c.id === cardId), [cards, cardId])
+  const baseMonthRef = useMemo(() => getMonthRef(date, selectedCard?.closing_day), [date, selectedCard])
+  const baseMonthLabel = useMemo(() => {
+    try { return format(new Date(baseMonthRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR }) }
+    catch { return '' }
+  }, [baseMonthRef])
+
+  // Lista de parcelas com mês correspondente
+  const installmentPreview = useMemo(() => {
+    if (!isInstallment || !baseMonthRef) return []
+    const totalNum = parseBRL(total)
+    const n = Math.max(1, installments)
+    const each = parseFloat((totalNum / n).toFixed(2))
+    return Array.from({ length: n }, (_, i) => {
+      const mRef  = format(addMonths(new Date(baseMonthRef + '-01'), i), 'yyyy-MM')
+      const mLabel = format(addMonths(new Date(baseMonthRef + '-01'), i), "MMM/yy", { locale: ptBR })
+      const amount = i === n - 1 ? parseFloat((totalNum - each * (n - 1)).toFixed(2)) : each
+      return { index: i + 1, mRef, mLabel, amount }
+    })
+  }, [isInstallment, installments, baseMonthRef, total])
+
+  // ── Validação ────────────────────────────────────────────────────────────
   const totalNum   = parseBRL(total)
   const splitTotal = Object.values(splits).reduce((s, v) => s + parseBRL(v), 0)
   const diff       = totalNum - splitTotal
@@ -64,49 +101,87 @@ export default function NovaCompra() {
   function splitEqually() {
     const sel = Object.keys(splits)
     if (!sel.length || !totalNum) return
-    const each = (totalNum / sel.length).toFixed(2)
+    const each = parseFloat((totalNum / sel.length).toFixed(2))
     const n = {}
-    sel.forEach((id, i) => { n[id] = i === sel.length - 1 ? (totalNum - sel.slice(0,-1).reduce((s) => s + parseFloat(each), 0)).toFixed(2).replace('.', ',') : each.replace('.', ',') })
+    sel.forEach((id, i) => {
+      n[id] = i === sel.length - 1
+        ? (totalNum - each * (sel.length - 1)).toFixed(2).replace('.', ',')
+        : each.toFixed(2).replace('.', ',')
+    })
     setSplits(n)
   }
 
+  // ── Salvar ───────────────────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
     if (!isValid) { setError('A soma das divisões deve ser igual ao total.'); return }
     setSaving(true); setError('')
-    const monthRef = date.slice(0, 7)
 
-    if (editId) {
-      await supabase.from('expenses').update({ date, description, card_id: cardId, category_id: catId || null, total_amount: totalNum, month_ref: monthRef, is_fixed: isFixed, notes }).eq('id', editId)
-      await supabase.from('expense_splits').delete().eq('expense_id', editId)
-      await supabase.from('expense_splits').insert(Object.entries(splits).map(([person_id, amt]) => ({ expense_id: editId, person_id, amount: parseBRL(amt) })))
-    } else {
-      const { data: exp } = await supabase.from('expenses').insert({ date, description, card_id: cardId, category_id: catId || null, total_amount: totalNum, month_ref: monthRef, is_fixed: isFixed, notes }).select().single()
-      if (exp) await supabase.from('expense_splits').insert(Object.entries(splits).map(([person_id, amt]) => ({ expense_id: exp.id, person_id, amount: parseBRL(amt) })))
+    try {
+      if (editId) {
+        // Edição simples (sem parcelamento)
+        await supabase.from('expenses').update({ date, description, card_id: cardId, category_id: catId || null, total_amount: totalNum, month_ref: baseMonthRef, is_fixed: isFixed, notes }).eq('id', editId)
+        await supabase.from('expense_splits').delete().eq('expense_id', editId)
+        const sp = Object.entries(splits).map(([person_id, amt]) => ({ expense_id: editId, person_id, amount: parseBRL(amt) }))
+        if (sp.length) await supabase.from('expense_splits').insert(sp)
+      } else if (isInstallment && installments > 1) {
+        // Criar N parcelas
+        for (const p of installmentPreview) {
+          const desc = `${description} ${p.index}/${installments}`
+          const { data: exp } = await supabase.from('expenses').insert({
+            date, description: desc, card_id: cardId, category_id: catId || null,
+            total_amount: p.amount, month_ref: p.mRef, is_fixed: false,
+            notes: notes || null
+          }).select().single()
+          if (exp) {
+            // Splits proporcionais por parcela
+            const sp = Object.entries(splits).map(([person_id, amt]) => ({
+              expense_id: exp.id, person_id,
+              amount: parseFloat((parseBRL(amt) * p.amount / totalNum).toFixed(2))
+            }))
+            if (sp.length) await supabase.from('expense_splits').insert(sp)
+          }
+        }
+      } else {
+        // Lançamento único
+        const { data: exp } = await supabase.from('expenses').insert({
+          date, description, card_id: cardId, category_id: catId || null,
+          total_amount: totalNum, month_ref: baseMonthRef, is_fixed: isFixed, notes: notes || null
+        }).select().single()
+        if (exp) {
+          const sp = Object.entries(splits).map(([person_id, amt]) => ({ expense_id: exp.id, person_id, amount: parseBRL(amt) }))
+          if (sp.length) await supabase.from('expense_splits').insert(sp)
+        }
+      }
+
+      setSaving(false); setSuccess(true)
+      setTimeout(() => {
+        setSuccess(false)
+        if (!editId) { setDesc(''); setTotal(''); setSplits({}); setNotes(''); setIsInst(false); setInst(2); setDate(format(new Date(), 'yyyy-MM-dd')) }
+        else navigate('/contas/lancamentos')
+      }, 1400)
+    } catch (err) {
+      setError(err.message || 'Erro ao salvar.')
+      setSaving(false)
     }
-
-    setSaving(false); setSuccess(true)
-    setTimeout(() => {
-      setSuccess(false)
-      if (!editId) { setDesc(''); setTotal(''); setSplits({}); setNotes(''); setDate(format(new Date(), 'yyyy-MM-dd')) }
-      else navigate('/contas/lancamentos')
-    }, 1200)
   }
 
   return (
-    <div style={{ maxWidth: 660 }}>
+    <div style={{ maxWidth: 680 }}>
       <div className="c-page-header">
         <h2>{editId ? '✏️ Editar Lançamento' : '➕ Nova Compra'}</h2>
         <p>Registre uma despesa e divida entre as pessoas</p>
       </div>
 
-      {success && <div className="c-alert c-alert-info c-mb-3">✅ Lançamento salvo com sucesso!</div>}
+      {success && <div className="c-alert c-alert-info c-mb-3">✅ {isInstallment ? `${installments} parcelas registradas com sucesso!` : 'Lançamento salvo com sucesso!'}</div>}
       {error   && <div className="c-alert c-alert-danger c-mb-3">⚠️ {error}</div>}
 
       <form onSubmit={handleSubmit} className="c-card">
+
+        {/* DATA + CARTÃO */}
         <div className="c-grid-2">
           <div className="c-form-group">
-            <label className="c-form-label">Data</label>
+            <label className="c-form-label">Data da compra</label>
             <input type="date" className="c-form-input" value={date} onChange={e => setDate(e.target.value)} required />
           </div>
           <div className="c-form-group">
@@ -118,11 +193,26 @@ export default function NovaCompra() {
           </div>
         </div>
 
+        {/* INDICADOR DE FATURA */}
+        {selectedCard && date && (
+          <div style={{ marginTop: -8, marginBottom: 16, padding: '8px 12px', borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: 13, color: '#15803d', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>📅</span>
+            <span>
+              Esta compra entrará na fatura de <strong style={{ textTransform: 'capitalize' }}>{baseMonthLabel}</strong>
+              {selectedCard.closing_day && (
+                <span style={{ color: '#64748b' }}> — cartão fecha dia {selectedCard.closing_day}</span>
+              )}
+            </span>
+          </div>
+        )}
+
+        {/* DESCRIÇÃO */}
         <div className="c-form-group">
           <label className="c-form-label">Descrição</label>
-          <input type="text" className="c-form-input" placeholder="Ex: Supermercado Extra" value={description} onChange={e => setDesc(e.target.value)} required />
+          <input type="text" className="c-form-input" placeholder="Ex: Renner" value={description} onChange={e => setDesc(e.target.value)} required />
         </div>
 
+        {/* CATEGORIA + VALOR */}
         <div className="c-grid-2">
           <div className="c-form-group">
             <label className="c-form-label">Categoria</label>
@@ -137,14 +227,55 @@ export default function NovaCompra() {
           </div>
         </div>
 
-        <div className="c-form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <input type="checkbox" id="isFixed" checked={isFixed} onChange={e => setIsFixed(e.target.checked)} style={{ width: 16, height: 16 }} />
-          <label htmlFor="isFixed" className="c-form-label" style={{ margin: 0, cursor: 'pointer' }}>Gasto fixo mensal</label>
-        </div>
+        {/* GASTO FIXO */}
+        {!isInstallment && (
+          <div className="c-form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <input type="checkbox" id="isFixed" checked={isFixed} onChange={e => setIsFixed(e.target.checked)} style={{ width: 16, height: 16 }} />
+            <label htmlFor="isFixed" className="c-form-label" style={{ margin: 0, cursor: 'pointer' }}>Gasto fixo mensal</label>
+          </div>
+        )}
+
+        {/* PARCELAMENTO */}
+        {!isFixed && (
+          <div style={{ padding: '12px 14px', borderRadius: 8, background: isInstallment ? '#eff6ff' : '#f8fafc', border: `1.5px solid ${isInstallment ? '#bfdbfe' : '#e2e8f0'}`, marginBottom: 16 }}>
+            <div className="c-form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: isInstallment ? 12 : 0 }}>
+              <input type="checkbox" id="isInst" checked={isInstallment} onChange={e => { setIsInst(e.target.checked); setIsFixed(false) }} style={{ width: 16, height: 16, accentColor: '#6366f1' }} />
+              <label htmlFor="isInst" className="c-form-label" style={{ margin: 0, cursor: 'pointer', color: '#1e40af' }}>💳 Compra parcelada</label>
+            </div>
+
+            {isInstallment && (
+              <>
+                <div className="c-form-group" style={{ marginBottom: 12 }}>
+                  <label className="c-form-label">Número de parcelas</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <input
+                      type="range" min={2} max={24} value={installments}
+                      onChange={e => setInst(Number(e.target.value))}
+                      style={{ flex: 1, accentColor: '#6366f1' }}
+                    />
+                    <span style={{ fontWeight: 700, fontSize: 18, color: '#6366f1', minWidth: 36, textAlign: 'center' }}>{installments}x</span>
+                  </div>
+                </div>
+
+                {/* Preview das parcelas */}
+                {installmentPreview.length > 0 && totalNum > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {installmentPreview.map(p => (
+                      <div key={p.index} style={{ padding: '4px 10px', borderRadius: 6, background: '#dbeafe', color: '#1e40af', fontSize: 12, fontWeight: 600 }}>
+                        {p.index}/{installments} → <span style={{ textTransform: 'capitalize' }}>{p.mLabel}</span> · {fmt(p.amount)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         <hr className="c-divider" />
-        <div className="c-section-title">Divisão entre pessoas</div>
 
+        {/* DIVISÃO */}
+        <div className="c-section-title">Divisão entre pessoas</div>
         <div className="c-flex c-items-center c-gap-2 c-mb-3">
           <button type="button" className="c-btn c-btn-secondary c-btn-sm" onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setSplits(n) }}>Todos</button>
           <button type="button" className="c-btn c-btn-secondary c-btn-sm" onClick={() => setSplits({})}>Limpar</button>
@@ -160,14 +291,16 @@ export default function NovaCompra() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {people.map(person => {
-            const isSelected = splits[person.id] !== undefined
+            const isSel = splits[person.id] !== undefined
             return (
-              <div key={person.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${isSelected ? person.color : 'var(--c-border)'}`, background: isSelected ? `${person.color}10` : 'transparent', transition: 'all 0.15s' }}>
-                <input type="checkbox" checked={isSelected} onChange={() => togglePerson(person.id)} style={{ width: 16, height: 16, accentColor: person.color, cursor: 'pointer' }} />
+              <div key={person.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, border: `1.5px solid ${isSel ? person.color : 'var(--c-border)'}`, background: isSel ? `${person.color}10` : 'transparent', transition: 'all 0.15s' }}>
+                <input type="checkbox" checked={isSel} onChange={() => togglePerson(person.id)} style={{ width: 16, height: 16, accentColor: person.color, cursor: 'pointer' }} />
                 <span className="c-dot" style={{ background: person.color }} />
                 <span style={{ flex: 1, fontWeight: 500, fontSize: 13.5 }}>{person.name}</span>
-                {isSelected && (
-                  <input type="text" className="c-form-input" placeholder="0,00" value={splits[person.id]} onChange={e => setSplits(prev => ({ ...prev, [person.id]: e.target.value }))} style={{ width: 110, textAlign: 'right' }} />
+                {isSel && (
+                  <input type="text" className="c-form-input" placeholder="0,00" value={splits[person.id]}
+                    onChange={e => setSplits(prev => ({ ...prev, [person.id]: e.target.value }))}
+                    style={{ width: 110, textAlign: 'right' }} />
                 )}
               </div>
             )
@@ -176,12 +309,12 @@ export default function NovaCompra() {
 
         <div className="c-form-group c-mt-3">
           <label className="c-form-label">Observações (opcional)</label>
-          <textarea className="c-form-textarea" placeholder="Ex: 3/12 parcelas" value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
+          <textarea className="c-form-textarea" placeholder="Ex: Presente aniversário..." value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
         </div>
 
         <div className="c-flex c-gap-2 c-mt-4">
           <button type="submit" className="c-btn c-btn-primary" disabled={saving || !isValid}>
-            {saving ? 'Salvando...' : editId ? 'Salvar Alterações' : 'Registrar Compra'}
+            {saving ? 'Salvando...' : isInstallment ? `Registrar ${installments}x parcelas` : editId ? 'Salvar Alterações' : 'Registrar Compra'}
           </button>
           <button type="button" className="c-btn c-btn-secondary" onClick={() => navigate(-1)}>Cancelar</button>
         </div>

@@ -9,6 +9,7 @@ import Lancamentos from './pages/Lancamentos'
 import Pessoas from './pages/Pessoas'
 import Cartoes from './pages/Cartoes'
 import Configuracoes from './pages/Configuracoes'
+import Previsao from './pages/Previsao'
 import './styles/contas.css'
 
 function ProtectedRoute({ session, children }) {
@@ -53,6 +54,7 @@ export default function ContasApp() {
                   <Route path="nova" element={<NovaCompra />} />
                   <Route path="lancamentos" element={<Lancamentos />} />
                   <Route path="pessoas" element={<Pessoas />} />
+                  <Route path="previsao" element={<Previsao />} />
                   <Route path="cartoes" element={<Cartoes />} />
                   <Route path="configuracoes" element={<Configuracoes />} />
                 </Routes>
