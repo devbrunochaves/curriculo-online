@@ -21,26 +21,8 @@ function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
   const isPdf   = e.receipt_url && e.receipt_url.toLowerCase().endsWith('.pdf')
 
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1000,
-        background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)',
-        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-        padding: 0,
-      }}
-      onClick={onClose}
-    >
-      <div
-        onClick={ev => ev.stopPropagation()}
-        style={{
-          background: 'var(--c-surface)',
-          borderRadius: '20px 20px 0 0',
-          width: '100%', maxWidth: 560,
-          maxHeight: '90vh', overflowY: 'auto',
-          boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
-          animation: 'slideUp 0.22s ease',
-        }}
-      >
+    <div className="c-modal-overlay" onClick={onClose}>
+      <div className="c-modal-sheet" onClick={ev => ev.stopPropagation()}>
         {/* Handle bar */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
           <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--c-border)' }} />
@@ -172,12 +154,6 @@ function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
         </div>
       </div>
 
-      <style>{`
-        @keyframes slideUp {
-          from { transform: translateY(60px); opacity: 0; }
-          to   { transform: translateY(0);    opacity: 1; }
-        }
-      `}</style>
     </div>
   )
 }

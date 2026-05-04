@@ -181,6 +181,51 @@
 .contas-root .c-table-row-hover:hover td { background: #f0f4ff; cursor: pointer; }
 .contas-root .c-table-row-hover:active td { background: #e0e7ff; }
 
+/* ===== MODAL (expense detail) ===== */
+/* Mobile: bottom sheet */
+.contas-root .c-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(15,23,42,0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.contas-root .c-modal-sheet {
+  background: var(--c-surface);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+  animation: slideUp 0.22s ease;
+}
+
+/* Desktop: modal centralizado */
+@media (min-width: 769px) {
+  .contas-root .c-modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+  .contas-root .c-modal-sheet {
+    border-radius: 16px;
+    max-height: 85vh;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: fadeScaleIn 0.2s ease;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes fadeScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
 /* ===== CHIP ===== */
 .contas-root .c-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 600; }
 
