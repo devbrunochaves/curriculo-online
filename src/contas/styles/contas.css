@@ -39,6 +39,11 @@
 /* ===== LAYOUT ===== */
 .contas-root .c-app-shell { display: flex; height: 100vh; overflow: hidden; }
 
+/* Mobile header — oculto no desktop */
+.contas-root .c-mobile-header {
+  display: none;
+}
+
 .contas-root .c-sidebar {
   width: 220px;
   flex-shrink: 0;
@@ -46,6 +51,12 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  transition: transform 0.25s ease;
+}
+
+/* Backdrop para fechar sidebar no mobile */
+.contas-root .c-sidebar-backdrop {
+  display: none;
 }
 
 .contas-root .c-sidebar-logo {
@@ -225,3 +236,151 @@
 .contas-root .c-font-bold { font-weight: 700; }
 .contas-root .c-w-full { width: 100%; }
 .contas-root .c-ml-auto { margin-left: auto; }
+
+/* ============================================================
+   RESPONSIVO — MOBILE
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* ── App shell: coluna em vez de linha ── */
+  .contas-root .c-app-shell {
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  /* ── Mobile header bar ── */
+  .contas-root .c-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 56px;
+    background: var(--c-sidebar-bg);
+    flex-shrink: 0;
+    z-index: 100;
+    position: sticky;
+    top: 0;
+  }
+
+  .contas-root .c-mobile-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.2px;
+  }
+
+  /* ── Hamburguer ── */
+  .contas-root .c-hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .contas-root .c-ham-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    transform-origin: center;
+  }
+
+  .contas-root .c-ham-bar.open:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .contas-root .c-ham-bar.open:nth-child(2) { opacity: 0; }
+  .contas-root .c-ham-bar.open:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── Sidebar como drawer lateral ── */
+  .contas-root .c-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 200;
+    transform: translateX(-100%);
+  }
+
+  .contas-root .c-sidebar.c-sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+  }
+
+  /* ── Backdrop escurecido ── */
+  .contas-root .c-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+
+  /* ── Main content: scroll normal ── */
+  .contas-root .c-main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Grids viram coluna única ── */
+  .contas-root .c-grid-4,
+  .contas-root .c-grid-3,
+  .contas-root .c-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* ── Stat values menores ── */
+  .contas-root .c-stat-value { font-size: 20px; }
+
+  /* ── Page header menor ── */
+  .contas-root .c-page-header h2 { font-size: 18px; }
+
+  /* ── Ajuste flex em cabeçalhos de página ── */
+  .contas-root .c-flex.c-items-center.c-justify-between {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* ── Month nav compacto ── */
+  .contas-root .c-month-nav span { min-width: 90px; font-size: 13px; }
+
+  /* ── Tabelas: scroll horizontal ── */
+  .contas-root .c-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .contas-root table { min-width: 600px; }
+
+  /* ── Cards com padding menor ── */
+  .contas-root .c-card { padding: 14px; }
+
+  /* ── Login card ── */
+  .contas-root .c-login-card {
+    width: 92vw;
+    padding: 28px 20px;
+  }
+
+  /* ── Formulário de nova compra ── */
+  .contas-root .c-form-input,
+  .contas-root .c-form-select,
+  .contas-root .c-form-textarea {
+    font-size: 16px; /* evita zoom no iOS ao focar */
+  }
+
+  /* ── Botões maiores para toque ── */
+  .contas-root .c-btn { min-height: 42px; }
+  .contas-root .c-btn-sm { min-height: 34px; }
+
+  /* ── Section title compacto ── */
+  .contas-root .c-section-title { margin-bottom: 8px; }
+
+  /* ── Alertas ── */
+  .contas-root .c-mb-4 { margin-bottom: 12px; }
+}

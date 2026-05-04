@@ -1,4 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const navItems = [
@@ -12,16 +13,49 @@ const navItems = [
 ]
 
 export default function Layout({ session, children }) {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const [open, setOpen] = useState(false)
+
+  // Fecha o menu ao navegar
+  useEffect(() => { setOpen(false) }, [location.pathname])
+
+  // Impede scroll do body quando menu está aberto no mobile
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
 
   async function handleLogout() {
     await supabase.auth.signOut()
     navigate('/contas/login')
   }
 
+  const currentPage = navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to))
+
   return (
     <div className="c-app-shell">
-      <aside className="c-sidebar">
+
+      {/* ── Mobile header ────────────────────────────────────── */}
+      <div className="c-mobile-header">
+        <button className="c-hamburger" onClick={() => setOpen(o => !o)} aria-label="Menu">
+          <span className={`c-ham-bar ${open ? 'open' : ''}`} />
+          <span className={`c-ham-bar ${open ? 'open' : ''}`} />
+          <span className={`c-ham-bar ${open ? 'open' : ''}`} />
+        </button>
+        <span className="c-mobile-title">
+          {currentPage ? `${currentPage.icon} ${currentPage.label}` : '💰 Contas'}
+        </span>
+        <button className="c-hamburger" onClick={() => navigate('/contas/nova')} aria-label="Nova compra" style={{ fontSize: 20 }}>
+          ➕
+        </button>
+      </div>
+
+      {/* ── Overlay backdrop ─────────────────────────────────── */}
+      {open && <div className="c-sidebar-backdrop" onClick={() => setOpen(false)} />}
+
+      {/* ── Sidebar ──────────────────────────────────────────── */}
+      <aside className={`c-sidebar ${open ? 'c-sidebar-open' : ''}`}>
         <div className="c-sidebar-logo">
           <h1>💰 Contas</h1>
           <span>Controle Financeiro</span>
@@ -47,9 +81,11 @@ export default function Layout({ session, children }) {
         </div>
       </aside>
 
+      {/* ── Main content ─────────────────────────────────────── */}
       <main className="c-main-content">
         {children}
       </main>
+
     </div>
   )
 }
