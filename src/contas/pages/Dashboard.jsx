@@ -4,7 +4,8 @@ import { format, addMonths, subMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line
+  PieChart, Pie, Cell, LineChart, Line,
+  BarChart, Bar, Cell as BarCell
 } from 'recharts'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
@@ -146,38 +147,61 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* ── Cartões ── */}
-      <div className="c-card c-mb-4">
-        <div className="c-section-title">Utilização dos Cartões</div>
-        {cardTotals.length === 0
-          ? <div className="c-text-muted c-text-sm">Nenhum gasto neste mês.</div>
-          : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-              {cardTotals.map(c => (
-                <div key={c.id}>
-                  <div className="c-flex c-items-center c-justify-between c-mb-2">
-                    <div className="c-flex c-items-center c-gap-2">
-                      <span className="c-dot" style={{ background: c.color }} />
-                      <span style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</span>
-                    </div>
-                    <div className="c-text-right">
-                      <span style={{ fontWeight: 700, fontSize: 13 }}>{fmt(c.spent)}</span>
-                      {c.limit_amount && <span className="c-text-muted c-text-sm"> / {fmt(c.limit_amount)}</span>}
-                    </div>
+
+      {/* ── Gastos por Pessoa (barra vertical) + Cartões lado a lado ── */}
+      <div className="c-grid-2 c-mb-4">
+        {/* Utilização dos Cartões — formato lista */}
+        <div className="c-card">
+          <div className="c-section-title">Utilização dos Cartões</div>
+          {cardTotals.length === 0
+            ? <div className="c-text-muted c-text-sm">Nenhum gasto neste mês.</div>
+            : cardTotals.map(c => (
+              <div key={c.id} style={{ marginBottom: 12 }}>
+                <div className="c-flex c-items-center c-justify-between c-mb-2">
+                  <div className="c-flex c-items-center c-gap-2">
+                    <span className="c-dot" style={{ background: c.color }} />
+                    <span style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</span>
                   </div>
-                  {c.limit_amount && (
-                    <div className="c-progress-bar">
-                      <div className="c-progress-fill" style={{
-                        width: `${Math.min(c.pct, 100)}%`,
-                        background: c.pct >= 100 ? 'var(--c-danger)' : c.pct >= 80 ? 'var(--c-warning)' : c.color
-                      }} />
-                    </div>
-                  )}
+                  <div className="c-text-right">
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>{fmt(c.spent)}</span>
+                    {c.limit_amount && <span className="c-text-muted c-text-sm"> / {fmt(c.limit_amount)}</span>}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )
-        }
+                {c.limit_amount && (
+                  <div className="c-progress-bar">
+                    <div className="c-progress-fill" style={{
+                      width: `${Math.min(c.pct, 100)}%`,
+                      background: c.pct >= 100 ? 'var(--c-danger)' : c.pct >= 80 ? 'var(--c-warning)' : c.color
+                    }} />
+                  </div>
+                )}
+              </div>
+            ))
+          }
+        </div>
+
+        {/* Gastos por Pessoa — gráfico de barras vertical */}
+        <div className="c-card">
+          <div className="c-section-title">Gastos por Pessoa</div>
+          {personData.length === 0
+            ? <div className="c-text-muted c-text-sm">Nenhum dado.</div>
+            : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={personData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={v => fmt(v)} />
+                  <Bar dataKey="total" radius={[4, 4, 0, 0]}>
+                    {personData.map((p, i) => (
+                      <BarCell key={i} fill={p.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )
+          }
+        </div>
       </div>
 
       <div className="c-grid-2">
