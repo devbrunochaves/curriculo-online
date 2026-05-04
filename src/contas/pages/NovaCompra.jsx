@@ -40,6 +40,8 @@ export default function NovaCompra() {
   const [saving, setSaving]         = useState(false)
   const [error, setError]           = useState('')
   const [success, setSuccess]       = useState(false)
+  const [receipt, setReceipt]       = useState(null)
+  const [receiptPreview, setReceiptPreview] = useState(null)
 
   useEffect(() => {
     async function load() {
@@ -95,6 +97,33 @@ export default function NovaCompra() {
   const diff       = totalNum - splitTotal
   const isValid    = totalNum > 0 && Math.abs(diff) < 0.01 && splitTotal > 0
 
+  function handleReceiptChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setReceipt(file)
+    if (file.type.startsWith('image/')) {
+      setReceiptPreview(URL.createObjectURL(file))
+    } else {
+      setReceiptPreview(null)
+    }
+  }
+
+  function removeReceipt() {
+    setReceipt(null)
+    setReceiptPreview(null)
+  }
+
+  async function uploadReceipt(expenseId, file) {
+    try {
+      const ext  = file.name.split('.').pop()
+      const path = `${expenseId}/comprovante.${ext}`
+      const { error: upErr } = await supabase.storage.from('receipts').upload(path, file, { upsert: true })
+      if (upErr) return null
+      const { data: { publicUrl } } = supabase.storage.from('receipts').getPublicUrl(path)
+      return publicUrl
+    } catch { return null }
+  }
+
   function togglePerson(id) {
     setSplits(prev => { const n = { ...prev }; if (n[id] !== undefined) delete n[id]; else n[id] = ''; return n })
   }
@@ -120,12 +149,18 @@ export default function NovaCompra() {
     try {
       if (editId) {
         // Edição simples (sem parcelamento)
-        await supabase.from('expenses').update({ date, description, card_id: cardId, category_id: catId || null, total_amount: totalNum, month_ref: baseMonthRef, is_fixed: isFixed, notes }).eq('id', editId)
+        const updatePayload = { date, description, card_id: cardId, category_id: catId || null, total_amount: totalNum, month_ref: baseMonthRef, is_fixed: isFixed, notes }
+        if (receipt) {
+          const url = await uploadReceipt(editId, receipt)
+          if (url) updatePayload.receipt_url = url
+        }
+        await supabase.from('expenses').update(updatePayload).eq('id', editId)
         await supabase.from('expense_splits').delete().eq('expense_id', editId)
         const sp = Object.entries(splits).map(([person_id, amt]) => ({ expense_id: editId, person_id, amount: parseBRL(amt) }))
         if (sp.length) await supabase.from('expense_splits').insert(sp)
       } else if (isInstallment && installments > 1) {
-        // Criar N parcelas
+        // Criar N parcelas — comprovante vai na 1ª parcela
+        let firstExpId = null
         for (const p of installmentPreview) {
           const desc = `${description} ${p.index}/${installments}`
           const { data: exp } = await supabase.from('expenses').insert({
@@ -134,13 +169,18 @@ export default function NovaCompra() {
             notes: notes || null
           }).select().single()
           if (exp) {
-            // Splits proporcionais por parcela
+            if (p.index === 1) firstExpId = exp.id
             const sp = Object.entries(splits).map(([person_id, amt]) => ({
               expense_id: exp.id, person_id,
               amount: parseFloat((parseBRL(amt) * p.amount / totalNum).toFixed(2))
             }))
             if (sp.length) await supabase.from('expense_splits').insert(sp)
           }
+        }
+        // Upload do comprovante na 1ª parcela
+        if (receipt && firstExpId) {
+          const url = await uploadReceipt(firstExpId, receipt)
+          if (url) await supabase.from('expenses').update({ receipt_url: url }).eq('id', firstExpId)
         }
       } else {
         // Lançamento único
@@ -151,13 +191,17 @@ export default function NovaCompra() {
         if (exp) {
           const sp = Object.entries(splits).map(([person_id, amt]) => ({ expense_id: exp.id, person_id, amount: parseBRL(amt) }))
           if (sp.length) await supabase.from('expense_splits').insert(sp)
+          if (receipt) {
+            const url = await uploadReceipt(exp.id, receipt)
+            if (url) await supabase.from('expenses').update({ receipt_url: url }).eq('id', exp.id)
+          }
         }
       }
 
       setSaving(false); setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
-        if (!editId) { setDesc(''); setTotal(''); setSplits({}); setNotes(''); setIsInst(false); setInst(2); setDate(format(new Date(), 'yyyy-MM-dd')) }
+        if (!editId) { setDesc(''); setTotal(''); setSplits({}); setNotes(''); setIsInst(false); setInst(2); setDate(format(new Date(), 'yyyy-MM-dd')); setReceipt(null); setReceiptPreview(null) }
         else navigate('/contas/lancamentos')
       }, 1400)
     } catch (err) {
@@ -310,6 +354,53 @@ export default function NovaCompra() {
         <div className="c-form-group c-mt-3">
           <label className="c-form-label">Observações (opcional)</label>
           <textarea className="c-form-textarea" placeholder="Ex: Presente aniversário..." value={notes} onChange={e => setNotes(e.target.value)} rows={2} />
+        </div>
+
+        {/* ── Comprovante ── */}
+        <div className="c-form-group c-mt-3">
+          <label className="c-form-label">Comprovante (opcional)</label>
+          {!receipt ? (
+            <label htmlFor="receipt-upload" style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              border: '2px dashed var(--c-border)', borderRadius: 12, padding: '22px 16px',
+              cursor: 'pointer', background: 'var(--c-bg)', gap: 8, transition: 'border-color 0.2s',
+              userSelect: 'none'
+            }}>
+              <span style={{ fontSize: 36 }}>📎</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--c-text)' }}>Adicionar comprovante</span>
+              <span style={{ fontSize: 12, color: 'var(--c-text-muted)', textAlign: 'center', lineHeight: 1.5 }}>
+                Toque para tirar foto ou escolher da galeria<br/>
+                <span style={{ opacity: 0.7 }}>JPG, PNG ou PDF</span>
+              </span>
+            </label>
+          ) : (
+            <div style={{ border: '2px solid #bbf7d0', borderRadius: 12, overflow: 'hidden', background: '#f0fdf4' }}>
+              {receiptPreview && (
+                <img src={receiptPreview} alt="Comprovante" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', display: 'block' }} />
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <span style={{ fontSize: 18 }}>{receiptPreview ? '🖼️' : '📄'}</span>
+                  <span style={{ fontSize: 13, color: '#15803d', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {receipt.name}
+                  </span>
+                </div>
+                <button type="button" onClick={removeReceipt} style={{
+                  flexShrink: 0, background: 'none', border: '1px solid #fca5a5', borderRadius: 6,
+                  color: '#ef4444', fontSize: 12, padding: '3px 10px', cursor: 'pointer', fontWeight: 600
+                }}>
+                  Remover
+                </button>
+              </div>
+            </div>
+          )}
+          <input
+            id="receipt-upload"
+            type="file"
+            accept="image/*,application/pdf"
+            style={{ display: 'none' }}
+            onChange={handleReceiptChange}
+          />
         </div>
 
         <div className="c-flex c-gap-2 c-mt-4">
