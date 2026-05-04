@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { format, addMonths, subMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts'
 
@@ -24,14 +24,13 @@ export default function Dashboard() {
       .select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))')
       .eq('month_ref', monthRef)
 
-    const { data: cards }      = await supabase.from('cards').select('*').eq('is_active', true)
-    const { data: incomeRows } = await supabase.from('income').select('*').eq('month_ref', monthRef)
+    const { data: cards } = await supabase.from('cards').select('*').eq('is_active', true)
 
     const months = []
     for (let i = 5; i >= 0; i--) months.push(format(subMonths(currentDate, i), 'yyyy-MM'))
     const { data: history } = await supabase.from('expenses').select('total_amount, month_ref').in('month_ref', months)
 
-    setData({ expenses: expenses || [], cards: cards || [], incomeRows: incomeRows || [], history: history || [], months })
+    setData({ expenses: expenses || [], cards: cards || [], history: history || [], months })
     setLoading(false)
   }, [monthRef])
 
@@ -43,13 +42,11 @@ export default function Dashboard() {
     </div>
   )
 
-  const { expenses, cards, incomeRows, history, months } = data
+  const { expenses, cards, history, months } = data
 
   const totalGasto    = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
   const totalFixo     = expenses.filter(e => e.is_fixed).reduce((s, e) => s + Number(e.total_amount), 0)
   const totalVariavel = totalGasto - totalFixo
-  const totalEntradas = incomeRows.reduce((s, r) => s + Number(r.amount), 0)
-  const saldo         = totalEntradas - totalGasto
 
   const cardTotals = cards.map(c => {
     const spent = expenses.filter(e => e.card_id === c.id).reduce((s, e) => s + Number(e.total_amount), 0)
@@ -111,80 +108,76 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="c-grid-4 c-mb-4">
-        <div className="c-card c-stat-card">
-          <div className="c-stat-label">Total Gasto</div>
-          <div className="c-stat-value" style={{ color: 'var(--c-danger)' }}>{fmt(totalGasto)}</div>
-          <div className="c-stat-sub">{expenses.length} lançamentos</div>
+      {/* ── Resumo compacto do mês ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '10px 16px', background: 'var(--c-surface)', borderRadius: 10, boxShadow: 'var(--c-shadow)' }}>
+        <div style={{ fontSize: 13, color: 'var(--c-text-muted)' }}>
+          <strong style={{ color: 'var(--c-text)', fontSize: 15 }}>{fmt(totalGasto)}</strong>
+          {' '}total · {expenses.length} lançamentos
         </div>
-        <div className="c-card c-stat-card">
-          <div className="c-stat-label">Entradas</div>
-          <div className="c-stat-value" style={{ color: 'var(--c-success)' }}>{fmt(totalEntradas)}</div>
-          <div className="c-stat-sub">{incomeRows.length} receitas</div>
-        </div>
-        <div className="c-card c-stat-card">
-          <div className="c-stat-label">Saldo</div>
-          <div className="c-stat-value" style={{ color: saldo >= 0 ? 'var(--c-success)' : 'var(--c-danger)' }}>
-            {fmt(saldo)}
-          </div>
-          <div className="c-stat-sub">{saldo >= 0 ? 'Positivo ✓' : 'Negativo ⚠️'}</div>
-        </div>
-        <div className="c-card c-stat-card">
-          <div className="c-stat-label">Gastos Fixos</div>
-          <div className="c-stat-value">{fmt(totalFixo)}</div>
-          <div className="c-stat-sub">Variável: {fmt(totalVariavel)}</div>
+        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--c-text-muted)' }}>
+          <span>Fixo: <strong>{fmt(totalFixo)}</strong></span>
+          <span>Variável: <strong>{fmt(totalVariavel)}</strong></span>
         </div>
       </div>
 
-      <div className="c-grid-2 c-mb-4">
-        <div className="c-card">
-          <div className="c-section-title">Utilização dos Cartões</div>
-          {cardTotals.length === 0
-            ? <div className="c-text-muted c-text-sm">Nenhum gasto neste mês.</div>
-            : cardTotals.map(c => (
-              <div key={c.id} style={{ marginBottom: 14 }}>
-                <div className="c-flex c-items-center c-justify-between c-mb-2">
-                  <div className="c-flex c-items-center c-gap-2">
-                    <span className="c-dot" style={{ background: c.color }} />
-                    <span style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</span>
-                  </div>
-                  <div className="c-text-right">
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{fmt(c.spent)}</span>
-                    {c.limit_amount && <span className="c-text-muted c-text-sm"> / {fmt(c.limit_amount)}</span>}
-                  </div>
-                </div>
-                {c.limit_amount && (
-                  <div className="c-progress-bar">
-                    <div className="c-progress-fill" style={{
-                      width: `${Math.min(c.pct, 100)}%`,
-                      background: c.pct >= 100 ? 'var(--c-danger)' : c.pct >= 80 ? 'var(--c-warning)' : c.color
-                    }} />
-                  </div>
-                )}
-              </div>
-            ))
-          }
-        </div>
+      {/* ── Cards por pessoa ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+        {personData.length === 0 ? (
+          <div className="c-card c-text-muted c-text-sm" style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24 }}>
+            Nenhum gasto registrado neste mês ainda.
+          </div>
+        ) : personData.map(p => (
+          <div key={p.id} className="c-card" style={{ borderTop: `4px solid ${p.color}`, padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+              <span className="c-dot" style={{ background: p.color, width: 10, height: 10 }} />
+              <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--c-text)' }}>{p.name}</span>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: p.color, letterSpacing: '-0.5px' }}>
+              {fmt(p.total)}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 4 }}>
+              {totalGasto > 0 ? ((p.total / totalGasto) * 100).toFixed(0) : 0}% do total
+            </div>
+            {/* Mini barra proporcional */}
+            <div style={{ marginTop: 8, height: 4, background: 'var(--c-border)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 99, background: p.color, width: `${totalGasto > 0 ? Math.min((p.total / totalGasto) * 100, 100) : 0}%`, transition: 'width 0.4s ease' }} />
+            </div>
+          </div>
+        ))}
+      </div>
 
-        <div className="c-card">
-          <div className="c-section-title">Gastos por Pessoa</div>
-          {personData.length === 0
-            ? <div className="c-text-muted c-text-sm">Nenhum dado.</div>
-            : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={personData} layout="vertical" margin={{ left: 0, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
-                  <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={v => fmt(v)} />
-                  <Bar dataKey="total" radius={[0, 4, 4, 0]}>
-                    {personData.map((p, i) => <Cell key={i} fill={p.color} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )
-          }
-        </div>
+      {/* ── Cartões ── */}
+      <div className="c-card c-mb-4">
+        <div className="c-section-title">Utilização dos Cartões</div>
+        {cardTotals.length === 0
+          ? <div className="c-text-muted c-text-sm">Nenhum gasto neste mês.</div>
+          : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+              {cardTotals.map(c => (
+                <div key={c.id}>
+                  <div className="c-flex c-items-center c-justify-between c-mb-2">
+                    <div className="c-flex c-items-center c-gap-2">
+                      <span className="c-dot" style={{ background: c.color }} />
+                      <span style={{ fontWeight: 500, fontSize: 13 }}>{c.name}</span>
+                    </div>
+                    <div className="c-text-right">
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{fmt(c.spent)}</span>
+                      {c.limit_amount && <span className="c-text-muted c-text-sm"> / {fmt(c.limit_amount)}</span>}
+                    </div>
+                  </div>
+                  {c.limit_amount && (
+                    <div className="c-progress-bar">
+                      <div className="c-progress-fill" style={{
+                        width: `${Math.min(c.pct, 100)}%`,
+                        background: c.pct >= 100 ? 'var(--c-danger)' : c.pct >= 80 ? 'var(--c-warning)' : c.color
+                      }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        }
       </div>
 
       <div className="c-grid-2">
