@@ -9,6 +9,7 @@ import Education   from './components/Education'
 import Contact     from './components/Contact'
 import Footer      from './components/Footer'
 import Estrategia  from './components/Estrategia'
+import ContasApp   from './contas/ContasApp'
 
 function Portfolio() {
   const { c } = useApp()
@@ -28,6 +29,10 @@ function Portfolio() {
 
 function AppContent() {
   const { path } = useRouter()
+
+  if (path.startsWith('/contas')) {
+    return <ContasApp />
+  }
 
   if (path === '/estrategia' || path === '/estrategia/') {
     return <Estrategia />

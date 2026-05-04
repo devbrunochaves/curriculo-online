@@ -1,0 +1,227 @@
+/* ============================================================
+   CONTAS APP — CSS isolado sob .contas-root
+   Não conflita com o portfólio
+   ============================================================ */
+
+.contas-root {
+  --c-bg: #f1f5f9;
+  --c-surface: #ffffff;
+  --c-surface2: #f8fafc;
+  --c-sidebar-bg: #0f172a;
+  --c-sidebar-text: #94a3b8;
+  --c-sidebar-active: #6366f1;
+  --c-sidebar-active-bg: rgba(99,102,241,0.15);
+  --c-text: #0f172a;
+  --c-text-muted: #64748b;
+  --c-border: #e2e8f0;
+  --c-accent: #6366f1;
+  --c-accent-hover: #4f46e5;
+  --c-success: #10b981;
+  --c-warning: #f59e0b;
+  --c-danger: #ef4444;
+  --c-radius: 12px;
+  --c-radius-sm: 8px;
+  --c-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --c-shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.contas-root *, .contas-root *::before, .contas-root *::after {
+  box-sizing: border-box;
+}
+
+/* ===== LAYOUT ===== */
+.contas-root .c-app-shell { display: flex; height: 100vh; overflow: hidden; }
+
+.contas-root .c-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--c-sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.contas-root .c-sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.contas-root .c-sidebar-logo h1 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.3px; margin: 0; }
+.contas-root .c-sidebar-logo span { font-size: 11px; color: var(--c-sidebar-text); }
+
+.contas-root .c-sidebar-nav { padding: 12px 0; flex: 1; }
+.contas-root .c-sidebar-nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  color: var(--c-sidebar-text);
+  text-decoration: none;
+  font-size: 13.5px; font-weight: 500;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+.contas-root .c-sidebar-nav a:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.contas-root .c-sidebar-nav a.active { color: #fff; background: var(--c-sidebar-active-bg); border-left-color: var(--c-sidebar-active); }
+.contas-root .c-nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.contas-root .c-sidebar-footer { padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); }
+.contas-root .c-sidebar-user { font-size: 12px; color: var(--c-sidebar-text); margin-bottom: 8px; }
+.contas-root .c-btn-logout {
+  background: none; border: 1px solid rgba(255,255,255,0.1);
+  color: var(--c-sidebar-text); padding: 6px 12px; border-radius: 6px;
+  cursor: pointer; font-size: 12px; width: 100%; transition: all 0.15s;
+}
+.contas-root .c-btn-logout:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.contas-root .c-main-content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+/* ===== LOADING ===== */
+.contas-root .c-loading-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100vh; gap: 16px; color: var(--c-text-muted);
+}
+.contas-root .c-loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--c-border);
+  border-top-color: var(--c-accent);
+  border-radius: 50%;
+  animation: c-spin 0.7s linear infinite;
+}
+@keyframes c-spin { to { transform: rotate(360deg); } }
+
+/* ===== CARD ===== */
+.contas-root .c-card { background: var(--c-surface); border-radius: var(--c-radius); box-shadow: var(--c-shadow); padding: 20px; }
+.contas-root .c-card-sm { padding: 16px; }
+
+/* ===== PAGE HEADER ===== */
+.contas-root .c-page-header { margin-bottom: 24px; }
+.contas-root .c-page-header h2 { font-size: 22px; font-weight: 700; color: var(--c-text); letter-spacing: -0.3px; margin: 0; }
+.contas-root .c-page-header p { color: var(--c-text-muted); font-size: 13px; margin-top: 2px; }
+
+/* ===== GRID ===== */
+.contas-root .c-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.contas-root .c-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.contas-root .c-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+/* ===== STAT CARD ===== */
+.contas-root .c-stat-card { display: flex; flex-direction: column; gap: 6px; }
+.contas-root .c-stat-label { font-size: 12px; font-weight: 500; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.contas-root .c-stat-value { font-size: 26px; font-weight: 700; color: var(--c-text); letter-spacing: -0.5px; }
+.contas-root .c-stat-sub { font-size: 12px; color: var(--c-text-muted); }
+
+/* ===== BADGE ===== */
+.contas-root .c-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+.contas-root .c-badge-danger { background: #fef2f2; color: var(--c-danger); }
+.contas-root .c-badge-success { background: #f0fdf4; color: var(--c-success); }
+.contas-root .c-badge-warning { background: #fffbeb; color: var(--c-warning); }
+.contas-root .c-badge-info { background: #eff6ff; color: #1e40af; }
+
+/* ===== PROGRESS BAR ===== */
+.contas-root .c-progress-bar { height: 6px; border-radius: 99px; background: var(--c-border); overflow: hidden; }
+.contas-root .c-progress-fill { height: 100%; border-radius: 99px; transition: width 0.4s ease; }
+
+/* ===== BUTTONS ===== */
+.contas-root .c-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 18px; border-radius: var(--c-radius-sm);
+  font-size: 13.5px; font-weight: 600; cursor: pointer; border: none;
+  transition: all 0.15s; text-decoration: none;
+}
+.contas-root .c-btn-primary { background: var(--c-accent); color: #fff; }
+.contas-root .c-btn-primary:hover { background: var(--c-accent-hover); }
+.contas-root .c-btn-secondary { background: var(--c-surface2); color: var(--c-text); border: 1px solid var(--c-border); }
+.contas-root .c-btn-secondary:hover { background: var(--c-border); }
+.contas-root .c-btn-danger { background: #fef2f2; color: var(--c-danger); border: 1px solid #fecaca; }
+.contas-root .c-btn-danger:hover { background: #fee2e2; }
+.contas-root .c-btn-sm { padding: 5px 12px; font-size: 12px; }
+.contas-root .c-btn-full { width: 100%; }
+.contas-root .c-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== FORM ===== */
+.contas-root .c-form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.contas-root .c-form-label { font-size: 12.5px; font-weight: 600; color: var(--c-text); }
+.contas-root .c-form-input, .contas-root .c-form-select, .contas-root .c-form-textarea {
+  padding: 9px 12px; border: 1.5px solid var(--c-border); border-radius: var(--c-radius-sm);
+  font-size: 13.5px; color: var(--c-text); background: var(--c-surface);
+  outline: none; transition: border-color 0.15s; width: 100%; font-family: inherit;
+}
+.contas-root .c-form-input:focus, .contas-root .c-form-select:focus, .contas-root .c-form-textarea:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.contas-root .c-form-textarea { resize: vertical; min-height: 72px; }
+
+/* ===== TABLE ===== */
+.contas-root .c-table-wrap { overflow-x: auto; }
+.contas-root table { width: 100%; border-collapse: collapse; }
+.contas-root thead th {
+  text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600;
+  color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--c-border); background: var(--c-surface2);
+}
+.contas-root tbody td { padding: 11px 14px; font-size: 13.5px; border-bottom: 1px solid var(--c-border); vertical-align: middle; }
+.contas-root tbody tr:last-child td { border-bottom: none; }
+.contas-root tbody tr:hover td { background: var(--c-surface2); }
+
+/* ===== CHIP ===== */
+.contas-root .c-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 99px; font-size: 11.5px; font-weight: 600; }
+
+/* ===== ALERT ===== */
+.contas-root .c-alert { display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: var(--c-radius-sm); font-size: 13px; }
+.contas-root .c-alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.contas-root .c-alert-danger  { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+.contas-root .c-alert-info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+
+/* ===== LOGIN ===== */
+.contas-root .c-login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--c-sidebar-bg); }
+.contas-root .c-login-card { background: var(--c-surface); border-radius: var(--c-radius); padding: 40px 36px; width: 380px; box-shadow: var(--c-shadow-md); }
+.contas-root .c-login-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 4px; margin-top: 0; }
+.contas-root .c-login-card p { color: var(--c-text-muted); font-size: 13px; margin-bottom: 28px; margin-top: 0; }
+
+/* ===== EMPTY STATE ===== */
+.contas-root .c-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 48px 24px; color: var(--c-text-muted); text-align: center; }
+.contas-root .c-empty-state .c-empty-icon { font-size: 40px; margin-bottom: 8px; }
+.contas-root .c-empty-state h3 { font-size: 15px; font-weight: 600; color: var(--c-text); margin: 0; }
+.contas-root .c-empty-state p { font-size: 13px; margin: 0; }
+
+/* ===== SECTION TITLE ===== */
+.contas-root .c-section-title { font-size: 13px; font-weight: 700; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+
+/* ===== DIVIDER ===== */
+.contas-root .c-divider { border: none; border-top: 1px solid var(--c-border); margin: 20px 0; }
+
+/* ===== DOT ===== */
+.contas-root .c-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ===== MONTH NAV ===== */
+.contas-root .c-month-nav { display: flex; align-items: center; gap: 12px; background: var(--c-surface); padding: 8px 14px; border-radius: var(--c-radius-sm); box-shadow: var(--c-shadow); width: fit-content; }
+.contas-root .c-month-nav button { background: none; border: none; cursor: pointer; color: var(--c-text-muted); padding: 2px 6px; border-radius: 4px; font-size: 16px; transition: all 0.15s; }
+.contas-root .c-month-nav button:hover { background: var(--c-bg); color: var(--c-text); }
+.contas-root .c-month-nav span { font-size: 14px; font-weight: 600; color: var(--c-text); min-width: 120px; text-align: center; }
+
+/* ===== UTILITIES ===== */
+.contas-root .c-flex { display: flex; }
+.contas-root .c-flex-col { display: flex; flex-direction: column; }
+.contas-root .c-items-center { align-items: center; }
+.contas-root .c-justify-between { justify-content: space-between; }
+.contas-root .c-gap-2 { gap: 8px; }
+.contas-root .c-gap-3 { gap: 12px; }
+.contas-root .c-gap-4 { gap: 16px; }
+.contas-root .c-mt-1 { margin-top: 4px; }
+.contas-root .c-mt-2 { margin-top: 8px; }
+.contas-root .c-mt-3 { margin-top: 12px; }
+.contas-root .c-mt-4 { margin-top: 16px; }
+.contas-root .c-mb-2 { margin-bottom: 8px; }
+.contas-root .c-mb-3 { margin-bottom: 12px; }
+.contas-root .c-mb-4 { margin-bottom: 16px; }
+.contas-root .c-text-right { text-align: right; }
+.contas-root .c-text-muted { color: var(--c-text-muted); }
+.contas-root .c-text-sm { font-size: 12px; }
+.contas-root .c-font-bold { font-weight: 700; }
+.contas-root .c-w-full { width: 100%; }
+.contas-root .c-ml-auto { margin-left: auto; }
