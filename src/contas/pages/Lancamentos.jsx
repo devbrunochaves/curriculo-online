@@ -6,6 +6,183 @@ import { useNavigate } from 'react-router-dom'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
+/* ── Modal de detalhes ─────────────────────────────────────────── */
+function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
+  // Fecha ao pressionar Escape
+  useEffect(() => {
+    function onKey(ev) { if (ev.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  if (!e) return null
+
+  const isImage = e.receipt_url && !e.receipt_url.toLowerCase().endsWith('.pdf')
+  const isPdf   = e.receipt_url && e.receipt_url.toLowerCase().endsWith('.pdf')
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(3px)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        padding: 0,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={ev => ev.stopPropagation()}
+        style={{
+          background: 'var(--c-surface)',
+          borderRadius: '20px 20px 0 0',
+          width: '100%', maxWidth: 560,
+          maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 -8px 40px rgba(0,0,0,0.18)',
+          animation: 'slideUp 0.22s ease',
+        }}
+      >
+        {/* Handle bar */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--c-border)' }} />
+        </div>
+
+        {/* Header */}
+        <div style={{ padding: '8px 20px 16px', borderBottom: '1px solid var(--c-border)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 19, color: 'var(--c-text)', lineHeight: 1.2 }}>
+                {e.description}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--c-text-muted)', marginTop: 4 }}>
+                {format(new Date(e.date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--c-text)', letterSpacing: '-0.5px' }}>
+                {fmt(e.total_amount)}
+              </div>
+              {e.is_fixed && (
+                <span className="c-chip c-badge-info" style={{ fontSize: 10 }}>FIXO</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* Cartão + Categoria */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Cartão</div>
+              {e.card
+                ? <span className="c-chip" style={{ background: e.card.color + '20', color: e.card.color, fontSize: 13 }}>{e.card.name}</span>
+                : <span className="c-text-muted c-text-sm">—</span>
+              }
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Categoria</div>
+              {e.category
+                ? <span className="c-text-sm">{e.category.icon} {e.category.name}</span>
+                : <span className="c-text-muted c-text-sm">—</span>
+              }
+            </div>
+          </div>
+
+          {/* Pessoas */}
+          {e.splits?.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Divisão</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {e.splits.map(s => (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', borderRadius: 8, background: s.person.color + '12', border: `1px solid ${s.person.color}30` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span className="c-dot" style={{ background: s.person.color }} />
+                      <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--c-text)' }}>{s.person.name}</span>
+                    </div>
+                    <span style={{ fontWeight: 700, fontSize: 14, color: s.person.color }}>{fmt(s.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Observações */}
+          {e.notes && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>Observações</div>
+              <div style={{ fontSize: 13, color: 'var(--c-text)', background: 'var(--c-bg)', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--c-border)' }}>
+                {e.notes}
+              </div>
+            </div>
+          )}
+
+          {/* Comprovante */}
+          {e.receipt_url ? (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>Comprovante</div>
+              {isImage && (
+                <a href={e.receipt_url} target="_blank" rel="noopener noreferrer" style={{ display: 'block' }}>
+                  <img
+                    src={e.receipt_url}
+                    alt="Comprovante"
+                    style={{ width: '100%', maxHeight: 280, objectFit: 'cover', borderRadius: 10, border: '1px solid var(--c-border)', cursor: 'zoom-in' }}
+                  />
+                  <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--c-text-muted)', marginTop: 5 }}>
+                    Toque para ver em tamanho completo
+                  </div>
+                </a>
+              )}
+              {isPdf && (
+                <a href={e.receipt_url} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 10, background: '#eff6ff', border: '1px solid #bfdbfe', textDecoration: 'none', color: '#1e40af' }}>
+                  <span style={{ fontSize: 28 }}>📄</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>Abrir comprovante PDF</div>
+                    <div style={{ fontSize: 11, opacity: 0.7 }}>Toque para abrir em nova aba</div>
+                  </div>
+                  <span style={{ marginLeft: 'auto', fontSize: 18 }}>↗</span>
+                </a>
+              )}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '12px', borderRadius: 10, border: '1.5px dashed var(--c-border)', color: 'var(--c-text-muted)', fontSize: 13 }}>
+              📎 Nenhum comprovante anexado
+            </div>
+          )}
+        </div>
+
+        {/* Footer — ações */}
+        <div style={{ padding: '12px 20px 24px', borderTop: '1px solid var(--c-border)', display: 'flex', gap: 10 }}>
+          <button
+            className="c-btn c-btn-secondary"
+            style={{ flex: 1 }}
+            onClick={() => { onClose(); onEdit(e.id) }}
+          >
+            ✏️ Editar
+          </button>
+          <button
+            className="c-btn c-btn-danger"
+            style={{ flex: 1 }}
+            onClick={() => onDelete(e.id)}
+            disabled={deleting === e.id}
+          >
+            {deleting === e.id ? 'Excluindo...' : '🗑️ Excluir'}
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(60px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+/* ── Página principal ──────────────────────────────────────────── */
 export default function Lancamentos() {
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -18,13 +195,17 @@ export default function Lancamentos() {
   const [filterFixed, setFilterFixed]   = useState('')
   const [search, setSearch]             = useState('')
   const [deleting, setDeleting]         = useState(null)
+  const [selected, setSelected]         = useState(null)  // expense aberta no modal
 
   const monthRef = format(currentDate, 'yyyy-MM')
 
   const load = useCallback(async () => {
     setLoading(true)
     const [{ data: exp }, { data: c }, { data: p }] = await Promise.all([
-      supabase.from('expenses').select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))').eq('month_ref', monthRef).order('date', { ascending: false }),
+      supabase.from('expenses')
+        .select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))')
+        .eq('month_ref', monthRef)
+        .order('date', { ascending: false }),
       supabase.from('cards').select('*').eq('is_active', true),
       supabase.from('people').select('*').eq('is_active', true),
     ])
@@ -40,6 +221,7 @@ export default function Lancamentos() {
     await supabase.from('expenses').delete().eq('id', id)
     setExpenses(prev => prev.filter(e => e.id !== id))
     setDeleting(null)
+    setSelected(null)
   }
 
   let filtered = expenses
@@ -67,6 +249,7 @@ export default function Lancamentos() {
         </div>
       </div>
 
+      {/* Filtros */}
       <div className="c-card c-mb-4">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12 }}>
           <div>
@@ -120,14 +303,22 @@ export default function Lancamentos() {
               </thead>
               <tbody>
                 {filtered.map(e => (
-                  <tr key={e.id}>
+                  <tr
+                    key={e.id}
+                    onClick={() => setSelected(e)}
+                    style={{ cursor: 'pointer' }}
+                    className="c-table-row-hover"
+                  >
                     <td style={{ whiteSpace: 'nowrap', color: 'var(--c-text-muted)', fontSize: 12 }}>
                       {format(new Date(e.date + 'T12:00:00'), 'dd/MM/yy')}
                     </td>
                     <td>
                       <div style={{ fontWeight: 500 }}>{e.description}</div>
                       {e.notes && <div className="c-text-muted c-text-sm">{e.notes}</div>}
-                      {e.is_fixed && <span className="c-chip c-badge-info" style={{ fontSize: 10 }}>FIXO</span>}
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 2 }}>
+                        {e.is_fixed && <span className="c-chip c-badge-info" style={{ fontSize: 10 }}>FIXO</span>}
+                        {e.receipt_url && <span style={{ fontSize: 10, color: '#16a34a' }}>📎</span>}
+                      </div>
                     </td>
                     <td>
                       {e.card && <span className="c-chip" style={{ background: e.card.color + '20', color: e.card.color }}>{e.card.name}</span>}
@@ -143,7 +334,7 @@ export default function Lancamentos() {
                       </div>
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{fmt(e.total_amount)}</td>
-                    <td>
+                    <td onClick={ev => ev.stopPropagation()}>
                       <div className="c-flex c-gap-2">
                         <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => navigate(`/contas/nova?edit=${e.id}`)}>✏️</button>
                         <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(e.id)} disabled={deleting === e.id}>🗑️</button>
@@ -155,6 +346,17 @@ export default function Lancamentos() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Modal de detalhes */}
+      {selected && (
+        <ExpenseModal
+          expense={selected}
+          onClose={() => setSelected(null)}
+          onEdit={id => navigate(`/contas/nova?edit=${id}`)}
+          onDelete={handleDelete}
+          deleting={deleting}
+        />
       )}
     </div>
   )
