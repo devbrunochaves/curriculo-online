@@ -42,11 +42,11 @@ function AppContent() {
     )
   }
 
-  if (path === '/estrategia' || path === '/estrategia/') {
+  if (path.startsWith('/estrategia')) {
     return <Estrategia />
   }
 
-  if (path === '/conteudos' || path === '/conteudos/') {
+  if (path.startsWith('/conteudos')) {
     return <Conteudos />
   }
 
