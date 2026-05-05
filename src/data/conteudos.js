@@ -284,7 +284,7 @@ Curioso sobre alguma etapa específica? Me pergunta nos comentários. 👇
       { mark: 'Slide 4',          text: 'O PROCESSO:\n→ Briefing aprofundado (mercado, concorrência, público-alvo)\n→ Pesquisa de referências visuais do segmento\n→ 3 conceitos apresentados\n→ 2 rodadas de revisão\n→ Brand guide completo' },
       { mark: 'Slide 5',          text: 'IDENTIDADE VISUAL:\nMostre o resultado: logo, paleta de cores, tipografia. "Cada decisão visual tem uma razão estratégica por trás."' },
       { mark: 'Slide 6',          text: 'APLICAÇÕES:\nMostre mockups reais: cartão de visita, pasta, site, redes sociais. "Marca não é só logo. É experiência consistente em todos os pontos de contato."' },
-      { mark: 'Slide 7',          text: 'O RESULTADO:\n"[Depoimento do cliente ou resultado observado]. [Antes e depois em números se tiver: 'o cliente dobrou os seguidores em 60 dias' / 'fechou 3 contratos na primeira semana com o novo visual']"' },
+      { mark: 'Slide 7',          text: 'O RESULTADO:\n"[Depoimento do cliente ou resultado observado]. [Antes e depois em números se tiver: cliente dobrou os seguidores em 60 dias / fechou 3 contratos na primeira semana com o novo visual]"' },
       { mark: 'Slide 8 · CTA',    text: '"Quer ver mais cases? Acessa o link na bio.\nQuer um projeto assim? Me chama no direct ou pelo link da bio. 📩"\n@obrunochaves' },
     ],
 
@@ -325,7 +325,7 @@ Tem algum projeto com esse tipo de desafio? Me conta nos comentários — adoro 
 
     script: [
       { mark: 'Hook · 0–5s',        text: 'Câmera no rosto: "Se você tem um site e ele não está trazendo clientes, provavelmente é por um desses 4 motivos."' },
-      { mark: 'Erro 1 · 5–17s',     text: 'Corte ou texto na tela — "1. SEM CTA CLARO"\n"Seu visitante não sabe o que fazer depois de ler a página. Não deixe ele adivinhar. Coloque um botão de ação em cada dobra da página: 'Quero um orçamento', 'Fale comigo agora', 'Começa aqui'."' },
+      { mark: 'Erro 1 · 5–17s',     text: 'Corte ou texto na tela — "1. SEM CTA CLARO"\n"Seu visitante não sabe o que fazer depois de ler a página. Não deixe ele adivinhar. Coloque um botão de ação em cada dobra da página: Quero um orçamento / Fale comigo agora / Começa aqui."' },
       { mark: 'Erro 2 · 17–28s',    text: '"2. HIERARQUIA VISUAL BAGUNÇADA"\n"O olho humano precisa de um caminho. Se o design tiver 3 coisas com o mesmo peso visual, o cérebro desiste de processar. Defina o que é mais importante e deixe isso óbvio."' },
       { mark: 'Erro 3 · 28–40s',    text: '"3. SEM PROVA SOCIAL"\n"Depoimento de cliente vale mais do que qualquer texto que você escreva sobre si mesmo. Se você tem resultado, mostra. Se não tem, peça para alguém que você já ajudou te dar um relato honesto."' },
       { mark: 'Erro 4 · 40–50s',    text: '"4. CARREGAMENTO LENTO"\n"Cada segundo a mais de carregamento custa você 20% dos visitantes. Site lento é cliente perdido. Isso é técnico — e é exatamente onde design + dev faz diferença."' },
@@ -415,7 +415,7 @@ Qual dessas já está no seu arsenal? 👇
 
     script: [
       { mark: 'Hook · 0–5s',        text: 'Câmera no rosto, tom direto: "Tem uma coisa que o mercado de design erra sistematicamente, e todo mundo finge que não vê."' },
-      { mark: 'Desenvolvimento · 5–35s', text: '"A maioria dos designers vende estética. O cliente pede 'algo bonito', o designer entrega algo bonito, e ninguém pergunta: bonito para quem? Bonito com qual objetivo?\n\nDesign não é sobre o gosto do designer. Não é sobre o gosto do cliente. É sobre o que o público-alvo precisa sentir para tomar a ação que o negócio precisa.\n\nQuando você pensa assim, a conversa com o cliente muda completamente. Você não defende 'eu acho que essa cor fica melhor'. Você explica: 'essa cor gera confiança com o perfil de cliente que você quer atrair'.\n\nIsso é o que separa um designer estratégico de um executor de arquivo."' },
+      { mark: 'Desenvolvimento · 5–35s', text: '"A maioria dos designers vende estética. O cliente pede algo bonito, o designer entrega algo bonito, e ninguém pergunta: bonito para quem? Bonito com qual objetivo?\n\nDesign não é sobre o gosto do designer. Não é sobre o gosto do cliente. É sobre o que o público-alvo precisa sentir para tomar a ação que o negócio precisa.\n\nQuando você pensa assim, a conversa muda. Você não defende: eu acho que essa cor fica melhor. Você explica: essa cor gera confiança com o perfil de cliente que você quer atrair.\n\nIsso é o que separa um designer estratégico de um executor de arquivo."' },
       { mark: 'CTA · 35–45s',       text: '"Concorda? Discorda? Me conta nos comentários. Adoro um debate de ideias."' },
     ],
 
@@ -461,7 +461,7 @@ Concorda? Discorda? 👇`,
       { mark: 'Slide 1 · Capa',   text: '"O que aprendi em 20 anos de design\nque ninguém te conta no começo"\n@obrunochaves · Designer & Dev desde [ano]' },
       { mark: 'Slide 2',          text: '1. O CLIENTE NEM SEMPRE SABE O QUE QUER\n"Ele sabe o que sente falta. Cabe a você traduzir isso em solução visual. Fazer as perguntas certas vale mais do que executar rápido o pedido errado."' },
       { mark: 'Slide 3',          text: '2. PORTFÓLIO É CONSEQUÊNCIA, NÃO OBJETIVO\n"Pare de esperar o projeto perfeito para montar seu portfólio. O portfólio que atrai bons clientes é feito de projetos que você executou com intenção — não com sorte."' },
-      { mark: 'Slide 4',          text: '3. VOCÊ VAI SER COMPARADO COM O CANVA\n"E tudo bem. Sua resposta não é 'sou melhor que o Canva'. É: 'o Canva cria layouts. Eu crio estratégia visual com resultado mensurável.' Quem quer resultado vai te contratar."' },
+      { mark: 'Slide 4',          text: '3. VOCÊ VAI SER COMPARADO COM O CANVA\n"E tudo bem. Sua resposta não é \"sou melhor que o Canva\". É: o Canva cria layouts, eu crio estratégia visual com resultado mensurável. Quem quer resultado vai te contratar."' },
       { mark: 'Slide 5',          text: '4. COBRAR MAIS ATRAI CLIENTES MELHORES\n"Soa contra-intuitivo. Mas cliente que não valoriza design sempre negocia preço, pede desconto e não implementa suas sugestões. Eleve seu preço e filtre quem realmente quer o que você oferece."' },
       { mark: 'Slide 6',          text: '5. COMUNICAÇÃO É TÃO IMPORTANTE QUANTO DESIGN\n"O cliente que te recomenda não descreve sua paleta de cores. Descreve como você o fez sentir durante o projeto. Prazo, clareza, updates regulares — esses são seus superpoderes invisíveis."' },
       { mark: 'Slide 7',          text: '6. APRENDA UMA HABILIDADE ADJACENTE\n"Coding, copywriting, SEO, gestão de projeto. A combinação de design + qualquer outra coisa te coloca em uma categoria de um. Eu escolhi desenvolvimento — foi o que multiplicou meu valor."' },
