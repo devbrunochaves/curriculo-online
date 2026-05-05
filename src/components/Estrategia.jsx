@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import Navbar from './Navbar'
+import { POSTS } from '../data/conteudos'
+
+const WEEK_THEMES = {
+  1: 'Reapresentação — quem é Bruno Chaves hoje',
+  2: 'Tutorial — mostre o que você sabe fazer',
+  3: 'Case + Conversão — resultado real gera confiança',
+  4: 'Opinião forte — 20 anos te dão credibilidade pra isso',
+}
 
 /* ── helpers ── */
 function SecLabel({ children }) {
@@ -118,51 +126,182 @@ function HeroPhrase({ children, sub }) {
   )
 }
 
-/* ── Post item ── */
+/* ── Post accordion ── */
 const FMT = {
-  Reel:      { bg: 'rgba(219,39,119,0.08)', bd: 'rgba(219,39,119,0.20)', txt: '#be185d' },
-  Carrossel: { bg: 'rgba(8,74,138,0.07)',   bd: 'rgba(8,74,138,0.18)',   txt: '#084a8a' },
-  Arte:      { bg: 'rgba(5,150,105,0.08)',  bd: 'rgba(5,150,105,0.20)',  txt: '#047857' },
+  'Reel':       { bg: 'rgba(219,39,119,0.08)', bd: 'rgba(219,39,119,0.20)', txt: '#be185d' },
+  'Carrossel':  { bg: 'rgba(8,74,138,0.07)',   bd: 'rgba(8,74,138,0.18)',   txt: '#084a8a' },
+  'Arte / Foto':{ bg: 'rgba(5,150,105,0.08)',  bd: 'rgba(5,150,105,0.20)',  txt: '#047857' },
 }
 const PILLAR_CLR = { Educação: '#0884b4', Autoridade: '#084a8a', Conversão: '#047857', Conexão: '#be185d' }
 
-function PostItem({ day, fmt, title, desc, pillar }) {
-  const { c } = useApp()
-  const f = FMT[fmt] || FMT.Reel
+function CopyBtn({ text }) {
+  const [copied, setCopied] = useState(false)
+  const handle = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
   return (
-    <Card style={{ padding: '16px 20px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '70px 90px 1fr', gap: 14, alignItems: 'start' }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: c.muted, paddingTop: 3 }}>{day}</span>
-        <span style={{
-          fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase',
-          padding: '4px 10px', borderRadius: 8, textAlign: 'center',
-          background: f.bg, border: `1px solid ${f.bd}`, color: f.txt, alignSelf: 'start',
-        }}>{fmt}</span>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: c.primary }}>{title}</div>
-          <div style={{ fontSize: 12, color: c.muted, marginBottom: 6, lineHeight: 1.55 }}>{desc}</div>
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: PILLAR_CLR[pillar] }}>
-            ● {pillar}
-          </span>
-        </div>
-      </div>
-    </Card>
+    <button onClick={handle} style={{
+      fontSize: 10, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase',
+      padding: '4px 12px', borderRadius: 6, cursor: 'pointer',
+      background: copied ? 'rgba(5,150,105,0.12)' : 'rgba(55,168,222,0.08)',
+      border: `1px solid ${copied ? 'rgba(5,150,105,0.3)' : 'rgba(55,168,222,0.25)'}`,
+      color: copied ? '#047857' : '#0884b4',
+      transition: 'all 0.2s', flexShrink: 0,
+    }}>
+      {copied ? '✓ Copiado!' : 'Copiar'}
+    </button>
   )
 }
 
-function WeekBlock({ num, theme, posts }) {
+function PostAccordion({ post }) {
   const { c } = useApp()
+  const [open, setOpen] = useState(false)
+  const f = FMT[post.format] || FMT['Reel']
+
+  return (
+    <div style={{
+      background: c.card,
+      border: `1px solid ${open ? 'rgba(55,168,222,0.35)' : c.border}`,
+      borderRadius: 14,
+      overflow: 'hidden',
+      transition: 'border-color 0.25s, box-shadow 0.25s',
+      boxShadow: open ? '0 8px 28px rgba(8,74,138,0.08)' : 'none',
+    }}>
+
+      {/* Header clicável */}
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: '100%', display: 'grid',
+        gridTemplateColumns: '70px 95px 1fr 28px',
+        gap: 14, alignItems: 'start',
+        padding: '16px 20px', background: 'none', border: 'none',
+        cursor: 'pointer', textAlign: 'left',
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: c.muted, paddingTop: 3 }}>
+          {post.day.replace('-feira', '')}
+        </span>
+        <span style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase',
+          padding: '4px 8px', borderRadius: 7, textAlign: 'center',
+          background: f.bg, border: `1px solid ${f.bd}`, color: f.txt, alignSelf: 'start',
+        }}>{post.format}</span>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 4, color: c.primary }}>
+            {post.title}
+          </div>
+          <div style={{ fontSize: 12, color: c.muted, lineHeight: 1.5 }}>
+            {post.objective}
+          </div>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase',
+            color: PILLAR_CLR[post.pillar], display: 'block', marginTop: 6 }}>
+            ● {post.pillar}
+          </span>
+        </div>
+        <span style={{
+          fontSize: 16, color: c.accent, paddingTop: 4, alignSelf: 'start',
+          transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s',
+          display: 'flex', justifyContent: 'center',
+        }}>↓</span>
+      </button>
+
+      {/* Conteúdo expandido */}
+      {open && (
+        <div style={{ padding: '0 20px 24px', borderTop: `1px solid ${c.border}`, paddingTop: 20 }}>
+
+          {/* Roteiro */}
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: c.accent, marginBottom: 10 }}>
+            {post.format === 'Carrossel' ? 'Roteiro · Slide a slide' : post.format === 'Arte / Foto' ? 'Orientações visuais' : 'Roteiro · Bloco a bloco'}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+            {post.script.map((item, i) => (
+              <div key={i} style={{
+                display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12,
+                background: c.bg2, borderRadius: 9, padding: '12px 14px',
+                border: `1px solid ${c.border}`,
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: c.accent, lineHeight: 1.5 }}>
+                  {item.mark}
+                </span>
+                <p style={{ fontSize: 12, color: c.muted, margin: 0, lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Legenda */}
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#047857', marginBottom: 8 }}>
+            Legenda completa
+          </p>
+          <div style={{ position: 'relative', marginBottom: 20 }}>
+            <pre style={{
+              fontFamily: 'inherit', fontSize: 12, color: c.muted,
+              background: c.bg2, border: `1px solid ${c.border}`,
+              borderRadius: 9, padding: '14px 14px 14px 14px',
+              whiteSpace: 'pre-wrap', lineHeight: 1.7, margin: 0,
+            }}>{post.caption}</pre>
+            <div style={{ position: 'absolute', top: 10, right: 10 }}>
+              <CopyBtn text={post.caption} />
+            </div>
+          </div>
+
+          {/* Hashtags */}
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#be185d', marginBottom: 8 }}>
+            Hashtags
+          </p>
+          <div style={{ position: 'relative', marginBottom: 20 }}>
+            <pre style={{
+              fontFamily: 'inherit', fontSize: 12, color: c.muted,
+              background: c.bg2, border: `1px solid ${c.border}`,
+              borderRadius: 9, padding: '12px 14px',
+              whiteSpace: 'pre-wrap', lineHeight: 1.7, margin: 0,
+            }}>{post.hashtags}</pre>
+            <div style={{ position: 'absolute', top: 10, right: 10 }}>
+              <CopyBtn text={post.hashtags} />
+            </div>
+          </div>
+
+          {/* Dicas de produção */}
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#7c3aed', marginBottom: 8 }}>
+            Dicas de produção
+          </p>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {post.tips.map((tip, i) => (
+              <li key={i} style={{
+                fontSize: 12, color: c.muted,
+                padding: '8px 12px 8px 26px', position: 'relative',
+                background: c.bg2, borderRadius: 8,
+                border: `1px solid ${c.border}`, lineHeight: 1.55,
+              }}>
+                <span style={{ position: 'absolute', left: 10, color: c.accent }}>→</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WeekBlock({ weekNum }) {
+  const { c } = useApp()
+  const posts = POSTS.filter(p => p.week === weekNum)
+  const theme = WEEK_THEMES[weekNum]
   return (
     <div style={{ marginBottom: 40 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: c.accent, whiteSpace: 'nowrap' }}>
-          {num}
+          Semana {weekNum}
         </span>
         <span style={{ fontSize: 14, fontWeight: 600, color: c.primary }}>{theme}</span>
         <div style={{ flex: 1, height: 1, background: c.border }} />
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {posts.map((p, i) => <PostItem key={i} {...p} />)}
+        {posts.map(post => <PostAccordion key={post.id} post={post} />)}
       </div>
     </div>
   )
@@ -408,29 +547,10 @@ export default function Estrategia() {
             <strong style={{ color: c.primary }}>Bom e publicado vale mais que perfeito na gaveta.</strong>
           </p>
 
-          <WeekBlock num="Semana 1" theme="Reapresentação — quem é Bruno Chaves hoje" posts={[
-            { day: 'Terça', fmt: 'Reel', title: '"Quem sou eu e por que você deveria me seguir"', desc: '30–60 seg olhando para a câmera. Apresente-se: 20 anos de design, você também programa, domina do Figma ao React. Sem roteiro decorado — fale como para um amigo.', pillar: 'Conexão' },
-            { day: 'Quinta', fmt: 'Carrossel', title: '"5 erros de design que vi repetir nos últimos 20 anos"', desc: 'Slide 1: gancho forte. Slides 2–6: um erro por slide com exemplo visual. Slide final: CTA para seguir. Fácil de salvar e compartilhar.', pillar: 'Educação' },
-            { day: 'Sábado', fmt: 'Arte', title: '"Antes e depois: projeto real da semana"', desc: 'Pegue um projeto seu (mesmo antigo) e mostre o estado inicial vs o resultado final. Legenda conta a história: problema do cliente → solução.', pillar: 'Autoridade' },
-          ]} />
-
-          <WeekBlock num="Semana 2" theme="Tutorial — mostre o que você sabe fazer" posts={[
-            { day: 'Terça', fmt: 'Reel', title: '"Como criar um botão de CTA que converte em 60 segundos"', desc: 'Tela gravada do Figma ou código. Resultado visual impressionante, processo simples. Educa o designer e prova ao empresário que você domina.', pillar: 'Educação' },
-            { day: 'Quarta', fmt: 'Carrossel', title: '"Designer ou desenvolvedor? Por que você precisa dos dois — e como eu faço os dois sozinho"', desc: 'Posicionamento claro do seu diferencial. Explique a diferença, os custos de contratar separado, e como você resolve isso em um único projeto.', pillar: 'Conversão' },
-            { day: 'Sexta', fmt: 'Reel', title: '"Bastidores: meu processo de criação de um site do zero"', desc: 'Briefing → wireframe → design no Figma → código em React → entrega. Vídeo rápido, visual, com música. Mostra competência sem precisar explicar.', pillar: 'Autoridade' },
-          ]} />
-
-          <WeekBlock num="Semana 3" theme="Case + Conversão — resultado real gera confiança" posts={[
-            { day: 'Segunda', fmt: 'Carrossel', title: '"Case completo: como transformamos a marca X em [resultado concreto]"', desc: 'Apresente um cliente real (com permissão) ou anônimo. Problema → processo → solução → resultado. Slides com imagens reais. É o conteúdo que mais converte.', pillar: 'Conversão' },
-            { day: 'Quarta', fmt: 'Reel', title: '"Por que sua landing page não está convertendo (e como consertar)"', desc: 'Fale diretamente para empresários. Liste 3–4 erros comuns: sem CTA forte, hierarquia ruim, sem prova social. Encerra com CTA para o seu portfólio.', pillar: 'Conversão' },
-            { day: 'Sábado', fmt: 'Carrossel', title: '"As 7 fontes que todo designer deveria ter no arsenal"', desc: 'Conteúdo leve, fácil de salvar, alto engajamento. Tipografia prática com contexto de uso real. Clássico que sempre performa bem.', pillar: 'Educação' },
-          ]} />
-
-          <WeekBlock num="Semana 4" theme="Opinião forte — 20 anos te dão credibilidade pra isso" posts={[
-            { day: 'Terça', fmt: 'Reel', title: '"Uma coisa que o mercado de design erra que ninguém fala"', desc: 'Opinião forte baseada em experiência real. Discorde de algo que seja senso comum. Gera engajamento genuíno — concordo/discordo nos comentários = alcance orgânico.', pillar: 'Autoridade' },
-            { day: 'Quinta', fmt: 'Carrossel', title: '"O que aprendi em 20 anos de design que ninguém te conta no começo"', desc: '7–10 slides com aprendizados reais, linguagem direta. Excelente para salvar e compartilhar — seu público vai enviar para outros designers.', pillar: 'Autoridade' },
-            { day: 'Sábado', fmt: 'Reel', title: '"Meu setup de trabalho — tudo que uso para criar sites e designs"', desc: 'Conexão com toque de autoridade. Mostra equipamento, Figma, React, VS Code, Adobe. Humaniza você e desperta curiosidade nos designers.', pillar: 'Conexão' },
-          ]} />
+          <WeekBlock weekNum={1} />
+          <WeekBlock weekNum={2} />
+          <WeekBlock weekNum={3} />
+          <WeekBlock weekNum={4} />
         </section>
 
         {/* 06 — PRODUÇÃO */}

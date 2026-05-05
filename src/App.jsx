@@ -10,7 +10,6 @@ import Education   from './components/Education'
 import Contact     from './components/Contact'
 import Footer      from './components/Footer'
 import Estrategia  from './components/Estrategia'
-import Conteudos   from './components/Conteudos'
 
 // Import lazy — só carrega quando o usuário acessa /contas
 const ContasApp = lazy(() => import('./contas/ContasApp'))
@@ -44,10 +43,6 @@ function AppContent() {
 
   if (path.startsWith('/estrategia')) {
     return <Estrategia />
-  }
-
-  if (path.startsWith('/conteudos')) {
-    return <Conteudos />
   }
 
   return <Portfolio />
