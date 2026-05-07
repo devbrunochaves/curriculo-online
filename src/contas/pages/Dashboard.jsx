@@ -11,7 +11,7 @@ import {
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
 export default function Dashboard() {
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const [currentDate, setCurrentDate] = useState(addMonths(new Date(), 1))
   const [data, setData]   = useState(null)
   const [loading, setLoading] = useState(true)
 
