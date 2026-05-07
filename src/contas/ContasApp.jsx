@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from './lib/supabase'
 import Layout from './components/Layout'
 import Login from './pages/Login'
@@ -43,27 +43,25 @@ export default function ContasApp() {
 
   return (
     <div className="contas-root">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/contas/login" element={session ? <Navigate to="/contas/" replace /> : <Login />} />
-          <Route path="/contas/*" element={
-            <ProtectedRoute session={session}>
-              <Layout session={session}>
-                <Routes>
-                  <Route index element={<Dashboard />} />
-                  <Route path="nova" element={<NovaCompra />} />
-                  <Route path="lancamentos" element={<Lancamentos />} />
-                  <Route path="pessoas" element={<Pessoas />} />
-                  <Route path="previsao" element={<Previsao />} />
-                  <Route path="cartoes" element={<Cartoes />} />
-                  <Route path="configuracoes" element={<Configuracoes />} />
-                </Routes>
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="*" element={<Navigate to="/contas/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route path="/contas/login" element={session ? <Navigate to="/contas/" replace /> : <Login />} />
+        <Route path="/contas/*" element={
+          <ProtectedRoute session={session}>
+            <Layout session={session}>
+              <Routes>
+                <Route index element={<Dashboard />} />
+                <Route path="nova" element={<NovaCompra />} />
+                <Route path="lancamentos" element={<Lancamentos />} />
+                <Route path="pessoas" element={<Pessoas />} />
+                <Route path="previsao" element={<Previsao />} />
+                <Route path="cartoes" element={<Cartoes />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+              </Routes>
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<Navigate to="/contas/" replace />} />
+      </Routes>
     </div>
   )
 }

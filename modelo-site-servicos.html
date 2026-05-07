@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bruno Chaves | Design que Converte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #F5F1EA;
+    --bg2:      #EDE8DE;
+    --dark:     #050D1A;
+    --dark2:    #091428;
+    --blue:     #084a8a;
+    --accent:   #37a8de;
+    --accent2:  #5bc4f5;
+    --white:    #ffffff;
+    --text:     #050D1A;
+    --muted:    rgba(5,13,26,0.55);
+    --card:     #ffffff;
+    --border:   rgba(8,74,138,0.10);
+    --r:        16px;
+    --r2:       24px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── ANIMATIONS ─────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes slideRight {
+    from { opacity: 0; transform: translateX(-40px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .animate-fadeUp   { animation: fadeUp   0.7s cubic-bezier(.22,1,.36,1) both; }
+  .animate-fadeIn   { animation: fadeIn   0.6s ease both; }
+  .animate-scaleIn  { animation: scaleIn  0.6s cubic-bezier(.22,1,.36,1) both; }
+  .animate-float    { animation: float    4s ease-in-out infinite; }
+
+  .delay-1  { animation-delay: 0.1s; }
+  .delay-2  { animation-delay: 0.2s; }
+  .delay-3  { animation-delay: 0.35s; }
+  .delay-4  { animation-delay: 0.5s; }
+  .delay-5  { animation-delay: 0.65s; }
+
+  /* ── NAVBAR ─────────────────────────────────── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(245,241,234,0.88);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 70px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .nav-logo-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 900; font-size: 14px;
+  }
+  .nav-logo span {
+    color: var(--blue); font-weight: 700; font-size: 15px;
+  }
+  .nav-links {
+    display: flex; align-items: center; gap: 28px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text); font-size: 14px; text-decoration: none;
+    opacity: 0.65; transition: opacity 0.2s;
+  }
+  .nav-links a:hover { opacity: 1; }
+  .btn-nav {
+    display: flex; align-items: center; gap: 8px;
+    background: #25D366; color: #fff;
+    border: none; border-radius: 10px; padding: 10px 20px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .btn-nav:hover { background: #1ebe5d; transform: translateY(-1px); }
+
+  /* ── HERO ────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 32px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg-blob {
+    position: absolute;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(55,168,222,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -100px; right: -200px;
+    pointer-events: none;
+  }
+  .hero-bg-blob2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(8,74,138,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    bottom: 0; left: -100px;
+    pointer-events: none;
+  }
+  .hero-inner {
+    max-width: 1100px; margin: 0 auto; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(55,168,222,0.12); border: 1px solid rgba(55,168,222,0.25);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .hero-badge-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); animation: pulse 2s ease-in-out infinite;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 5vw, 64px);
+    font-weight: 900; line-height: 1.08;
+    color: var(--dark); margin-bottom: 12px;
+  }
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    font-size: 18px; color: var(--muted); line-height: 1.7;
+    margin-bottom: 40px; max-width: 480px;
+  }
+  .hero-ctas {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 56px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    color: #fff; border: none; border-radius: 14px;
+    padding: 16px 32px; font-size: 15px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s; display: inline-block;
+    box-shadow: 0 8px 24px rgba(55,168,222,0.30);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(55,168,222,0.40); }
+  .btn-secondary {
+    background: transparent; color: var(--blue);
+    border: 1.5px solid rgba(8,74,138,0.25); border-radius: 14px;
+    padding: 15px 32px; font-size: 15px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s; display: inline-block;
+  }
+  .btn-secondary:hover { border-color: var(--blue); background: rgba(8,74,138,0.05); }
+  .hero-stats {
+    display: flex; gap: 32px;
+  }
+  .hero-stat-val { font-size: 28px; font-weight: 900; color: var(--blue); }
+  .hero-stat-lbl { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* Hero card visual */
+  .hero-visual {
+    position: relative; display: flex; justify-content: center;
+  }
+  .hero-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 32px 80px rgba(8,74,138,0.12);
+    width: 100%; max-width: 400px;
+    animation: float 5s ease-in-out infinite;
+  }
+  .hero-card-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+  }
+  .hero-card-avatar {
+    width: 46px; height: 46px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 900; font-size: 16px;
+  }
+  .hero-card-name { font-weight: 700; font-size: 15px; }
+  .hero-card-role { font-size: 12px; color: var(--muted); }
+  .hero-card-services {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .hero-card-pill {
+    background: var(--bg);
+    border-radius: 10px; padding: 10px 12px;
+    font-size: 12px; font-weight: 600; color: var(--blue);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .hero-card-pill-icon {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(55,168,222,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .hero-card-cta {
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    color: #fff; border: none; border-radius: 12px;
+    padding: 13px; width: 100%; font-size: 14px; font-weight: 700;
+    cursor: pointer;
+  }
+  .hero-card-badge {
+    position: absolute; top: -16px; right: -16px;
+    background: #fff; border-radius: 14px;
+    padding: 10px 16px;
+    box-shadow: 0 8px 32px rgba(8,74,138,0.14);
+    font-size: 12px; font-weight: 700; color: var(--blue);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .hero-card-badge2 {
+    position: absolute; bottom: 20px; left: -20px;
+    background: #fff; border-radius: 14px;
+    padding: 10px 16px;
+    box-shadow: 0 8px 32px rgba(8,74,138,0.14);
+    font-size: 12px; font-weight: 600; color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .star { color: #f5c518; font-size: 14px; }
+
+  /* ── MARQUEE / TICKER ────────────────────────── */
+  .marquee-section {
+    background: var(--dark);
+    padding: 20px 0;
+    overflow: hidden;
+  }
+  .marquee-track {
+    display: flex; gap: 0;
+    animation: marquee 22s linear infinite;
+    width: max-content;
+  }
+  .marquee-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 0 36px;
+    white-space: nowrap;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .marquee-dot { color: var(--accent); font-size: 8px; }
+
+  /* ── SECTION LAYOUT ──────────────────────────── */
+  section { padding: 100px 32px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(55,168,222,0.10); border: 1px solid rgba(55,168,222,0.20);
+    border-radius: 100px; padding: 6px 16px;
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 900; line-height: 1.12;
+    color: var(--dark); margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 17px; color: var(--muted); line-height: 1.7;
+    max-width: 560px;
+  }
+  .section-header { margin-bottom: 60px; }
+  .section-header.center { text-align: center; }
+  .section-header.center .section-sub { margin: 0 auto; }
+
+  /* ── SERVICES ────────────────────────────────── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .service-card {
+    background: var(--white);
+    border-radius: var(--r2);
+    padding: 32px;
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .service-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--blue));
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .service-card:hover { transform: translateY(-6px); box-shadow: 0 24px 60px rgba(8,74,138,0.10); }
+  .service-card:hover::before { opacity: 1; }
+  .service-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: rgba(55,168,222,0.10);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 20px;
+  }
+  .service-title { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+  .service-desc  { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+  .service-tags  { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .service-tag {
+    background: var(--bg); border-radius: 8px;
+    padding: 4px 12px; font-size: 11px; font-weight: 600; color: var(--blue);
+  }
+  .service-cta {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--accent); font-size: 14px; font-weight: 700;
+    text-decoration: none; transition: gap 0.2s;
+  }
+  .service-card:hover .service-cta { gap: 12px; }
+
+  /* Destaque card */
+  .service-card.featured {
+    background: var(--dark);
+    border-color: transparent;
+  }
+  .service-card.featured .service-title { color: #fff; }
+  .service-card.featured .service-desc  { color: rgba(255,255,255,0.55); }
+  .service-card.featured .service-tag   { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+  .service-card.featured .service-icon  { background: rgba(55,168,222,0.15); }
+  .service-card.featured .service-cta   { color: var(--accent2); }
+  .service-card.featured::before        { opacity: 1; }
+  .service-badge {
+    position: absolute; top: 24px; right: 24px;
+    background: var(--accent); color: #fff;
+    border-radius: 8px; padding: 4px 12px;
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ── HOW IT WORKS ────────────────────────────── */
+  .hiw-section { background: var(--dark); }
+  .hiw-section .section-title { color: #fff; }
+  .hiw-section .section-sub   { color: rgba(255,255,255,0.55); }
+  .hiw-section .section-label { background: rgba(55,168,222,0.15); border-color: rgba(55,168,222,0.25); }
+
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    position: relative;
+  }
+  .steps-grid::before {
+    content: '';
+    position: absolute; top: 32px; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(55,168,222,0.3), var(--accent), rgba(55,168,222,0.3), transparent);
+  }
+  .step-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--r2); padding: 32px 24px;
+    text-align: center; position: relative;
+    transition: all 0.3s;
+  }
+  .step-card:hover { background: rgba(255,255,255,0.07); transform: translateY(-4px); }
+  .step-num {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 900; color: #fff;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(55,168,222,0.30);
+  }
+  .step-title { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+  .step-desc  { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+
+  /* ── PORTFOLIO ───────────────────────────────── */
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .portfolio-item {
+    border-radius: var(--r2); overflow: hidden;
+    aspect-ratio: 4/3;
+    background: var(--bg2);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .portfolio-item:hover { transform: scale(1.02); }
+  .portfolio-item:first-child { grid-column: span 2; }
+  .portfolio-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(5,13,26,0.85), transparent);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 24px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .portfolio-item:hover .portfolio-overlay { opacity: 1; }
+  .portfolio-tag {
+    background: var(--accent); color: #fff;
+    border-radius: 6px; padding: 4px 10px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    display: inline-block; margin-bottom: 8px; width: fit-content;
+  }
+  .portfolio-name { color: #fff; font-size: 16px; font-weight: 700; }
+
+  /* Placeholder visual para os cards de portfólio */
+  .portfolio-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600;
+    color: var(--muted); flex-direction: column; gap: 12px;
+  }
+  .portfolio-placeholder .ph-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: rgba(55,168,222,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+  }
+  .p1 { background: linear-gradient(135deg, #e8f4fc, #cce8f7); }
+  .p2 { background: linear-gradient(135deg, #f0ede5, #e5e0d4); }
+  .p3 { background: linear-gradient(135deg, #f0f5e8, #deeecb); }
+  .p4 { background: linear-gradient(135deg, #f5eaf0, #edd5e4); }
+
+  /* ── ABOUT ───────────────────────────────────── */
+  .about-inner {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .about-img {
+    border-radius: var(--r2);
+    aspect-ratio: 4/5;
+    background: var(--bg2);
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 80px;
+  }
+  .about-img::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(55,168,222,0.15), rgba(8,74,138,0.15));
+  }
+  .about-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+  .about-tag {
+    background: rgba(55,168,222,0.10); border: 1px solid rgba(55,168,222,0.20);
+    border-radius: 10px; padding: 8px 16px;
+    font-size: 13px; font-weight: 600; color: var(--blue);
+  }
+  .about-p { font-size: 16px; color: var(--muted); line-height: 1.8; margin-bottom: 20px; }
+  .about-highlights { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+  .about-hl {
+    background: var(--bg2); border-radius: 14px; padding: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .about-hl-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(55,168,222,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .about-hl-text { font-size: 13px; font-weight: 600; color: var(--dark); }
+  .about-hl-val  { font-size: 18px; font-weight: 900; color: var(--blue); }
+
+  /* ── BRIEFING CTA ────────────────────────────── */
+  .briefing-section {
+    background: linear-gradient(135deg, var(--dark2), var(--dark));
+    position: relative; overflow: hidden;
+  }
+  .briefing-blob {
+    position: absolute; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(55,168,222,0.15) 0%, transparent 70%);
+    top: -200px; right: -100px; border-radius: 50%;
+    pointer-events: none;
+  }
+  .briefing-inner {
+    text-align: center; position: relative; z-index: 1;
+  }
+  .briefing-section .section-title { color: #fff; }
+  .briefing-section .section-sub   { color: rgba(255,255,255,0.55); margin: 0 auto 40px; }
+  .briefing-ctas { display: flex; align-items: center; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn-white {
+    background: #fff; color: var(--blue);
+    border: none; border-radius: 14px;
+    padding: 16px 32px; font-size: 15px; font-weight: 700;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s; display: inline-block;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.20);
+  }
+  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.30); }
+  .btn-ghost-white {
+    background: transparent; color: rgba(255,255,255,0.75);
+    border: 1.5px solid rgba(255,255,255,0.20); border-radius: 14px;
+    padding: 15px 32px; font-size: 15px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+    transition: all 0.2s; display: inline-block;
+  }
+  .btn-ghost-white:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* Trust pills */
+  .trust-bar {
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    flex-wrap: wrap; margin-top: 48px;
+  }
+  .trust-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 100px; padding: 8px 18px;
+    color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 500;
+  }
+  .trust-pill-icon { font-size: 16px; }
+
+  /* ── FOOTER ──────────────────────────────────── */
+  footer {
+    background: var(--dark); padding: 60px 32px 32px;
+  }
+  .footer-inner {
+    max-width: 1100px; margin: 0 auto;
+  }
+  .footer-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 40px; margin-bottom: 48px;
+  }
+  .footer-brand { max-width: 280px; }
+  .footer-brand p { color: rgba(255,255,255,0.45); font-size: 14px; line-height: 1.7; margin-top: 14px; }
+  .footer-links-group h4 { color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .footer-links-group a { display: block; color: rgba(255,255,255,0.45); font-size: 14px; text-decoration: none; margin-bottom: 10px; transition: color 0.2s; }
+  .footer-links-group a:hover { color: #fff; }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    color: rgba(255,255,255,0.30); font-size: 13px;
+  }
+  .footer-socials { display: flex; gap: 12px; }
+  .footer-social {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.5); font-size: 16px; text-decoration: none;
+    transition: all 0.2s;
+  }
+  .footer-social:hover { background: rgba(55,168,222,0.15); border-color: var(--accent); color: var(--accent); }
+
+  /* ── SCROLL REVEAL ───────────────────────────── */
+  .reveal {
+    opacity: 0; transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(.22,1,.36,1), transform 0.7s cubic-bezier(.22,1,.36,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.32s; }
+  .reveal-delay-4 { transition-delay: 0.45s; }
+  .reveal-delay-5 { transition-delay: 0.58s; }
+
+  /* ── RESPONSIVE ──────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero-inner      { grid-template-columns: 1fr; gap: 60px; }
+    .hero-visual     { order: -1; }
+    .about-inner     { grid-template-columns: 1fr; }
+    .steps-grid      { grid-template-columns: 1fr 1fr; }
+    .portfolio-grid  { grid-template-columns: 1fr 1fr; }
+    .portfolio-item:first-child { grid-column: span 1; }
+    .footer-top      { flex-direction: column; }
+    nav              { padding: 0 20px; }
+    .nav-links       { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">BC</div>
+    <span>Bruno Chaves</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#servicos">Serviços</a></li>
+    <li><a href="#como-funciona">Como Funciona</a></li>
+    <li><a href="#portfolio">Portfólio</a></li>
+    <li><a href="#sobre">Sobre</a></li>
+  </ul>
+  <a href="https://wa.me/5500000000000" class="btn-nav">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+    Falar no WhatsApp
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-blob"></div>
+  <div class="hero-bg-blob2"></div>
+  <div class="hero-inner container">
+
+    <div>
+      <div class="hero-badge animate-fadeUp">
+        <div class="hero-badge-dot"></div>
+        Disponível para novos projetos
+      </div>
+      <h1 class="animate-fadeUp delay-1">
+        Design que<br/>
+        <span class="highlight">gera resultado</span><br/>
+        de verdade.
+      </h1>
+      <p class="hero-sub animate-fadeUp delay-2">
+        Identidade visual, sites, Google Meu Negócio e muito mais —
+        para pequenas e médias empresas que querem crescer online com profissionalismo.
+      </p>
+      <div class="hero-ctas animate-fadeUp delay-3">
+        <a href="#servicos" class="btn-primary">Ver serviços</a>
+        <a href="#portfolio" class="btn-secondary">Ver portfólio</a>
+      </div>
+      <div class="hero-stats animate-fadeUp delay-4">
+        <div>
+          <div class="hero-stat-val">+20</div>
+          <div class="hero-stat-lbl">Anos de experiência</div>
+        </div>
+        <div style="width:1px;background:var(--border)"></div>
+        <div>
+          <div class="hero-stat-val">+80</div>
+          <div class="hero-stat-lbl">Projetos entregues</div>
+        </div>
+        <div style="width:1px;background:var(--border)"></div>
+        <div>
+          <div class="hero-stat-val">100%</div>
+          <div class="hero-stat-lbl">Satisfação garantida</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual animate-scaleIn delay-2">
+      <div class="hero-card">
+        <div class="hero-card-header">
+          <div class="hero-card-avatar">BC</div>
+          <div>
+            <div class="hero-card-name">Bruno Chaves</div>
+            <div class="hero-card-role">Designer & Desenvolvedor</div>
+          </div>
+        </div>
+        <div class="hero-card-services">
+          <div class="hero-card-pill">
+            <div class="hero-card-pill-icon">🎨</div>
+            Identidade Visual
+          </div>
+          <div class="hero-card-pill">
+            <div class="hero-card-pill-icon">🌐</div>
+            Sites & Landing Pages
+          </div>
+          <div class="hero-card-pill">
+            <div class="hero-card-pill-icon">📍</div>
+            Google Meu Negócio
+          </div>
+          <div class="hero-card-pill">
+            <div class="hero-card-pill-icon">📱</div>
+            Posts para Social
+          </div>
+        </div>
+        <button class="hero-card-cta">Solicitar briefing grátis →</button>
+      </div>
+      <div class="hero-card-badge">
+        ⭐ 5.0 · Avaliação dos clientes
+      </div>
+      <div class="hero-card-badge2">
+        ✅ Entrega em até 15 dias úteis
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <div class="marquee-item">Identidade Visual <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Google Meu Negócio <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Sites Profissionais <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Landing Pages <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Posts para Social Media <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Logotipos <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Branding Completo <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Design que Converte <span class="marquee-dot">●</span></div>
+    <!-- duplicado para loop perfeito -->
+    <div class="marquee-item">Identidade Visual <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Google Meu Negócio <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Sites Profissionais <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Landing Pages <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Posts para Social Media <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Logotipos <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Branding Completo <span class="marquee-dot">●</span></div>
+    <div class="marquee-item">Design que Converte <span class="marquee-dot">●</span></div>
+  </div>
+</div>
+
+<!-- SERVIÇOS -->
+<section id="servicos">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-label">Serviços</div>
+      <h2 class="section-title">Tudo que sua marca<br/>precisa para crescer.</h2>
+      <p class="section-sub">Do logotipo ao site completo — entrego soluções visuais e digitais que geram resultado para o seu negócio.</p>
+    </div>
+    <div class="services-grid">
+
+      <div class="service-card featured reveal reveal-delay-1">
+        <div class="service-badge">+ Pedido</div>
+        <div class="service-icon">🎨</div>
+        <div class="service-title">Identidade Visual</div>
+        <div class="service-desc">Logotipo profissional, paleta de cores, tipografia, papelaria e manual da marca completo. Sua empresa passa credibilidade desde o primeiro olhar.</div>
+        <div class="service-tags">
+          <span class="service-tag">Logotipo</span>
+          <span class="service-tag">Manual da marca</span>
+          <span class="service-tag">Papelaria</span>
+          <span class="service-tag">Cores & Tipografia</span>
+        </div>
+        <a href="#" class="service-cta">Ver pacotes →</a>
+      </div>
+
+      <div class="service-card reveal reveal-delay-2">
+        <div class="service-icon">📍</div>
+        <div class="service-title">Google Meu Negócio</div>
+        <div class="service-desc">Criação e otimização completa do seu perfil no Google. Seja encontrado por clientes locais que estão prontos para comprar.</div>
+        <div class="service-tags">
+          <span class="service-tag">Criação do perfil</span>
+          <span class="service-tag">SEO local</span>
+          <span class="service-tag">Fotos otimizadas</span>
+        </div>
+        <a href="#" class="service-cta">Saiba mais →</a>
+      </div>
+
+      <div class="service-card reveal reveal-delay-3">
+        <div class="service-icon">🌐</div>
+        <div class="service-title">Sites Profissionais</div>
+        <div class="service-desc">Sites modernos, rápidos e responsivos que representam sua marca com excelência e convertem visitantes em clientes.</div>
+        <div class="service-tags">
+          <span class="service-tag">ReactJS</span>
+          <span class="service-tag">Mobile-first</span>
+          <span class="service-tag">SEO</span>
+          <span class="service-tag">Performance</span>
+        </div>
+        <a href="#" class="service-cta">Ver exemplos →</a>
+      </div>
+
+      <div class="service-card reveal reveal-delay-1">
+        <div class="service-icon">🚀</div>
+        <div class="service-title">Landing Pages</div>
+        <div class="service-desc">Páginas de alta conversão criadas para campanhas de tráfego pago, lançamentos e captação de leads. Cada elemento pensado para gerar resultado.</div>
+        <div class="service-tags">
+          <span class="service-tag">Alta conversão</span>
+          <span class="service-tag">Tráfego pago</span>
+          <span class="service-tag">A/B test ready</span>
+        </div>
+        <a href="#" class="service-cta">Ver exemplos →</a>
+      </div>
+
+      <div class="service-card reveal reveal-delay-2">
+        <div class="service-icon">📱</div>
+        <div class="service-title">Posts para Social Media</div>
+        <div class="service-desc">Conteúdo visual profissional para Instagram, Facebook e LinkedIn. Packs mensais com artes que seguem sua identidade de marca.</div>
+        <div class="service-tags">
+          <span class="service-tag">Instagram</span>
+          <span class="service-tag">Feed & Stories</span>
+          <span class="service-tag">Pack mensal</span>
+          <span class="service-tag">Artes editáveis</span>
+        </div>
+        <a href="#" class="service-cta">Ver pacotes →</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como-funciona" class="hiw-section">
+  <div class="container">
+    <div class="section-header center reveal">
+      <div class="section-label">Processo</div>
+      <h2 class="section-title">Como funciona?</h2>
+      <p class="section-sub">Um processo simples e transparente, do briefing à entrega final.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-num">1</div>
+        <div class="step-title">Briefing</div>
+        <div class="step-desc">Você preenche o briefing online com todas as informações sobre seu negócio e objetivos. Gratuito e sem compromisso.</div>
+      </div>
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-num">2</div>
+        <div class="step-title">Proposta & Alinhamento</div>
+        <div class="step-desc">Envio uma proposta personalizada e alinhamos os detalhes pelo WhatsApp antes de começar qualquer trabalho.</div>
+      </div>
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-num">3</div>
+        <div class="step-title">Criação</div>
+        <div class="step-desc">Com pagamento confirmado, inicio o projeto. Você acompanha o progresso e tem direito a rodadas de revisão.</div>
+      </div>
+      <div class="step-card reveal reveal-delay-4">
+        <div class="step-num">4</div>
+        <div class="step-title">Entrega</div>
+        <div class="step-desc">Entrego todos os arquivos organizados, em alta resolução, prontos para usar em qualquer plataforma.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFÓLIO -->
+<section id="portfolio">
+  <div class="container">
+    <div class="section-header reveal" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px">
+      <div>
+        <div class="section-label">Portfólio</div>
+        <h2 class="section-title">Projetos recentes.</h2>
+      </div>
+      <a href="#" class="btn-secondary" style="margin-bottom:0">Ver todos os projetos →</a>
+    </div>
+    <div class="portfolio-grid">
+      <div class="portfolio-item p1 reveal">
+        <div class="portfolio-placeholder">
+          <div class="ph-icon">🎨</div>
+          Identidade Visual — Clínica Médica
+        </div>
+        <div class="portfolio-overlay">
+          <span class="portfolio-tag">Identidade Visual</span>
+          <span class="portfolio-name">Clínica Exemplo — Branding completo</span>
+        </div>
+      </div>
+      <div class="portfolio-item p2 reveal reveal-delay-1">
+        <div class="portfolio-placeholder">
+          <div class="ph-icon">🌐</div>
+          Site — Escritório de Advocacia
+        </div>
+        <div class="portfolio-overlay">
+          <span class="portfolio-tag">Site</span>
+          <span class="portfolio-name">Escritório Legal — Site profissional</span>
+        </div>
+      </div>
+      <div class="portfolio-item p3 reveal reveal-delay-1">
+        <div class="portfolio-placeholder">
+          <div class="ph-icon">📍</div>
+          Google Meu Negócio — Restaurante
+        </div>
+        <div class="portfolio-overlay">
+          <span class="portfolio-tag">Google Meu Negócio</span>
+          <span class="portfolio-name">Restaurante — SEO local</span>
+        </div>
+      </div>
+      <div class="portfolio-item p4 reveal reveal-delay-2">
+        <div class="portfolio-placeholder">
+          <div class="ph-icon">🚀</div>
+          Landing Page — Curso Online
+        </div>
+        <div class="portfolio-overlay">
+          <span class="portfolio-tag">Landing Page</span>
+          <span class="portfolio-name">Curso Online — Alta conversão</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOBRE -->
+<section id="sobre" style="background:var(--bg2)">
+  <div class="container">
+    <div class="about-inner">
+      <div class="about-img animate-float">
+        👨‍💻
+      </div>
+      <div>
+        <div class="section-label reveal">Sobre</div>
+        <h2 class="section-title reveal">+20 anos criando marcas que ficam na memória.</h2>
+        <p class="about-p reveal">Sou Bruno Chaves, designer gráfico e desenvolvedor front-end com mais de 20 anos de experiência criando identidades visuais, interfaces digitais e materiais de alto impacto.</p>
+        <p class="about-p reveal">Trabalho com pequenas e médias empresas que querem profissionalizar sua presença visual e digital — do logotipo ao site completo.</p>
+        <div class="about-tags reveal">
+          <span class="about-tag">Adobe Creative Suite</span>
+          <span class="about-tag">Figma</span>
+          <span class="about-tag">ReactJS</span>
+          <span class="about-tag">Branding</span>
+          <span class="about-tag">UI/UX</span>
+        </div>
+        <div class="about-highlights reveal">
+          <div class="about-hl">
+            <div class="about-hl-icon">📅</div>
+            <div>
+              <div class="about-hl-val">+20 anos</div>
+              <div class="about-hl-text">de experiência</div>
+            </div>
+          </div>
+          <div class="about-hl">
+            <div class="about-hl-icon">✅</div>
+            <div>
+              <div class="about-hl-val">+80 projetos</div>
+              <div class="about-hl-text">entregues</div>
+            </div>
+          </div>
+          <div class="about-hl">
+            <div class="about-hl-icon">🌍</div>
+            <div>
+              <div class="about-hl-val">2 países</div>
+              <div class="about-hl-text">de atuação</div>
+            </div>
+          </div>
+          <div class="about-hl">
+            <div class="about-hl-icon">⭐</div>
+            <div>
+              <div class="about-hl-val">5.0</div>
+              <div class="about-hl-text">avaliação média</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BRIEFING CTA -->
+<section class="briefing-section">
+  <div class="briefing-blob"></div>
+  <div class="container">
+    <div class="briefing-inner">
+      <div class="section-label reveal" style="margin:0 auto 20px">Vamos começar?</div>
+      <h2 class="section-title reveal" style="color:#fff">Pronto para ter uma marca<br/>que gera resultado?</h2>
+      <p class="section-sub reveal">Preencha o briefing gratuito em menos de 10 minutos e receba uma proposta personalizada em até 24 horas.</p>
+      <div class="briefing-ctas reveal">
+        <a href="/briefing" class="btn-white">Preencher briefing grátis →</a>
+        <a href="https://wa.me/5500000000000" class="btn-ghost-white">Falar no WhatsApp</a>
+      </div>
+      <div class="trust-bar reveal">
+        <div class="trust-pill"><span class="trust-pill-icon">🔒</span> Sem compromisso</div>
+        <div class="trust-pill"><span class="trust-pill-icon">⚡</span> Resposta em até 24h</div>
+        <div class="trust-pill"><span class="trust-pill-icon">✅</span> 100% gratuito</div>
+        <div class="trust-pill"><span class="trust-pill-icon">🏆</span> +20 anos de experiência</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" style="text-decoration:none">
+          <div class="nav-logo-icon">BC</div>
+          <span style="color:#fff;font-weight:700;font-size:15px">Bruno Chaves</span>
+        </a>
+        <p>Designer gráfico e desenvolvedor front-end com +20 anos criando marcas e experiências digitais que geram resultado.</p>
+      </div>
+      <div class="footer-links-group">
+        <h4>Serviços</h4>
+        <a href="#">Identidade Visual</a>
+        <a href="#">Google Meu Negócio</a>
+        <a href="#">Sites Profissionais</a>
+        <a href="#">Landing Pages</a>
+        <a href="#">Posts para Social</a>
+      </div>
+      <div class="footer-links-group">
+        <h4>Links</h4>
+        <a href="#">Portfólio</a>
+        <a href="#">Briefing</a>
+        <a href="#">Sobre</a>
+        <a href="/curriculo">Currículo</a>
+      </div>
+      <div class="footer-links-group">
+        <h4>Contato</h4>
+        <a href="mailto:brunochaves2102@gmail.com">brunochaves2102@gmail.com</a>
+        <a href="https://wa.me/5500000000000">WhatsApp</a>
+        <a href="#">Instagram</a>
+        <a href="#">LinkedIn</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Bruno Chaves. Todos os direitos reservados.</span>
+      <div class="footer-socials">
+        <a href="#" class="footer-social">in</a>
+        <a href="#" class="footer-social">ig</a>
+        <a href="#" class="footer-social">be</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Navbar solid on scroll
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    nav.style.boxShadow = window.scrollY > 60
+      ? '0 4px 30px rgba(8,74,138,0.08)'
+      : 'none';
+  });
+</script>
+</body>
+</html>
