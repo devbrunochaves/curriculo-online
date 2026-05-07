@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { useRouter } from '../hooks/useRouter'
 
 const FLAGS = [
   { code: 'pt', src: '/flag-br.svg', label: 'Português' },
@@ -9,6 +10,7 @@ const FLAGS = [
 
 export default function Navbar() {
   const { c, t, isDark, toggleDark, lang, setLang } = useApp()
+  const { navigate } = useRouter()
   const [solid, setSolid] = useState(false)
   const [open,  setOpen]  = useState(false)
 
@@ -81,6 +83,22 @@ export default function Navbar() {
             {nav.contact}
           </a>
 
+          {/* Briefing CTA */}
+          <button
+            onClick={() => navigate('/briefing')}
+            style={{
+              padding: '8px 18px', fontSize: 13, fontWeight: 700,
+              borderRadius: 10, border: 'none', cursor: 'pointer',
+              background: 'linear-gradient(135deg, #37a8de, #084a8a)',
+              color: '#fff',
+              transition: 'opacity 0.2s, transform 0.15s',
+            }}
+            onMouseOver={e => { e.currentTarget.style.opacity = '0.88'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+            onMouseOut={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)' }}
+          >
+            {nav.briefing}
+          </button>
+
           {/* Separator */}
           <div style={{ width: 1, height: 22, background: c.border, flexShrink: 0 }} />
 
@@ -148,10 +166,23 @@ export default function Navbar() {
             style={{
               display: 'block', padding: '12px 0', color: c.primary,
               textDecoration: 'none', fontSize: 15,
+              borderBottom: `1px solid ${c.borderLight}`,
             }}
           >
             {nav.contact}
           </a>
+          <button
+            onClick={() => { setOpen(false); navigate('/briefing') }}
+            style={{
+              display: 'block', width: '100%', marginTop: 14,
+              padding: '13px 0', textAlign: 'center',
+              background: 'linear-gradient(135deg, #37a8de, #084a8a)',
+              color: '#fff', fontWeight: 700, fontSize: 15,
+              border: 'none', borderRadius: 12, cursor: 'pointer',
+            }}
+          >
+            {nav.briefing}
+          </button>
         </div>
       )}
     </nav>

@@ -11,8 +11,9 @@ import Contact     from './components/Contact'
 import Footer      from './components/Footer'
 import Estrategia  from './components/Estrategia'
 
-// Import lazy — só carrega quando o usuário acessa /contas
-const ContasApp = lazy(() => import('./contas/ContasApp'))
+// Import lazy — só carrega quando necessário
+const ContasApp  = lazy(() => import('./contas/ContasApp'))
+const Briefing   = lazy(() => import('./pages/Briefing'))
 
 function Portfolio() {
   const { c } = useApp()
@@ -43,6 +44,14 @@ function AppContent() {
 
   if (path.startsWith('/estrategia')) {
     return <Estrategia />
+  }
+
+  if (path.startsWith('/briefing')) {
+    return (
+      <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontFamily:'sans-serif', color:'#64748b' }}>Carregando...</div>}>
+        <Briefing />
+      </Suspense>
+    )
   }
 
   return <Portfolio />

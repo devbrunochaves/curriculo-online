@@ -7,6 +7,7 @@ const pt = {
     experience: 'Experiência',
     education:  'Formação',
     contact:    'Contato',
+    briefing:   'Briefing',
   },
 
   hero: {
@@ -181,6 +182,7 @@ const en = {
     experience: 'Experience',
     education:  'Education',
     contact:    'Contact',
+    briefing:   'Briefing',
   },
 
   hero: {
@@ -355,6 +357,7 @@ const es = {
     experience: 'Experiencia',
     education:  'Formación',
     contact:    'Contacto',
+    briefing:   'Briefing',
   },
 
   hero: {
