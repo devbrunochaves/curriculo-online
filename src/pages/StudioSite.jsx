@@ -499,6 +499,7 @@ export default function StudioSite() {
           <li><a href="#servicos">Serviços</a></li>
           <li><a href="#sobre">Sobre</a></li>
           <li><a href="#contato">Contato</a></li>
+          <li><a href="/blog">Blog</a></li>
         </ul>
         <a href={WA} className="sp-nav-cta" target="_blank" rel="noreferrer">
           {WA_PATH} WhatsApp
@@ -514,6 +515,7 @@ export default function StudioSite() {
         <a href="#servicos" onClick={() => setMenuOpen(false)}>Serviços</a>
         <a href="#sobre" onClick={() => setMenuOpen(false)}>Sobre</a>
         <a href="#contato" onClick={() => setMenuOpen(false)}>Contato</a>
+        <a href="/blog" onClick={() => setMenuOpen(false)}>Blog</a>
         <a href={WA} className="sp-mm-cta" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>
           WhatsApp
         </a>
