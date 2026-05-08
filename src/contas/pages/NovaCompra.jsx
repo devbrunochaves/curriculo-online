@@ -201,8 +201,8 @@ export default function NovaCompra() {
       setSaving(false); setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
-        if (!editId) { setDesc(''); setTotal(''); setSplits({}); setNotes(''); setIsInst(false); setInst(2); setDate(format(new Date(), 'yyyy-MM-dd')); setReceipt(null); setReceiptPreview(null) }
-        else navigate('/contas/lancamentos')
+        if (editId) navigate('/contas/lancamentos')
+        else navigate('/contas/')
       }, 1400)
     } catch (err) {
       setError(err.message || 'Erro ao salvar.')
