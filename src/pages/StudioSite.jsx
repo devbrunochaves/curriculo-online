@@ -72,6 +72,41 @@ const CSS = `
 .studio-page .sp-nav-cta:hover{border-color:var(--sp-black);background:rgba(10,10,10,.04);transform:translateY(-1px)}
 .studio-page .sp-nav-hamburger{display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--sp-black);padding:4px 8px}
 
+/* ── MOBILE MENU DRAWER ── */
+.studio-page .sp-mobile-menu{
+  display:none;
+  position:fixed;inset:0;z-index:199;
+  background:var(--sp-bg);
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+  opacity:0;transform:translateY(-12px);
+  transition:opacity .3s ease,transform .3s ease;
+  pointer-events:none;
+}
+.studio-page .sp-mobile-menu.open{
+  opacity:1;transform:translateY(0);
+  pointer-events:all;
+}
+.studio-page .sp-mobile-menu a{
+  display:block;
+  font-size:28px;font-weight:800;letter-spacing:-1px;
+  color:var(--sp-black);text-decoration:none;
+  padding:18px 0;
+  border-bottom:1px solid var(--sp-gray-light);
+  width:80%;text-align:center;
+  transition:color .2s;
+}
+.studio-page .sp-mobile-menu a:last-child{border-bottom:none}
+.studio-page .sp-mobile-menu a:hover{color:var(--sp-pink)}
+.studio-page .sp-mobile-menu .sp-mm-cta{
+  margin-top:32px;
+  background:var(--sp-pink);color:var(--sp-white);
+  border:none;padding:16px 40px;
+  font-size:15px;font-weight:700;letter-spacing:.5px;
+  cursor:pointer;text-decoration:none;
+}
+.studio-page .sp-mobile-menu .sp-mm-cta:hover{background:#0089cc;color:var(--sp-white)}
+
 /* ── HERO ── */
 .studio-page .sp-hero{
   min-height:100vh;
@@ -370,6 +405,7 @@ const CSS = `
   .studio-page nav{padding:0 20px}
   .studio-page .sp-nav-links,.studio-page .sp-nav-cta{display:none}
   .studio-page .sp-nav-hamburger{display:block}
+  .studio-page .sp-mobile-menu{display:flex}
   .studio-page .sp-hero{padding:90px 20px 60px}
   .studio-page .sp-hero h1{letter-spacing:-1.5px}
   .studio-page .sp-hero-stats{gap:24px}
@@ -417,6 +453,7 @@ export default function StudioSite() {
   const [solid, setSolid] = useState(false)
   const [openFaq, setOpenFaq] = useState(0)
   const [activeFilter, setActiveFilter] = useState('all')
+  const [menuOpen, setMenuOpen] = useState(false)
   const { navigate } = useRouter()
 
   /* Inject / remove scoped CSS */
@@ -465,8 +502,21 @@ export default function StudioSite() {
         <a href={WA} className="sp-nav-cta" target="_blank" rel="noreferrer">
           {WA_PATH} WhatsApp
         </a>
-        <button className="sp-nav-hamburger" onClick={() => document.querySelector('.sp-nav-links')?.classList.toggle('sp-open')}>☰</button>
+        <button className="sp-nav-hamburger" onClick={() => setMenuOpen(o => !o)}>
+          {menuOpen ? '✕' : '☰'}
+        </button>
       </nav>
+
+      {/* ── MOBILE MENU DRAWER ── */}
+      <div className={`sp-mobile-menu${menuOpen ? ' open' : ''}`}>
+        <a href="#projetos" onClick={() => setMenuOpen(false)}>Projetos</a>
+        <a href="#servicos" onClick={() => setMenuOpen(false)}>Serviços</a>
+        <a href="#sobre" onClick={() => setMenuOpen(false)}>Sobre</a>
+        <a href="#contato" onClick={() => setMenuOpen(false)}>Contato</a>
+        <a href={WA} className="sp-mm-cta" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>
+          WhatsApp
+        </a>
+      </div>
 
       {/* ── HERO ── */}
       <section className="sp-hero" id="inicio">
