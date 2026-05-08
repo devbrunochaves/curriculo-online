@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useRouter } from '../../hooks/useRouter'
+import { useRouter } from 'next/navigation'
 import { hc } from '../../data/homeColors'
 import { WHATSAPP_URL } from '../../data/homeData'
 
@@ -12,7 +12,7 @@ const LINKS = [
 ]
 
 export default function HomeNav() {
-  const { navigate } = useRouter()
+  const router = useRouter()
   const [solid,  setSolid]  = useState(false)
   const [open,   setOpen]   = useState(false)
 
@@ -112,7 +112,7 @@ export default function HomeNav() {
           <div style={s.waBtnWrap} className="home-nav-ctas">
             <motion.button
               style={s.briefingBtn}
-              onClick={() => navigate('/briefing')}
+              onClick={() => router.push('/briefing')}
               whileHover={{ scale: 1.04, opacity: 0.9 }}
               whileTap={{ scale: 0.96 }}
             >
@@ -163,7 +163,7 @@ export default function HomeNav() {
             <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
               <button
                 style={{ ...s.briefingBtn, flex: 1, padding: '13px 0', fontSize: 14 }}
-                onClick={() => { setOpen(false); navigate('/briefing') }}
+                onClick={() => { setOpen(false); router.push('/briefing') }}
               >
                 Preencher Briefing →
               </button>

@@ -1,3 +1,4 @@
+'use client'
 import { useState } from 'react'
 import Reveal from './Reveal'
 import { useApp } from '../context/AppContext'

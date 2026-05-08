@@ -1,6 +1,7 @@
+'use client'
 import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
-import { useRouter } from '../hooks/useRouter'
+import { useRouter } from 'next/navigation'
 
 const FLAGS = [
   { code: 'pt', src: '/flag-br.svg', label: 'Português' },
@@ -10,7 +11,7 @@ const FLAGS = [
 
 export default function Navbar() {
   const { c, t, isDark, toggleDark, lang, setLang } = useApp()
-  const { navigate } = useRouter()
+  const router = useRouter()
   const [solid, setSolid] = useState(false)
   const [open,  setOpen]  = useState(false)
 
@@ -85,7 +86,7 @@ export default function Navbar() {
 
           {/* Briefing CTA */}
           <button
-            onClick={() => navigate('/briefing')}
+            onClick={() => router.push('/briefing')}
             style={{
               padding: '8px 18px', fontSize: 13, fontWeight: 700,
               borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -172,7 +173,7 @@ export default function Navbar() {
             {nav.contact}
           </a>
           <button
-            onClick={() => { setOpen(false); navigate('/briefing') }}
+            onClick={() => { setOpen(false); router.push('/briefing') }}
             style={{
               display: 'block', width: '100%', marginTop: 14,
               padding: '13px 0', textAlign: 'center',

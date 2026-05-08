@@ -1,5 +1,6 @@
+'use client'
 import { useState, useEffect } from 'react'
-import { useRouter } from '../hooks/useRouter'
+import { useRouter } from 'next/navigation'
 
 const WA = 'https://wa.me/5519997222986'
 
@@ -454,7 +455,7 @@ export default function StudioSite() {
   const [openFaq, setOpenFaq] = useState(0)
   const [activeFilter, setActiveFilter] = useState('all')
   const [menuOpen, setMenuOpen] = useState(false)
-  const { navigate } = useRouter()
+  const router = useRouter()
 
   /* Inject / remove scoped CSS */
   useEffect(() => {
@@ -863,7 +864,7 @@ export default function StudioSite() {
               <a href="#sobre">Sobre</a>
               <a href="#processo">Processo</a>
               <a href="#contato">Contato</a>
-              <a href="#" onClick={e => { e.preventDefault(); navigate('/curriculo') }}>Currículo</a>
+              <a href="/curriculo">Currículo</a>
             </div>
             <div className="sp-footer-col">
               <h4>Contato</h4>

@@ -1,3 +1,4 @@
+'use client'
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import Navbar from './Navbar'

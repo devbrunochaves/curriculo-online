@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useRouter } from '../../hooks/useRouter'
+import { useRouter } from 'next/navigation'
 import { hc, ease, fadeUp, staggerChildren } from '../../data/homeColors'
 import { WHATSAPP_URL, STATS } from '../../data/homeData'
 
@@ -11,7 +11,7 @@ const PILLS = [
 ]
 
 export default function HomeHero() {
-  const { navigate } = useRouter()
+  const router = useRouter()
 
   const s = {
     section: {
@@ -164,7 +164,7 @@ export default function HomeHero() {
           <motion.div style={s.ctas} variants={fadeUp}>
             <motion.button
               style={s.btnPrimary}
-              onClick={() => navigate('/briefing')}
+              onClick={() => router.push('/briefing')}
               whileHover={{ scale: 1.04, boxShadow: '0 12px 32px rgba(55,168,222,0.42)' }}
               whileTap={{ scale: 0.97 }}
             >
@@ -224,7 +224,7 @@ export default function HomeHero() {
 
             <motion.button
               style={s.cardCta}
-              onClick={() => navigate('/briefing')}
+              onClick={() => router.push('/briefing')}
               whileHover={{ opacity: 0.88 }}
               whileTap={{ scale: 0.98 }}
             >

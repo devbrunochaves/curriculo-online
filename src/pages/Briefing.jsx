@@ -1,6 +1,7 @@
+'use client'
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
-import { useRouter } from '../hooks/useRouter'
+import { useRouter } from 'next/navigation'
 
 /* ── EmailJS config — preencha após criar conta em emailjs.com ─────────
    SERVICE_ID  → Aba "Email Services" no painel EmailJS
@@ -195,7 +196,7 @@ function Divider({ c }) {
 /* ── Página principal ────────────────────────────────────────────────── */
 export default function Briefing() {
   const { c, isDark } = useApp()
-  const { navigate } = useRouter()
+  const router = useRouter()
 
   const [status, setStatus] = useState('idle') // idle | sending | success | error
 
@@ -326,7 +327,7 @@ Como conheceu: ${form.comoConheceu.join(', ') || '—'}
             Obrigado! Recebi seu briefing e entrarei em contato em breve pelo e-mail ou WhatsApp informado.
           </p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => router.push('/')}
             className="btn-primary"
             style={{ fontSize: 14, padding: '12px 28px' }}
           >
@@ -353,7 +354,7 @@ Como conheceu: ${form.comoConheceu.join(', ') || '—'}
         }} />
         <div style={{ maxWidth: 760, margin: '0 auto', position: 'relative' }}>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => router.push('/')}
             style={{
               background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
               color: '#fff', borderRadius: 10, padding: '6px 14px', cursor: 'pointer',
@@ -558,3 +559,4 @@ Como conheceu: ${form.comoConheceu.join(', ') || '—'}
     </div>
   )
 }
+         
