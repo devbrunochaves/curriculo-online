@@ -12,8 +12,15 @@ import Footer      from './components/Footer'
 import Estrategia  from './components/Estrategia'
 
 // Import lazy — só carrega quando necessário
-const ContasApp  = lazy(() => import('./contas/ContasApp'))
-const Briefing   = lazy(() => import('./pages/Briefing'))
+const ContasApp   = lazy(() => import('./contas/ContasApp'))
+const Briefing    = lazy(() => import('./pages/Briefing'))
+const StudioSite  = lazy(() => import('./pages/StudioSite'))
+
+const Fallback = () => (
+  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontFamily:'sans-serif', color:'#64748b' }}>
+    Carregando...
+  </div>
+)
 
 function Portfolio() {
   const { c } = useApp()
@@ -35,11 +42,7 @@ function AppContent() {
   const { path } = useRouter()
 
   if (path.startsWith('/contas')) {
-    return (
-      <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontFamily:'sans-serif', color:'#64748b' }}>Carregando...</div>}>
-        <ContasApp />
-      </Suspense>
-    )
+    return <Suspense fallback={<Fallback />}><ContasApp /></Suspense>
   }
 
   if (path.startsWith('/estrategia')) {
@@ -47,14 +50,19 @@ function AppContent() {
   }
 
   if (path.startsWith('/briefing')) {
+    return <Suspense fallback={<Fallback />}><Briefing /></Suspense>
+  }
+
+  if (path.startsWith('/curriculo')) {
     return (
-      <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontFamily:'sans-serif', color:'#64748b' }}>Carregando...</div>}>
-        <Briefing />
-      </Suspense>
+      <AppProvider>
+        <Portfolio />
+      </AppProvider>
     )
   }
 
-  return <Portfolio />
+  // Rota raiz → novo site estúdio
+  return <Suspense fallback={<Fallback />}><StudioSite /></Suspense>
 }
 
 export default function App() {
