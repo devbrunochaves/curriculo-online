@@ -215,7 +215,7 @@ const CSS = `
 /* ── SOCIAL ── */
 .studio-page .sp-social-section{background:var(--sp-white);padding:100px 60px}
 .studio-page .sp-sgb{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.studio-page .sp-sgb-card{aspect-ratio:1;overflow:hidden;position:relative;cursor:pointer}
+.studio-page .sp-sgb-card{aspect-ratio:1080/1350;overflow:hidden;position:relative;cursor:pointer}
 .studio-page .sp-sgb-card .sp-sc-bg{width:100%;height:100%;transition:transform .55s cubic-bezier(.22,1,.36,1)}
 .studio-page .sp-sgb-card:hover .sp-sc-bg{transform:scale(1.07)}
 .studio-page .sp-sgb-card .sp-sc-overlay{position:absolute;inset:0;background:rgba(1,174,255,0);transition:background .3s}
@@ -374,7 +374,10 @@ const CSS = `
   .studio-page .sp-hero h1{letter-spacing:-1.5px}
   .studio-page .sp-hero-stats{gap:24px}
   .studio-page section{padding:60px 20px}
-  .studio-page .sp-sgb{grid-template-columns:repeat(2,1fr);gap:10px}
+  .studio-page .sp-social-section{padding-left:0;padding-right:0}
+  .studio-page .sp-social-section .sp-container{max-width:100%;padding-left:0;padding-right:0}
+  .studio-page .sp-social-section .sp-container>div:first-child{padding-left:20px;padding-right:20px}
+  .studio-page .sp-sgb{grid-template-columns:repeat(2,1fr);gap:2px}
   .studio-page .sp-dep-grid{grid-template-columns:1fr}
   .studio-page .sp-sobre-stats{grid-template-columns:1fr 1fr}
   .studio-page .sp-sobre-stat:nth-child(3){grid-column:span 2;border:none;padding:16px 0 0}
