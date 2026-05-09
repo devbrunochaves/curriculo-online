@@ -8,8 +8,10 @@ const nextConfig = {
       },
     ],
   },
-  // Permite que o Sanity Studio funcione em /studio
-  transpilePackages: ['next-sanity'],
+  // O Sanity Studio é completamente client-side — não tenta gerar estaticamente
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
 }
 
 export default nextConfig
