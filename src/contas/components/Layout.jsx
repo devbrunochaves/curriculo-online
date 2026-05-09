@@ -61,6 +61,26 @@ export default function Layout({ session, children }) {
           <span>Controle Financeiro</span>
         </div>
 
+        {/* ── Botão Nova Compra (desktop sidebar) ── */}
+        <div style={{ padding: '0 16px 12px' }}>
+          <button
+            onClick={() => navigate('/contas/nova')}
+            style={{
+              width: '100%', padding: '11px 0', borderRadius: 10,
+              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              color: '#fff', fontWeight: 700, fontSize: 14,
+              border: 'none', cursor: 'pointer', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', gap: 8,
+              boxShadow: '0 2px 8px rgba(99,102,241,.35)',
+              transition: 'opacity .2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '.88'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            ➕ Nova Compra
+          </button>
+        </div>
+
         <nav className="c-sidebar-nav">
           {navItems.map(item => (
             <NavLink
@@ -85,6 +105,28 @@ export default function Layout({ session, children }) {
       <main className="c-main-content">
         {children}
       </main>
+
+      {/* ── FAB Nova Compra (mobile) ──────────────────────────── */}
+      <button
+        onClick={() => navigate('/contas/nova')}
+        aria-label="Nova Compra"
+        style={{
+          position: 'fixed', bottom: 24, right: 20, zIndex: 300,
+          width: 56, height: 56, borderRadius: '50%',
+          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+          color: '#fff', fontSize: 26, fontWeight: 700,
+          border: 'none', cursor: 'pointer',
+          display: 'none',   // visível só no mobile via CSS
+          alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 16px rgba(99,102,241,.5)',
+          transition: 'transform .15s',
+        }}
+        className="c-fab-nova"
+        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+      >
+        +
+      </button>
 
     </div>
   )

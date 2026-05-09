@@ -161,7 +161,7 @@ function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
 /* ── Página principal ──────────────────────────────────────────── */
 export default function Lancamentos() {
   const navigate = useNavigate()
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const [currentDate, setCurrentDate] = useState(addMonths(new Date(), 1))
   const [expenses, setExpenses] = useState([])
   const [cards, setCards]       = useState([])
   const [people, setPeople]     = useState([])
@@ -206,7 +206,19 @@ export default function Lancamentos() {
   if (filterPerson) filtered = filtered.filter(e => e.splits?.some(s => s.person_id === filterPerson))
   if (search)       filtered = filtered.filter(e => e.description.toLowerCase().includes(search.toLowerCase()))
 
-  const total = filtered.reduce((s, e) => s + Number(e.total_amount), 0)
+  const total    = filtered.reduce((s, e) => s + Number(e.total_amount), 0)
+  const totalMes = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
+
+  // Totais por cartão (para os mini cards)
+  const totalPorCartao = cards.map(c => ({
+    ...c,
+    total: expenses.filter(e => e.card_id === c.id).reduce((s, e) => s + Number(e.total_amount), 0),
+  })).filter(c => c.total > 0)
+
+  const cartaoSelecionado = filterCard ? cards.find(c => c.id === filterCard) : null
+  const totalCartaoSelecionado = filterCard
+    ? expenses.filter(e => e.card_id === filterCard).reduce((s, e) => s + Number(e.total_amount), 0)
+    : 0
 
   return (
     <div>
@@ -223,6 +235,76 @@ export default function Lancamentos() {
           </div>
           <button className="c-btn c-btn-primary c-btn-sm" onClick={() => navigate('/contas/nova')}>+ Nova</button>
         </div>
+      </div>
+
+      {/* ── Mini dashboard ─────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+
+        {/* Total do mês */}
+        <div style={{
+          flex: '1 1 160px', padding: '16px 20px', borderRadius: 12,
+          background: 'var(--c-card)', border: '1px solid var(--c-border)',
+          boxShadow: 'var(--c-shadow-sm)',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--c-text-muted)', marginBottom: 6 }}>
+            Total do mês
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-text)', letterSpacing: '-0.5px' }}>
+            {fmt(totalMes)}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 4 }}>
+            {expenses.length} lançamento{expenses.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+
+        {/* Cartão selecionado — só aparece quando um cartão está filtrado */}
+        {cartaoSelecionado && (
+          <div style={{
+            flex: '1 1 160px', padding: '16px 20px', borderRadius: 12,
+            background: cartaoSelecionado.color + '12',
+            border: `1.5px solid ${cartaoSelecionado.color}40`,
+            boxShadow: 'var(--c-shadow-sm)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: cartaoSelecionado.color, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: cartaoSelecionado.color, display: 'inline-block' }} />
+              {cartaoSelecionado.name}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: cartaoSelecionado.color, letterSpacing: '-0.5px' }}>
+              {fmt(totalCartaoSelecionado)}
+            </div>
+            <div style={{ fontSize: 12, color: cartaoSelecionado.color, opacity: 0.7, marginTop: 4 }}>
+              {expenses.filter(e => e.card_id === filterCard).length} lançamento{expenses.filter(e => e.card_id === filterCard).length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        )}
+
+        {/* Totais por cartão — aparece só quando filtro está em "Todos" */}
+        {!filterCard && totalPorCartao.map(c => (
+          <div
+            key={c.id}
+            onClick={() => setFilterCard(c.id)}
+            style={{
+              flex: '1 1 140px', padding: '16px 20px', borderRadius: 12,
+              background: c.color + '10', border: `1.5px solid ${c.color}30`,
+              boxShadow: 'var(--c-shadow-sm)', cursor: 'pointer',
+              transition: 'transform .15s, box-shadow .15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 16px ${c.color}30` }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--c-shadow-sm)' }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: c.color, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: c.color, display: 'inline-block' }} />
+              {c.name}
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: c.color, letterSpacing: '-0.5px' }}>
+              {fmt(c.total)}
+            </div>
+            <div style={{ fontSize: 11, color: c.color, opacity: 0.6, marginTop: 3 }}>
+              {((c.total / totalMes) * 100).toFixed(0)}% do total
+            </div>
+          </div>
+        ))}
+
       </div>
 
       {/* Filtros */}

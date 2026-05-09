@@ -431,3 +431,14 @@
   /* ── Alertas ── */
   .contas-root .c-mb-4 { margin-bottom: 12px; }
 }
+
+/* ── FAB Nova Compra — só aparece no mobile ──────────────────────── */
+@media (max-width: 768px) {
+  .contas-root .c-fab-nova {
+    display: flex !important;
+  }
+  /* Margem extra no conteúdo para o FAB não cobrir itens */
+  .contas-root .c-main-content {
+    padding-bottom: 90px;
+  }
+}
