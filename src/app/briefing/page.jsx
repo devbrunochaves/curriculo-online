@@ -1,6 +1,6 @@
 'use client'
 import { AppProvider } from '../../context/AppContext'
-import Briefing from '../../pages/Briefing'
+import Briefing from '../../views/Briefing'
 
 export default function BriefingPage() {
   return (

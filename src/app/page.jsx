@@ -1,4 +1,4 @@
-import StudioSite from '../pages/StudioSite'
+import StudioSite from '../views/StudioSite'
 
 export const metadata = {
   title: 'Bruno Chaves — Design Studio',
