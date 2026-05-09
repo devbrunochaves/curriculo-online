@@ -7,15 +7,26 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 const fmt      = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
 
-/** Determina o month_ref de um lançamento considerando o fechamento do cartão */
+/**
+ * Determina o month_ref de um lançamento considerando o fechamento do cartão.
+ *
+ * Regra:
+ *   - Se o dia da compra é ANTERIOR ao dia de fechamento → fatura do mês atual
+ *   - Se o dia da compra é IGUAL OU POSTERIOR ao fechamento → fatura do próximo mês
+ *
+ * Exemplo: fechamento dia 7, compra dia 9 → próximo mês (o cartão já fechou)
+ *          fechamento dia 7, compra dia 5 → mês atual  (o cartão ainda não fechou)
+ */
 function getMonthRef(dateStr, closingDay) {
   if (!dateStr) return format(new Date(), 'yyyy-MM')
-  const d = new Date(dateStr + 'T12:00:00')
+  const d   = parseISO(dateStr)
   const day = d.getDate()
-  // Se não tem fechamento OU compra é antes do fechamento → mês atual
-  if (!closingDay || day < closingDay) return format(d, 'yyyy-MM')
-  // Compra no dia do fechamento ou depois → próxima fatura
-  return format(addMonths(d, 1), 'yyyy-MM')
+  // Sem fechamento cadastrado → usa o mês da compra
+  if (!closingDay) return format(d, 'yyyy-MM')
+  // Cartão já fechou neste mês → lançamento vai para o próximo mês
+  if (day >= Number(closingDay)) return format(addMonths(d, 1), 'yyyy-MM')
+  // Cartão ainda não fechou → lançamento fica no mês atual
+  return format(d, 'yyyy-MM')
 }
 
 export default function NovaCompra() {
