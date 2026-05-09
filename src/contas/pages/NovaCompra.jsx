@@ -291,13 +291,32 @@ export default function NovaCompra() {
               <>
                 <div className="c-form-group" style={{ marginBottom: 12 }}>
                   <label className="c-form-label">Número de parcelas</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <input
-                      type="range" min={2} max={24} value={installments}
-                      onChange={e => setInst(Number(e.target.value))}
-                      style={{ flex: 1, accentColor: '#6366f1' }}
-                    />
-                    <span style={{ fontWeight: 700, fontSize: 18, color: '#6366f1', minWidth: 36, textAlign: 'center' }}>{installments}x</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setInst(v => Math.max(2, v - 1))}
+                      style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', color: 'var(--c-text)', fontSize: 18, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
+                    >−</button>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <input
+                        type="number"
+                        min={2}
+                        max={999}
+                        value={installments}
+                        onChange={e => {
+                          const v = parseInt(e.target.value)
+                          if (!isNaN(v) && v >= 1) setInst(v)
+                        }}
+                        className="c-form-input"
+                        style={{ textAlign: 'center', fontWeight: 700, fontSize: 16, color: '#6366f1', paddingRight: 28 }}
+                      />
+                      <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontWeight: 700, fontSize: 14, color: '#6366f1', pointerEvents: 'none' }}>x</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setInst(v => v + 1)}
+                      style={{ width: 36, height: 36, borderRadius: 8, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', color: 'var(--c-text)', fontSize: 18, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}
+                    >+</button>
                   </div>
                 </div>
 
