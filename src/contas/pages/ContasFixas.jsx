@@ -6,6 +6,15 @@ import { ptBR } from 'date-fns/locale'
 const fmt      = v => v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
 
+/** Calcula o número da parcela atual com base no mês inicial */
+function getInstallmentNumber(startMonth, currentMonth) {
+  if (!startMonth || !currentMonth) return null
+  const [sy, sm] = startMonth.split('-').map(Number)
+  const [cy, cm] = currentMonth.split('-').map(Number)
+  const n = (cy - sy) * 12 + (cm - sm) + 1
+  return n > 0 ? n : null
+}
+
 export default function ContasFixas() {
   const [monthDate, setMonthDate]   = useState(new Date())
   const currentMonth                = format(monthDate, 'yyyy-MM')
@@ -26,7 +35,7 @@ export default function ContasFixas() {
   const [saving, setSaving]         = useState(false)
 
   // Formulário nova conta fixa
-  const [newBill, setNewBill]       = useState({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', notes: '' })
+  const [newBill, setNewBill]       = useState({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', total_installments: '', start_month: '', notes: '' })
   const [savingBill, setSavingBill] = useState(false)
   const [billError, setBillError]   = useState('')
   const [editingBill, setEditingBill]     = useState(null)   // bill sendo editado no manage
@@ -123,15 +132,17 @@ export default function ContasFixas() {
     if (!newBill.name.trim()) { setBillError('Nome é obrigatório.'); return }
     setSavingBill(true)
     const { error } = await supabase.from('recurring_bills').insert({
-      name:           newBill.name.trim(),
-      default_amount: newBill.default_amount ? parseBRL(newBill.default_amount) : null,
-      due_day:        newBill.due_day ? Number(newBill.due_day) : null,
-      category_id:    newBill.category_id || null,
-      person_id:      newBill.person_id || null,
-      notes:          newBill.notes || null,
+      name:               newBill.name.trim(),
+      default_amount:     newBill.default_amount ? parseBRL(newBill.default_amount) : null,
+      due_day:            newBill.due_day ? Number(newBill.due_day) : null,
+      category_id:        newBill.category_id || null,
+      person_id:          newBill.person_id || null,
+      total_installments: newBill.total_installments ? Number(newBill.total_installments) : null,
+      start_month:        newBill.start_month || null,
+      notes:              newBill.notes || null,
     })
     if (error) { setBillError(error.message); setSavingBill(false); return }
-    setNewBill({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', notes: '' })
+    setNewBill({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', total_installments: '', start_month: '', notes: '' })
     setSavingBill(false)
     loadData()
   }
@@ -144,22 +155,26 @@ export default function ContasFixas() {
   function startEditBill(bill) {
     setEditingBill(bill.id)
     setEditBillForm({
-      name:           bill.name,
-      default_amount: bill.default_amount != null ? String(bill.default_amount).replace('.', ',') : '',
-      due_day:        bill.due_day != null ? String(bill.due_day) : '',
-      category_id:    bill.category_id || '',
-      person_id:      bill.person_id || '',
+      name:               bill.name,
+      default_amount:     bill.default_amount != null ? String(bill.default_amount).replace('.', ',') : '',
+      due_day:            bill.due_day != null ? String(bill.due_day) : '',
+      category_id:        bill.category_id || '',
+      person_id:          bill.person_id || '',
+      total_installments: bill.total_installments != null ? String(bill.total_installments) : '',
+      start_month:        bill.start_month || '',
     })
   }
 
   async function saveEditBill(billId) {
     setSavingEditBill(true)
     await supabase.from('recurring_bills').update({
-      name:           editBillForm.name.trim(),
-      default_amount: editBillForm.default_amount ? parseBRL(editBillForm.default_amount) : null,
-      due_day:        editBillForm.due_day ? Number(editBillForm.due_day) : null,
-      category_id:    editBillForm.category_id || null,
-      person_id:      editBillForm.person_id || null,
+      name:               editBillForm.name.trim(),
+      default_amount:     editBillForm.default_amount ? parseBRL(editBillForm.default_amount) : null,
+      due_day:            editBillForm.due_day ? Number(editBillForm.due_day) : null,
+      category_id:        editBillForm.category_id || null,
+      person_id:          editBillForm.person_id || null,
+      total_installments: editBillForm.total_installments ? Number(editBillForm.total_installments) : null,
+      start_month:        editBillForm.start_month || null,
     }).eq('id', billId)
     setSavingEditBill(false)
     setEditingBill(null)
@@ -264,6 +279,17 @@ export default function ContasFixas() {
                         {entry.bill?.default_amount === null && (
                           <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600 }}>⚡ Variável</span>
                         )}
+                        {(() => {
+                          const n = getInstallmentNumber(entry.bill?.start_month, currentMonth)
+                          const total = entry.bill?.total_installments
+                          if (!n || !total) return null
+                          const remaining = total - n
+                          return (
+                            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#ede9fe', color: '#7c3aed', fontWeight: 700 }}>
+                              📦 {n}/{total}x{remaining >= 0 ? ` · ${remaining} restantes` : ''}
+                            </span>
+                          )
+                        })()}
                       </div>
                       {entry.splits?.length > 0 ? (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
@@ -409,12 +435,36 @@ export default function ContasFixas() {
                 </div>
               </div>
 
-              <div className="c-form-group" style={{ marginBottom: 14 }}>
+              <div className="c-form-group" style={{ marginBottom: 10 }}>
                 <label className="c-form-label">Responsável <span style={{ color: 'var(--c-text-muted)', fontWeight: 400 }}>(opcional)</span></label>
                 <select className="c-form-select" value={newBill.person_id} onChange={e => setNewBill(p => ({ ...p, person_id: e.target.value }))}>
                   <option value="">Sem responsável específico</option>
                   {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
+              </div>
+
+              {/* Parcelamento */}
+              <div style={{ padding: '12px 14px', borderRadius: 8, background: newBill.total_installments ? '#f5f3ff' : 'var(--c-bg)', border: `1.5px solid ${newBill.total_installments ? '#ddd6fe' : 'var(--c-border)'}`, marginBottom: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: newBill.total_installments ? 12 : 0 }}>
+                  <input type="checkbox" id="newIsInst" checked={!!newBill.total_installments} onChange={e => setNewBill(p => ({ ...p, total_installments: e.target.checked ? '12' : '', start_month: e.target.checked ? format(new Date(), 'yyyy-MM') : '' }))} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
+                  <label htmlFor="newIsInst" style={{ fontWeight: 600, fontSize: 13, color: '#5b21b6', cursor: 'pointer' }}>📦 É parcelado?</label>
+                </div>
+                {!!newBill.total_installments && (
+                  <div className="c-grid-2">
+                    <div className="c-form-group" style={{ margin: 0 }}>
+                      <label className="c-form-label">Total de parcelas</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button type="button" onClick={() => setNewBill(p => ({ ...p, total_installments: String(Math.max(2, Number(p.total_installments) - 1)) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>−</button>
+                        <input type="number" min={2} className="c-form-input" value={newBill.total_installments} onChange={e => setNewBill(p => ({ ...p, total_installments: e.target.value }))} style={{ textAlign: 'center', fontWeight: 700, color: '#7c3aed' }} />
+                        <button type="button" onClick={() => setNewBill(p => ({ ...p, total_installments: String(Number(p.total_installments) + 1) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>+</button>
+                      </div>
+                    </div>
+                    <div className="c-form-group" style={{ margin: 0 }}>
+                      <label className="c-form-label">Mês da 1ª parcela</label>
+                      <input type="month" className="c-form-input" value={newBill.start_month} onChange={e => setNewBill(p => ({ ...p, start_month: e.target.value }))} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <button className="c-btn c-btn-primary c-btn-sm" disabled={savingBill} onClick={addBill}>
@@ -440,6 +490,7 @@ export default function ContasFixas() {
                           <div style={{ fontWeight: 600, fontSize: 14 }}>{bill.name}</div>
                           <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>
                             {bill.default_amount != null ? fmt(bill.default_amount) : '⚡ Variável'}
+                            {bill.total_installments ? ` · ${bill.total_installments}x` : ''}
                             {bill.due_day ? ` · vence dia ${bill.due_day}` : ''}
                             {cat ? ` · ${cat.icon} ${cat.name}` : ''}
                           </div>
@@ -482,6 +533,29 @@ export default function ContasFixas() {
                             <option value="">Sem responsável específico</option>
                             {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                           </select>
+                        </div>
+                        {/* Parcelamento */}
+                        <div style={{ padding: '12px 14px', borderRadius: 8, background: editBillForm.total_installments ? '#f5f3ff' : 'var(--c-bg-alt)', border: `1.5px solid ${editBillForm.total_installments ? '#ddd6fe' : 'var(--c-border)'}`, marginBottom: 10 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: editBillForm.total_installments ? 12 : 0 }}>
+                            <input type="checkbox" id={`editIsInst-${editingBill}`} checked={!!editBillForm.total_installments} onChange={e => setEditBillForm(p => ({ ...p, total_installments: e.target.checked ? '12' : '', start_month: e.target.checked ? (p.start_month || format(new Date(), 'yyyy-MM')) : '' }))} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
+                            <label htmlFor={`editIsInst-${editingBill}`} style={{ fontWeight: 600, fontSize: 13, color: '#5b21b6', cursor: 'pointer' }}>📦 É parcelado?</label>
+                          </div>
+                          {!!editBillForm.total_installments && (
+                            <div className="c-grid-2">
+                              <div className="c-form-group" style={{ margin: 0 }}>
+                                <label className="c-form-label">Total de parcelas</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <button type="button" onClick={() => setEditBillForm(p => ({ ...p, total_installments: String(Math.max(2, Number(p.total_installments) - 1)) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>−</button>
+                                  <input type="number" min={2} className="c-form-input" value={editBillForm.total_installments} onChange={e => setEditBillForm(p => ({ ...p, total_installments: e.target.value }))} style={{ textAlign: 'center', fontWeight: 700, color: '#7c3aed' }} />
+                                  <button type="button" onClick={() => setEditBillForm(p => ({ ...p, total_installments: String(Number(p.total_installments) + 1) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>+</button>
+                                </div>
+                              </div>
+                              <div className="c-form-group" style={{ margin: 0 }}>
+                                <label className="c-form-label">Mês da 1ª parcela</label>
+                                <input type="month" className="c-form-input" value={editBillForm.start_month} onChange={e => setEditBillForm(p => ({ ...p, start_month: e.target.value }))} />
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button className="c-btn c-btn-primary c-btn-sm" disabled={savingEditBill} onClick={() => saveEditBill(bill.id)}>
