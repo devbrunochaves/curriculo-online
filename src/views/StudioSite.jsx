@@ -616,9 +616,22 @@ export default function StudioSite() {
             </p>
           </div>
           <div className="sp-sgb reveal">
-            {['sc-1','sc-2','sc-3','sc-7','sc-5','sc-6','sc-4','sc-8','sc-9','sc-10','sc-11','sc-12'].map((c,i) => (
-              <div key={i} className={`sp-sgb-card ${c}`}>
-                <div className="sp-sc-bg"/>
+            {[
+              'ARTE-ARTICULATO.jpg',
+              'ARTE-BARBOSA.jpg',
+              'ARTE-BRUNO-LUNA.jpg',
+              'ARTE-BVG.jpg',
+              'ARTE-CHOPPSUL1.jpg',
+              'ARTE-CHOPPSUL2.jpg',
+              'ARTE-CIA-DO-ACAI.jpg',
+              'ARTE-DANI-VILHES.jpg',
+              'ARTE-GREEN-STATION.jpg',
+              'ARTE-HAMBURGUER.png',
+              'ARTE-SOLMARIS.jpg',
+              'ARTE-ZENVET.png',
+            ].map((img, i) => (
+              <div key={i} className="sp-sgb-card">
+                <div className="sp-sc-bg" style={{ backgroundImage: `url('/${img}')`, backgroundSize: 'cover', backgroundPosition: 'center', width: '100%', height: '100%' }}/>
                 <div className="sp-sc-overlay"/>
               </div>
             ))}

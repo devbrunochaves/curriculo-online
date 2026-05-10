@@ -26,7 +26,7 @@ export default function ContasFixas() {
   const [saving, setSaving]         = useState(false)
 
   // Formulário nova conta fixa
-  const [newBill, setNewBill]       = useState({ name: '', default_amount: '', due_day: '', category_id: '', notes: '' })
+  const [newBill, setNewBill]       = useState({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', notes: '' })
   const [savingBill, setSavingBill] = useState(false)
   const [billError, setBillError]   = useState('')
   const [editingBill, setEditingBill]     = useState(null)   // bill sendo editado no manage
@@ -127,10 +127,11 @@ export default function ContasFixas() {
       default_amount: newBill.default_amount ? parseBRL(newBill.default_amount) : null,
       due_day:        newBill.due_day ? Number(newBill.due_day) : null,
       category_id:    newBill.category_id || null,
+      person_id:      newBill.person_id || null,
       notes:          newBill.notes || null,
     })
     if (error) { setBillError(error.message); setSavingBill(false); return }
-    setNewBill({ name: '', default_amount: '', due_day: '', category_id: '', notes: '' })
+    setNewBill({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', notes: '' })
     setSavingBill(false)
     loadData()
   }
@@ -147,6 +148,7 @@ export default function ContasFixas() {
       default_amount: bill.default_amount != null ? String(bill.default_amount).replace('.', ',') : '',
       due_day:        bill.due_day != null ? String(bill.due_day) : '',
       category_id:    bill.category_id || '',
+      person_id:      bill.person_id || '',
     })
   }
 
@@ -157,6 +159,7 @@ export default function ContasFixas() {
       default_amount: editBillForm.default_amount ? parseBRL(editBillForm.default_amount) : null,
       due_day:        editBillForm.due_day ? Number(editBillForm.due_day) : null,
       category_id:    editBillForm.category_id || null,
+      person_id:      editBillForm.person_id || null,
     }).eq('id', billId)
     setSavingEditBill(false)
     setEditingBill(null)
@@ -169,13 +172,22 @@ export default function ContasFixas() {
   const totalByPerson = useMemo(() => {
     const map = {}
     entries.forEach(e => {
-      e.splits?.forEach(s => {
-        if (!map[s.person_id]) map[s.person_id] = { name: s.person?.name, color: s.person?.color, total: 0 }
-        map[s.person_id].total += Number(s.amount)
-      })
+      if (e.splits?.length > 0) {
+        // Tem divisão → usa splits
+        e.splits.forEach(s => {
+          if (!map[s.person_id]) map[s.person_id] = { name: s.person?.name, color: s.person?.color, total: 0 }
+          map[s.person_id].total += Number(s.amount)
+        })
+      } else if (e.bill?.person_id) {
+        // Sem divisão mas tem responsável → conta o total para essa pessoa
+        const pid = e.bill.person_id
+        const person = people.find(p => p.id === pid)
+        if (!map[pid]) map[pid] = { name: person?.name, color: person?.color, total: 0 }
+        map[pid].total += Number(e.amount)
+      }
     })
     return Object.values(map)
-  }, [entries])
+  }, [entries, people])
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -253,7 +265,7 @@ export default function ContasFixas() {
                           <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600 }}>⚡ Variável</span>
                         )}
                       </div>
-                      {entry.splits?.length > 0 && (
+                      {entry.splits?.length > 0 ? (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
                           {entry.splits.map(s => (
                             <span key={s.id} style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: `${s.person?.color}20`, color: s.person?.color, fontWeight: 600 }}>
@@ -261,7 +273,16 @@ export default function ContasFixas() {
                             </span>
                           ))}
                         </div>
-                      )}
+                      ) : entry.bill?.person_id ? (() => {
+                        const resp = people.find(p => p.id === entry.bill.person_id)
+                        return resp ? (
+                          <div style={{ marginTop: 4 }}>
+                            <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: `${resp.color}20`, color: resp.color, fontWeight: 600 }}>
+                              👤 {resp.name}
+                            </span>
+                          </div>
+                        ) : null
+                      })() : null}
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
                       <div style={{ fontSize: 20, fontWeight: 800 }}>{fmt(entry.amount)}</div>
@@ -374,7 +395,7 @@ export default function ContasFixas() {
                 </div>
               </div>
 
-              <div className="c-grid-2" style={{ marginBottom: 14 }}>
+              <div className="c-grid-2" style={{ marginBottom: 10 }}>
                 <div className="c-form-group" style={{ margin: 0 }}>
                   <label className="c-form-label">Dia do vencimento</label>
                   <input type="number" className="c-form-input" placeholder="Ex: 10" min={1} max={31} value={newBill.due_day} onChange={e => setNewBill(p => ({ ...p, due_day: e.target.value }))} />
@@ -386,6 +407,14 @@ export default function ContasFixas() {
                     {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                   </select>
                 </div>
+              </div>
+
+              <div className="c-form-group" style={{ marginBottom: 14 }}>
+                <label className="c-form-label">Responsável <span style={{ color: 'var(--c-text-muted)', fontWeight: 400 }}>(opcional)</span></label>
+                <select className="c-form-select" value={newBill.person_id} onChange={e => setNewBill(p => ({ ...p, person_id: e.target.value }))}>
+                  <option value="">Sem responsável específico</option>
+                  {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
               </div>
 
               <button className="c-btn c-btn-primary c-btn-sm" disabled={savingBill} onClick={addBill}>
@@ -446,6 +475,13 @@ export default function ContasFixas() {
                               {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
                             </select>
                           </div>
+                        </div>
+                        <div className="c-form-group" style={{ marginBottom: 10 }}>
+                          <label className="c-form-label">Responsável</label>
+                          <select className="c-form-select" value={editBillForm.person_id} onChange={e => setEditBillForm(p => ({ ...p, person_id: e.target.value }))}>
+                            <option value="">Sem responsável específico</option>
+                            {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                          </select>
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <button className="c-btn c-btn-primary c-btn-sm" disabled={savingEditBill} onClick={() => saveEditBill(bill.id)}>
