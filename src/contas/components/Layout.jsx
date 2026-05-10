@@ -6,6 +6,7 @@ const navItems = [
   { to: '/contas/',              icon: '📊', label: 'Dashboard',    end: true },
   { to: '/contas/nova',          icon: '➕', label: 'Nova Compra'  },
   { to: '/contas/lancamentos',   icon: '📋', label: 'Lançamentos'  },
+  { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas' },
   { to: '/contas/previsao',      icon: '📆', label: 'Previsão'     },
   { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'      },
   { to: '/contas/cartoes',       icon: '💳', label: 'Cartões'      },
