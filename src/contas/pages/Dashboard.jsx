@@ -20,18 +20,27 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data: expenses } = await supabase
-      .from('expenses')
-      .select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))')
-      .eq('month_ref', monthRef)
-
-    const { data: cards } = await supabase.from('cards').select('*').eq('is_active', true)
+    const [
+      { data: expenses },
+      { data: cards },
+      { data: billEntries },
+      { data: people },
+    ] = await Promise.all([
+      supabase.from('expenses')
+        .select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))')
+        .eq('month_ref', monthRef),
+      supabase.from('cards').select('*').eq('is_active', true),
+      supabase.from('bill_entries')
+        .select('*, bill:recurring_bills(*), splits:bill_entry_splits(*, person:people(*))')
+        .eq('month_ref', monthRef),
+      supabase.from('people').select('*').eq('is_active', true),
+    ])
 
     const months = []
     for (let i = 5; i >= 0; i--) months.push(format(subMonths(currentDate, i), 'yyyy-MM'))
     const { data: history } = await supabase.from('expenses').select('total_amount, month_ref').in('month_ref', months)
 
-    setData({ expenses: expenses || [], cards: cards || [], history: history || [], months })
+    setData({ expenses: expenses || [], cards: cards || [], history: history || [], months, billEntries: billEntries || [], people: people || [] })
     setLoading(false)
   }, [monthRef])
 
@@ -43,11 +52,13 @@ export default function Dashboard() {
     </div>
   )
 
-  const { expenses, cards, history, months } = data
+  const { expenses, cards, history, months, billEntries, people } = data
 
-  const totalGasto    = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
+  const totalCartoes  = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
   const totalFixo     = expenses.filter(e => e.is_fixed).reduce((s, e) => s + Number(e.total_amount), 0)
-  const totalVariavel = totalGasto - totalFixo
+  const totalVariavel = totalCartoes - totalFixo
+  const totalFixas    = billEntries.reduce((s, e) => s + Number(e.amount), 0)
+  const totalGasto    = totalCartoes + totalFixas
 
   const cardTotals = cards.map(c => {
     const spent = expenses.filter(e => e.card_id === c.id).reduce((s, e) => s + Number(e.total_amount), 0)
@@ -55,12 +66,32 @@ export default function Dashboard() {
     return { ...c, spent, pct }
   }).filter(c => c.spent > 0 || c.limit_amount).sort((a, b) => b.spent - a.spent)
 
+  // Gastos por pessoa: cartões + contas fixas
   const personMap = {}
+  const initPerson = (person) => {
+    if (!personMap[person.id]) personMap[person.id] = { id: person.id, name: person.name, color: person.color, total: 0, fixasTotal: 0 }
+  }
   expenses.forEach(e => {
     e.splits?.forEach(s => {
-      if (!personMap[s.person.id]) personMap[s.person.id] = { name: s.person.name, color: s.person.color, total: 0 }
+      initPerson(s.person)
       personMap[s.person.id].total += Number(s.amount)
     })
+  })
+  billEntries.forEach(e => {
+    if (e.splits?.length > 0) {
+      e.splits.forEach(s => {
+        initPerson(s.person)
+        personMap[s.person.id].total      += Number(s.amount)
+        personMap[s.person.id].fixasTotal += Number(s.amount)
+      })
+    } else if (e.bill?.person_id) {
+      const person = people.find(p => p.id === e.bill.person_id)
+      if (person) {
+        initPerson(person)
+        personMap[person.id].total      += Number(e.amount)
+        personMap[person.id].fixasTotal += Number(e.amount)
+      }
+    }
   })
   const personData = Object.values(personMap).sort((a, b) => b.total - a.total)
 
@@ -110,14 +141,15 @@ export default function Dashboard() {
       )}
 
       {/* ── Resumo compacto do mês ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '10px 16px', background: 'var(--c-surface)', borderRadius: 10, boxShadow: 'var(--c-shadow)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 12, padding: '10px 16px', background: 'var(--c-surface)', borderRadius: 10, boxShadow: 'var(--c-shadow)' }}>
         <div style={{ fontSize: 13, color: 'var(--c-text-muted)' }}>
           <strong style={{ color: 'var(--c-text)', fontSize: 15 }}>{fmt(totalGasto)}</strong>
-          {' '}total · {expenses.length} lançamentos
+          {' '}total · {expenses.length} lançamentos em cartão
         </div>
-        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--c-text-muted)' }}>
+        <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--c-text-muted)', flexWrap: 'wrap' }}>
           <span>Fixo: <strong>{fmt(totalFixo)}</strong></span>
           <span>Variável: <strong>{fmt(totalVariavel)}</strong></span>
+          <span style={{ color: '#7c3aed' }}>🏠 Contas Fixas: <strong>{fmt(totalFixas)}</strong></span>
         </div>
       </div>
 
@@ -143,6 +175,19 @@ export default function Dashboard() {
             <div style={{ marginTop: 8, height: 4, background: 'var(--c-border)', borderRadius: 99, overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 99, background: p.color, width: `${totalGasto > 0 ? Math.min((p.total / totalGasto) * 100, 100) : 0}%`, transition: 'width 0.4s ease' }} />
             </div>
+            {/* Breakdown: cartões vs fixas */}
+            {p.fixasTotal > 0 && (
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--c-border)', fontSize: 11, color: 'var(--c-text-muted)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>💳 Cartões</span>
+                  <strong>{fmt(p.total - p.fixasTotal)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#7c3aed' }}>
+                  <span>🏠 Contas Fixas</span>
+                  <strong>{fmt(p.fixasTotal)}</strong>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
