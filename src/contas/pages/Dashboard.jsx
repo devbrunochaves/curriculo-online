@@ -20,20 +20,36 @@ export default function Dashboard() {
 
   const load = useCallback(async () => {
     setLoading(true)
+
     const [
       { data: expenses },
       { data: cards },
-      { data: billEntries },
       { data: people },
+      { data: activeBills },
     ] = await Promise.all([
       supabase.from('expenses')
         .select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))')
         .eq('month_ref', monthRef),
       supabase.from('cards').select('*').eq('is_active', true),
+      supabase.from('people').select('*').eq('is_active', true),
+      supabase.from('recurring_bills').select('*').eq('is_active', true),
+    ])
+
+    // Auto-gera entradas das contas fixas para o mês se ainda não existirem
+    if (activeBills?.length) {
+      const { data: existing } = await supabase
+        .from('bill_entries').select('bill_id').eq('month_ref', monthRef)
+      const existingIds = new Set((existing || []).map(e => e.bill_id))
+      const toCreate = activeBills
+        .filter(b => !existingIds.has(b.id))
+        .map(b => ({ bill_id: b.id, month_ref: monthRef, amount: b.default_amount ?? 0 }))
+      if (toCreate.length) await supabase.from('bill_entries').insert(toCreate)
+    }
+
+    const [{ data: billEntries }] = await Promise.all([
       supabase.from('bill_entries')
         .select('*, bill:recurring_bills(*), splits:bill_entry_splits(*, person:people(*))')
         .eq('month_ref', monthRef),
-      supabase.from('people').select('*').eq('is_active', true),
     ])
 
     const months = []
