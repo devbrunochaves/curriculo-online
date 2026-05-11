@@ -385,6 +385,130 @@ body {
   text-align: right;
 }
 
+/* ── CTA Banner ── */
+.cta-banner {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #12aeea 0%, #1ec6ff 60%, #5dd6ff 100%);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.cta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.cta-left h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: .97;
+  letter-spacing: -.05em;
+  color: white;
+  margin-bottom: 18px;
+}
+
+.cta-left p {
+  color: rgba(255, 255, 255, .85);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.cta-card {
+  background: rgba(255, 255, 255, .18);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, .3);
+}
+
+.cta-checks {
+  list-style: none;
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.cta-checks li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  font-size: .97rem;
+  font-weight: 500;
+}
+
+.cta-checks li span {
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.btn-dark {
+  background: #071018;
+  color: white;
+  font-weight: 800;
+}
+
+.btn-dark:hover {
+  background: #1a2530;
+}
+
+/* ── FAQ ── */
+.faq-section {
+  padding: 80px 0;
+}
+
+.faq-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -.05em;
+  margin-bottom: 32px;
+  color: var(--text);
+}
+
+.faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.faq-item {
+  background: white;
+  border-radius: 18px;
+  padding: 22px 26px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: box-shadow .2s, border-color .2s;
+  user-select: none;
+}
+
+.faq-item:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 18px rgba(18, 174, 234, .1);
+}
+
+.faq-question {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.faq-arrow {
+  font-size: .75rem;
+  color: var(--accent-dark);
+  flex-shrink: 0;
+  transition: transform .2s;
+}
+
+.faq-answer {
+  margin-top: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: .97rem;
+  padding-left: 26px;
+}
+
 /* ── WhatsApp Float ── */
 .whatsapp-float {
   position: fixed;
@@ -425,7 +549,8 @@ body {
   .hero-grid,
   .diagnostic-grid,
   .split,
-  .problem-grid {
+  .problem-grid,
+  .cta-grid {
     grid-template-columns: 1fr;
   }
 
@@ -472,7 +597,9 @@ body {
 
   .diagnostic-section,
   #problemas,
-  #servicos {
+  #servicos,
+  .cta-banner,
+  .faq-section {
     padding: 64px 0;
   }
 }

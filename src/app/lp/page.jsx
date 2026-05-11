@@ -1,4 +1,5 @@
 import "./lp.css";
+import FaqAccordion from "./FaqAccordion";
 
 export const metadata = {
   title: 'Análise gratuita da sua presença digital — Bruno Chaves',
@@ -179,6 +180,38 @@ export default function LP() {
               <span>Presença local mais estratégica</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── CTA Banner ── */}
+      <section className="cta-banner">
+        <div className="container cta-grid">
+          <div className="cta-left">
+            <h2>Quer saber o que pode estar travando sua presença digital?</h2>
+            <p>
+              Solicite uma análise gratuita. Eu vou olhar sua marca, site, Instagram e
+              Google para identificar pontos que podem estar afastando clientes.
+            </p>
+          </div>
+          <div className="cta-card">
+            <ul className="cta-checks">
+              <li><span>✓</span> Análise rápida pelo WhatsApp</li>
+              <li><span>✓</span> Sem compromisso</li>
+              <li><span>✓</span> Foco em melhorias práticas</li>
+              <li><span>✓</span> Ideal para empresas locais e prestadores de serviço</li>
+            </ul>
+            <a href={whatsappLink} target="_blank" className="btn btn-dark full">
+              Solicitar análise gratuita
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="faq-section">
+        <div className="container">
+          <h2 className="faq-title">Dúvidas rápidas</h2>
+          <FaqAccordion />
         </div>
       </section>
 
