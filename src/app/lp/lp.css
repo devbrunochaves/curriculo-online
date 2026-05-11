@@ -147,6 +147,9 @@ body {
 
 /* ── Hero ── */
 .hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
   padding: 70px 0 40px;
   position: relative;
 }
@@ -167,6 +170,7 @@ body {
   grid-template-columns: 1.1fr 0.9fr;
   align-items: center;
   gap: 50px;
+  min-height: 100vh;
 }
 
 .lp-page h1 {
@@ -220,15 +224,14 @@ body {
 .profile-card {
   display: flex;
   justify-content: center;
+  height: 100%;
 }
 
 .profile-frame {
   width: 100%;
-  max-width: 430px;
-  aspect-ratio: 4 / 5;
+  height: 100%;
   border-radius: 34px;
   overflow: hidden;
-  background: var(--accent);
   position: relative;
 }
 
