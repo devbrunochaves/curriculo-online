@@ -21,11 +21,7 @@ export default function LP() {
           <a href="#" className="logo">
             Bruno <span>Chaves</span>
           </a>
-          <nav className="nav">
-            <a href="#diagnostico">Diagnóstico</a>
-            <a href="#problemas">Problemas</a>
-            <a href="#servicos">Soluções</a>
-          </nav>
+          
           <a href={whatsappLink} target="_blank" className="btn btn-primary">
             Quero uma análise
           </a>
@@ -39,8 +35,8 @@ export default function LP() {
           <div className="hero-content">
             <div className="eyebrow" data-reveal="left">Presença Digital Estratégica</div>
             <h1 data-reveal="bottom" data-delay="1">
-              Seu negócio parece tão profissional no digital quanto ele é na
-              vida real?
+              Seu negócio parece tão profissional no digital quanto ele{' '}
+              <em>é na vida real?</em>
             </h1>
             <p data-reveal="bottom" data-delay="2">
               Eu ajudo empresas a terem uma presença digital mais forte,
@@ -72,7 +68,7 @@ export default function LP() {
         <div className="container diagnostic-grid">
           <div className="section-head" data-reveal="left">
             <div className="eyebrow">Diagnóstico gratuito</div>
-            <h2>O que eu analiso no seu negócio?</h2>
+            <h2>O que eu analiso no <em>seu negócio?</em></h2>
             <p>
               Antes de pensar em campanha, site ou post, eu olho para a base da
               sua presença digital: clareza, confiança e consistência.
@@ -110,8 +106,8 @@ export default function LP() {
           <div className="section-head center" data-reveal="bottom">
             <div className="eyebrow">Problemas comuns</div>
             <h2>
-              Talvez o problema não seja falta de cliente. Seja falta de
-              percepção.
+              Talvez o problema não seja falta de cliente.{' '}
+              <em>Seja falta de percepção.</em>
             </h2>
           </div>
           <div className="problem-grid">
@@ -148,7 +144,7 @@ export default function LP() {
         <div className="container split">
           <div className="panel" data-reveal="left">
             <div className="eyebrow light">Soluções</div>
-            <h2>Uma presença digital completa.</h2>
+            <h2>Uma presença digital <em>completa.</em></h2>
             <p>
               A ideia é simples: organizar tudo para sua empresa parecer mais
               forte, mais confiável e mais preparada para vender.
@@ -183,7 +179,7 @@ export default function LP() {
       <section className="cta-banner">
         <div className="container cta-grid">
           <div className="cta-left" data-reveal="left">
-            <h2>Quer saber o que pode estar travando sua presença digital?</h2>
+            <h2>Quer saber o que pode estar travando sua <em>presença digital?</em></h2>
             <p>
               Solicite uma análise gratuita. Eu vou olhar sua marca, site, Instagram e
               Google para identificar pontos que podem estar afastando clientes.
