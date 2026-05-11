@@ -48,7 +48,7 @@ export default function LP() {
                 Receber análise gratuita
               </a>
               <a href="#servicos" className="btn btn-secondary">
-                Ver o que eu faço
+                Veja como posso te ajudar!
               </a>
             </div>
             <span className="hero-note" data-reveal="fade" data-delay="4">
@@ -57,7 +57,7 @@ export default function LP() {
           </div>
           <aside className="profile-card" data-reveal="right" data-delay="2">
             <div className="profile-frame">
-              <img src="/foto-bruno.png" alt="Bruno Chaves" />
+              <img src="./foto-aside.jpg" alt="Bruno Chaves" />
             </div>
           </aside>
         </div>
