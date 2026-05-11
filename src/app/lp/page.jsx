@@ -30,7 +30,7 @@ export default function LP() {
 
       {/* ── Hero ── */}
       <section className="hero">
-        <div className="shape-blue"></div>
+        
         <div className="container hero-grid">
           <div className="hero-content">
             <div className="eyebrow" data-reveal="left">Presença Digital Estratégica</div>
