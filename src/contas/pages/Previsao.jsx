@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { format, addMonths, startOfMonth } from 'date-fns'
+import { format, addMonths, subMonths, startOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
@@ -15,10 +15,12 @@ export default function Previsao() {
   const load = useCallback(async () => {
     setLoading(true)
 
-    // Gerar lista de meses: mês atual + próximos N
+    // new Date() dentro do callback garante tempo do cliente, nunca SSR
+    // Começa 1 mês atrás para mostrar a fatura atual que está sendo paga
     const today     = new Date()
-    const monthRefs = Array.from({ length: months + 1 }, (_, i) =>
-      format(addMonths(startOfMonth(today), i), 'yyyy-MM')
+    const start     = subMonths(startOfMonth(today), 1)
+    const monthRefs = Array.from({ length: months + 2 }, (_, i) =>
+      format(addMonths(start, i), 'yyyy-MM')
     )
 
     const [{ data: expenses }, { data: cardsData }, { data: incomeData }] = await Promise.all([
@@ -56,13 +58,16 @@ export default function Previsao() {
         })
       })
 
-      const isPast    = mRef < format(today, 'yyyy-MM')
-      const isCurrent = mRef === format(today, 'yyyy-MM')
+      const currentRef  = format(today, 'yyyy-MM')
+      const prevRef     = format(subMonths(today, 1), 'yyyy-MM')
+      const isPast      = mRef < prevRef          // antes do mês anterior
+      const isPrevious  = mRef === prevRef         // mês anterior = fatura em aberto
+      const isCurrent   = mRef === currentRef      // mês atual do calendário
 
       return {
         mRef, total, entrada, exps, byCard: Object.values(byCard).sort((a, b) => b.total - a.total),
         byPerson: Object.values(byPerson).sort((a, b) => b.total - a.total),
-        isPast, isCurrent
+        isPast, isCurrent, isPrevious
       }
     })
 
@@ -100,9 +105,12 @@ export default function Previsao() {
       </div>
 
       {/* Legenda */}
-      <div className="c-flex c-gap-3 c-mb-4">
+      <div className="c-flex c-gap-3 c-mb-4" style={{ flexWrap: 'wrap' }}>
         <div className="c-flex c-items-center c-gap-2 c-text-sm c-text-muted">
           <div style={{ width: 12, height: 12, borderRadius: 2, background: '#e2e8f0' }} /> Passado
+        </div>
+        <div className="c-flex c-items-center c-gap-2 c-text-sm c-text-muted">
+          <div style={{ width: 12, height: 12, borderRadius: 2, background: '#fed7aa' }} /> Fatura em aberto
         </div>
         <div className="c-flex c-items-center c-gap-2 c-text-sm c-text-muted">
           <div style={{ width: 12, height: 12, borderRadius: 2, background: '#dbeafe' }} /> Mês atual
@@ -114,8 +122,8 @@ export default function Previsao() {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {data.map(m => {
-          const bg     = m.isPast ? '#f8fafc' : m.isCurrent ? '#eff6ff' : '#f0fdf4'
-          const border = m.isPast ? '#e2e8f0' : m.isCurrent ? '#bfdbfe' : '#bbf7d0'
+          const bg     = m.isPast ? '#f8fafc' : m.isPrevious ? '#fff7ed' : m.isCurrent ? '#eff6ff' : '#f0fdf4'
+          const border = m.isPast ? '#e2e8f0' : m.isPrevious ? '#fed7aa' : m.isCurrent ? '#bfdbfe' : '#bbf7d0'
           const saldo  = m.entrada - m.total
 
           return (
@@ -124,7 +132,8 @@ export default function Previsao() {
               <div style={{ padding: '14px 20px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 16, textTransform: 'capitalize', color: '#0f172a' }}>
-                    {m.isCurrent && <span style={{ fontSize: 11, background: '#6366f1', color: '#fff', padding: '2px 8px', borderRadius: 99, marginRight: 8, fontWeight: 600 }}>MÊS ATUAL</span>}
+                    {m.isPrevious && <span style={{ fontSize: 11, background: '#f97316', color: '#fff', padding: '2px 8px', borderRadius: 99, marginRight: 8, fontWeight: 600 }}>FATURA EM ABERTO</span>}
+                    {m.isCurrent  && <span style={{ fontSize: 11, background: '#6366f1', color: '#fff', padding: '2px 8px', borderRadius: 99, marginRight: 8, fontWeight: 600 }}>MÊS ATUAL</span>}
                     {format(new Date(m.mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })}
                   </div>
                   <div className="c-text-sm c-text-muted">{m.exps.length} lançamentos</div>
