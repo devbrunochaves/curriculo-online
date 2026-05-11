@@ -56,9 +56,9 @@ export default function LP() {
             </span>
           </div>
           <aside className="profile-card" data-reveal="right" data-delay="2">
-            <div className="profile-frame">
-              <img src="./foto-aside.jpg" alt="Bruno Chaves" />
-            </div>
+            
+              <img src="./foto-aside.png" alt="Bruno Chaves" />
+            
           </aside>
         </div>
       </section>
