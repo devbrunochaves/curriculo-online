@@ -149,6 +149,7 @@ body {
 .hero {
   padding: 70px 0 40px;
   position: relative;
+  background: imge-url('../assets/hero-bg.png') no-repeat center;
 }
 
 .shape-blue {
