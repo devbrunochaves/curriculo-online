@@ -170,13 +170,13 @@ export default function Dashboard() {
       </div>
 
       {/* ── Cards por pessoa ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
+      <div className="c-person-carousel">
         {personData.length === 0 ? (
           <div className="c-card c-text-muted c-text-sm" style={{ gridColumn: '1/-1', textAlign: 'center', padding: 24 }}>
             Nenhum gasto registrado neste mês ainda.
           </div>
         ) : personData.map(p => (
-          <div key={p.id} className="c-card" style={{ borderTop: `4px solid ${p.color}`, padding: '14px 16px' }}>
+          <div key={p.id} className="c-card c-person-card" style={{ borderTop: `4px solid ${p.color}`, padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
               <span className="c-dot" style={{ background: p.color, width: 10, height: 10 }} />
               <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--c-text)' }}>{p.name}</span>

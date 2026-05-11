@@ -432,6 +432,36 @@
   .contas-root .c-mb-4 { margin-bottom: 12px; }
 }
 
+/* ── Carrossel de pessoas (desktop = grid, mobile = scroll horizontal) ── */
+.contas-root .c-person-carousel {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 768px) {
+  .contas-root .c-person-carousel {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding-bottom: 8px;
+    /* esconde a scrollbar mas mantém o scroll */
+    scrollbar-width: none;
+  }
+  .contas-root .c-person-carousel::-webkit-scrollbar {
+    display: none;
+  }
+  .contas-root .c-person-carousel .c-person-card {
+    flex: 0 0 72vw;
+    max-width: 280px;
+    scroll-snap-align: start;
+  }
+}
+
 /* ── FAB Nova Compra — só aparece no mobile ──────────────────────── */
 @media (max-width: 768px) {
   .contas-root .c-fab-nova {
