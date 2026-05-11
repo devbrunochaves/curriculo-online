@@ -35,7 +35,7 @@ export default function LP() {
           <div className="hero-content">
             <div className="eyebrow" data-reveal="left">Presença Digital Estratégica</div>
             <h1 data-reveal="bottom" data-delay="1">
-              Seu negócio parece tão profissional no digital quanto ele{' '}
+              Seu negócio parece <em>tão profissional</em> no digital quanto ele{' '}
               <em>é na vida real?</em>
             </h1>
             <p data-reveal="bottom" data-delay="2">
