@@ -87,18 +87,18 @@ export default function ListaCompras() {
 
       {/* Formulário de adição */}
       <form onSubmit={addItem} className="c-card" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          <div className="c-form-group" style={{ flex: '1 1 200px', marginBottom: 0 }}>
-            <label className="c-form-label">Item</label>
-            <input
-              className="c-form-input"
-              placeholder="Ex: Detergente, Arroz, Shampoo..."
-              value={text}
-              onChange={e => setText(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <div className="c-form-group" style={{ flex: '0 1 130px', marginBottom: 0 }}>
+        <div className="c-form-group" style={{ marginBottom: 10 }}>
+          <label className="c-form-label">Item</label>
+          <input
+            className="c-form-input"
+            placeholder="Ex: Detergente, Arroz, Shampoo..."
+            value={text}
+            onChange={e => setText(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
+          <div className="c-form-group" style={{ flex: 1, marginBottom: 0 }}>
             <label className="c-form-label">Qtd / Obs</label>
             <input
               className="c-form-input"
