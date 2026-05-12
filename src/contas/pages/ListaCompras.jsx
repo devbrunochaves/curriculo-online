@@ -8,6 +8,7 @@ export default function ListaCompras() {
   const [qty, setQty]           = useState('')
   const [filter, setFilter]     = useState('pending') // 'all' | 'pending' | 'done'
   const [saving, setSaving]     = useState(false)
+  const [error, setError]       = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -26,15 +27,20 @@ export default function ListaCompras() {
     e.preventDefault()
     if (!text.trim()) return
     setSaving(true)
-    await supabase.from('shopping_items').insert({
+    setError('')
+    const { error: err } = await supabase.from('shopping_items').insert({
       name: text.trim(),
       quantity: qty.trim() || null,
       is_done: false,
     })
-    setText('')
-    setQty('')
+    if (err) {
+      setError('Erro ao adicionar: ' + err.message)
+    } else {
+      setText('')
+      setQty('')
+      load()
+    }
     setSaving(false)
-    load()
   }
 
   async function toggleItem(item) {
@@ -80,35 +86,42 @@ export default function ListaCompras() {
       </div>
 
       {/* Formulário de adição */}
-      <form onSubmit={addItem} className="c-card" style={{ marginBottom: 16, display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label className="c-label">Item</label>
-          <input
-            className="c-input"
-            placeholder="Ex: Detergente, Arroz, Shampoo..."
-            value={text}
-            onChange={e => setText(e.target.value)}
-            autoComplete="off"
-          />
+      <form onSubmit={addItem} className="c-card" style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <div className="c-form-group" style={{ flex: '1 1 200px', marginBottom: 0 }}>
+            <label className="c-form-label">Item</label>
+            <input
+              className="c-form-input"
+              placeholder="Ex: Detergente, Arroz, Shampoo..."
+              value={text}
+              onChange={e => setText(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <div className="c-form-group" style={{ flex: '0 1 130px', marginBottom: 0 }}>
+            <label className="c-form-label">Qtd / Obs</label>
+            <input
+              className="c-form-input"
+              placeholder="Ex: 2kg, 3un"
+              value={qty}
+              onChange={e => setQty(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+          <button
+            type="submit"
+            className="c-btn c-btn-primary"
+            disabled={saving || !text.trim()}
+            style={{ height: 40, padding: '0 22px', flexShrink: 0, marginBottom: 1 }}
+          >
+            {saving ? '...' : '+ Adicionar'}
+          </button>
         </div>
-        <div style={{ flex: '0 0 100px' }}>
-          <label className="c-label">Qtd / Obs</label>
-          <input
-            className="c-input"
-            placeholder="Ex: 2kg, 3un"
-            value={qty}
-            onChange={e => setQty(e.target.value)}
-            autoComplete="off"
-          />
-        </div>
-        <button
-          type="submit"
-          className="c-btn c-btn-primary"
-          disabled={saving || !text.trim()}
-          style={{ height: 42, padding: '0 20px', flexShrink: 0 }}
-        >
-          {saving ? '...' : '+ Adicionar'}
-        </button>
+        {error && (
+          <div style={{ marginTop: 10, color: '#ef4444', fontSize: 13, fontWeight: 500 }}>
+            ⚠️ {error}
+          </div>
+        )}
       </form>
 
       {/* Filtros */}
