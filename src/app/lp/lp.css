@@ -224,7 +224,17 @@ body {
 .profile-card {
   display: flex;
   justify-content: center;
+  align-items: flex-end;
   height: 100%;
+}
+
+.profile-card img {
+  width: auto;
+  height: min(82vh, 760px);
+  max-width: none;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
 }
 
 .profile-frame {
