@@ -10,6 +10,7 @@ const navItems = [
   { to: '/contas/previsao',      icon: '📆', label: 'Previsão'     },
   { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'      },
   { to: '/contas/cartoes',       icon: '💳', label: 'Cartões'      },
+  { to: '/contas/lista',         icon: '🛒', label: 'Lista de Compras' },
   { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações' },
 ]
 
