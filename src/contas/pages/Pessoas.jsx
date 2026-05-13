@@ -37,7 +37,30 @@ export default function Pessoas() {
       const toCreate = activeBills
         .filter(b => !existingIds.has(b.id))
         .map(b => ({ bill_id: b.id, month_ref: monthRef, amount: b.default_amount ?? 0 }))
-      if (toCreate.length) await supabase.from('bill_entries').insert(toCreate)
+      if (toCreate.length) {
+        const { data: created } = await supabase.from('bill_entries').insert(toCreate).select()
+        if (created?.length) {
+          const prevMonthRef = format(subMonths(new Date(monthRef + '-01'), 1), 'yyyy-MM')
+          const billIds = created.map(e => e.bill_id)
+          const { data: prevEntries } = await supabase
+            .from('bill_entries')
+            .select('id, bill_id, splits:bill_entry_splits(person_id, amount)')
+            .eq('month_ref', prevMonthRef)
+            .in('bill_id', billIds)
+          const splitsToCopy = []
+          for (const newEntry of created) {
+            const prev = prevEntries?.find(p => p.bill_id === newEntry.bill_id)
+            if (prev?.splits?.length) {
+              prev.splits.forEach(s => splitsToCopy.push({
+                entry_id: newEntry.id,
+                person_id: s.person_id,
+                amount: s.amount
+              }))
+            }
+          }
+          if (splitsToCopy.length) await supabase.from('bill_entry_splits').insert(splitsToCopy)
+        }
+      }
     }
 
     const { data: billEntries } = await supabase
