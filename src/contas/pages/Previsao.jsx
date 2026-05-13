@@ -1,3 +1,4 @@
+'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, addMonths, startOfMonth } from 'date-fns'
@@ -6,19 +7,24 @@ import { ptBR } from 'date-fns/locale'
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
 export default function Previsao() {
-  const [months, setMonths]     = useState(6) // quantos meses à frente mostrar
+  const [months, setMonths]     = useState(6)
   const [data, setData]         = useState([])
   const [cards, setCards]       = useState([])
   const [income, setIncome]     = useState([])
   const [loading, setLoading]   = useState(true)
+  // currentRef é definido no cliente após montagem — nunca no servidor
+  const [currentRef, setCurrentRef] = useState('')
+
+  useEffect(() => {
+    setCurrentRef(format(new Date(), 'yyyy-MM'))
+  }, [])
 
   const load = useCallback(async () => {
+    // Usa window para forçar execução exclusivamente no browser
+    const today = new Date(typeof window !== 'undefined' ? Date.now() : undefined)
+    const start = startOfMonth(today)
+    setCurrentRef(format(today, 'yyyy-MM'))
     setLoading(true)
-
-    // new Date() dentro do callback garante tempo do cliente, nunca SSR
-    // Começa do mês atual e vai N meses à frente
-    const today     = new Date()
-    const start     = startOfMonth(today)
     const monthRefs = Array.from({ length: months + 1 }, (_, i) =>
       format(addMonths(start, i), 'yyyy-MM')
     )
@@ -58,8 +64,7 @@ export default function Previsao() {
         })
       })
 
-      const currentRef = format(today, 'yyyy-MM')
-      const isCurrent  = mRef === currentRef
+      const isCurrent  = mRef === format(today, 'yyyy-MM')
 
       return {
         mRef, total, entrada, exps, byCard: Object.values(byCard).sort((a, b) => b.total - a.total),
