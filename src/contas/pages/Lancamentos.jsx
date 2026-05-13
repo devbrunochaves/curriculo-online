@@ -191,6 +191,12 @@ export default function Lancamentos() {
 
   useEffect(() => { load() }, [load])
 
+  async function toggleReconciled(id, current) {
+    const next = !current
+    setExpenses(prev => prev.map(e => e.id === id ? { ...e, reconciled: next } : e))
+    await supabase.from('expenses').update({ reconciled: next }).eq('id', id)
+  }
+
   async function handleDelete(id) {
     if (!confirm('Excluir este lançamento?')) return
     setDeleting(id)
@@ -355,6 +361,7 @@ export default function Lancamentos() {
             <table>
               <thead>
                 <tr>
+                  <th style={{ width: 36 }}></th>
                   <th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Pessoas</th>
                   <th style={{ textAlign: 'right' }}>Total</th><th></th>
                 </tr>
@@ -364,9 +371,37 @@ export default function Lancamentos() {
                   <tr
                     key={e.id}
                     onClick={() => setSelected(e)}
-                    style={{ cursor: 'pointer' }}
+                    style={{
+                      cursor: 'pointer',
+                      background: e.reconciled ? 'rgba(16,185,129,0.07)' : undefined,
+                      transition: 'background 0.2s',
+                    }}
                     className="c-table-row-hover"
                   >
+                    <td onClick={ev => ev.stopPropagation()} style={{ textAlign: 'center', paddingRight: 0 }}>
+                      <button
+                        onClick={() => toggleReconciled(e.id, e.reconciled)}
+                        title={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: 6,
+                          border: `2px solid ${e.reconciled ? '#10b981' : '#d1d5db'}`,
+                          background: e.reconciled ? '#10b981' : 'transparent',
+                          color: '#fff',
+                          fontWeight: 900,
+                          fontSize: 13,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {e.reconciled ? '✓' : ''}
+                      </button>
+                    </td>
                     <td style={{ whiteSpace: 'nowrap', color: 'var(--c-text-muted)', fontSize: 12 }}>
                       {format(new Date(e.date + 'T12:00:00'), 'dd/MM/yy')}
                     </td>
