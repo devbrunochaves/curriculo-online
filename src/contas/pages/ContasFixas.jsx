@@ -6,6 +6,8 @@ import { ptBR } from 'date-fns/locale'
 const fmt      = v => v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
 
+const EMPTY_BILL = { name: '', default_amount: '', due_day: '', category_id: '', person_id: '', total_installments: '', start_month: '', notes: '' }
+
 /** Calcula o número da parcela atual com base no mês inicial */
 function getInstallmentNumber(startMonth, currentMonth) {
   if (!startMonth || !currentMonth) return null
@@ -15,39 +17,156 @@ function getInstallmentNumber(startMonth, currentMonth) {
   return n > 0 ? n : null
 }
 
+// ── Modal de Nova / Edição de Conta Fixa ──────────────────────────────────────
+function BillModal({ open, onClose, onSave, people, categories, initialData, title }) {
+  const [form, setForm]     = useState(EMPTY_BILL)
+  const [error, setError]   = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (open) { setForm(initialData || EMPTY_BILL); setError('') }
+  }, [open, initialData])
+
+  if (!open) return null
+
+  async function handleSave() {
+    setError('')
+    if (!form.name.trim()) { setError('Nome é obrigatório.'); return }
+    setSaving(true)
+    await onSave(form)
+    setSaving(false)
+  }
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', padding: '16px' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div style={{ background: 'var(--c-bg, #fff)', borderRadius: 16, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px 14px', borderBottom: '1px solid var(--c-border)' }}>
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{title || '➕ Nova Conta Fixa'}</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--c-text-muted)', lineHeight: 1, padding: '2px 6px' }}>✕</button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: '18px 22px 22px' }}>
+          {error && <div className="c-alert c-alert-danger" style={{ marginBottom: 14 }}>{error}</div>}
+
+          <div className="c-grid-2" style={{ marginBottom: 12 }}>
+            <div className="c-form-group" style={{ margin: 0 }}>
+              <label className="c-form-label">Nome *</label>
+              <input type="text" className="c-form-input" placeholder="Ex: Condomínio" value={form.name} onChange={e => set('name', e.target.value)} autoFocus />
+            </div>
+            <div className="c-form-group" style={{ margin: 0 }}>
+              <label className="c-form-label">Valor padrão <span style={{ color: 'var(--c-text-muted)', fontWeight: 400, fontSize: 11 }}>(vazio = variável)</span></label>
+              <input type="text" className="c-form-input" placeholder="0,00" value={form.default_amount} onChange={e => set('default_amount', e.target.value)} />
+            </div>
+          </div>
+
+          <div className="c-grid-2" style={{ marginBottom: 12 }}>
+            <div className="c-form-group" style={{ margin: 0 }}>
+              <label className="c-form-label">Dia do vencimento</label>
+              <input type="number" className="c-form-input" placeholder="Ex: 10" min={1} max={31} value={form.due_day} onChange={e => set('due_day', e.target.value)} />
+            </div>
+            <div className="c-form-group" style={{ margin: 0 }}>
+              <label className="c-form-label">Categoria</label>
+              <select className="c-form-select" value={form.category_id} onChange={e => set('category_id', e.target.value)}>
+                <option value="">Sem categoria</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="c-form-group" style={{ marginBottom: 12 }}>
+            <label className="c-form-label">Responsável <span style={{ color: 'var(--c-text-muted)', fontWeight: 400, fontSize: 11 }}>(opcional — use divisão para múltiplos)</span></label>
+            <select className="c-form-select" value={form.person_id} onChange={e => set('person_id', e.target.value)}>
+              <option value="">Sem responsável específico</option>
+              {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+
+          <div className="c-form-group" style={{ marginBottom: 12 }}>
+            <label className="c-form-label">Observações</label>
+            <input type="text" className="c-form-input" placeholder="Opcional" value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
+          </div>
+
+          {/* Parcelamento */}
+          <div style={{ padding: '12px 14px', borderRadius: 10, background: form.total_installments ? '#f5f3ff' : 'var(--c-surface, #f8fafc)', border: `1.5px solid ${form.total_installments ? '#ddd6fe' : 'var(--c-border)'}`, marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: form.total_installments ? 14 : 0 }}>
+              <input
+                type="checkbox" id="modalIsInst"
+                checked={!!form.total_installments}
+                onChange={e => set('total_installments', e.target.checked ? '12' : '') || set('start_month', e.target.checked ? format(new Date(), 'yyyy-MM') : '')}
+                style={{ width: 16, height: 16, accentColor: '#7c3aed', cursor: 'pointer' }}
+              />
+              <label htmlFor="modalIsInst" style={{ fontWeight: 600, fontSize: 13, color: '#5b21b6', cursor: 'pointer' }}>📦 É parcelado?</label>
+            </div>
+            {!!form.total_installments && (
+              <div className="c-grid-2">
+                <div className="c-form-group" style={{ margin: 0 }}>
+                  <label className="c-form-label">Total de parcelas</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button type="button" onClick={() => set('total_installments', String(Math.max(2, Number(form.total_installments) - 1)))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>−</button>
+                    <input type="number" min={2} className="c-form-input" value={form.total_installments} onChange={e => set('total_installments', e.target.value)} style={{ textAlign: 'center', fontWeight: 700, color: '#7c3aed' }} />
+                    <button type="button" onClick={() => set('total_installments', String(Number(form.total_installments) + 1))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>+</button>
+                  </div>
+                </div>
+                <div className="c-form-group" style={{ margin: 0 }}>
+                  <label className="c-form-label">Mês da 1ª parcela</label>
+                  <input type="month" className="c-form-input" value={form.start_month || ''} onChange={e => set('start_month', e.target.value)} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button className="c-btn c-btn-secondary" onClick={onClose}>Cancelar</button>
+            <button className="c-btn c-btn-primary" disabled={saving} onClick={handleSave}>
+              {saving ? 'Salvando...' : '✓ Salvar'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function ContasFixas() {
   const [monthDate, setMonthDate]   = useState(new Date())
   const currentMonth                = format(monthDate, 'yyyy-MM')
   const monthLabel                  = format(monthDate, "MMMM 'de' yyyy", { locale: ptBR })
   const monthLabelCap               = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)
 
-  const [bills, setBills]           = useState([])   // templates recurring_bills
-  const [entries, setEntries]       = useState([])   // bill_entries do mês
+  const [bills, setBills]           = useState([])
+  const [entries, setEntries]       = useState([])
   const [people, setPeople]         = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading]       = useState(true)
   const [showManage, setShowManage] = useState(false)
 
+  // Modal nova conta
+  const [showAddModal, setShowAddModal]   = useState(false)
+  // Modal editar template
+  const [editModalBill, setEditModalBill] = useState(null)  // bill object ou null
+
   // Edição inline de uma entrada
   const [editingId, setEditingId]   = useState(null)
   const [editAmount, setEditAmount] = useState('')
-  const [editSplits, setEditSplits] = useState({})   // { personId: amountStr }
+  const [editSplits, setEditSplits] = useState({})
   const [saving, setSaving]         = useState(false)
 
-  // Formulário nova conta fixa
-  const [newBill, setNewBill]       = useState({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', total_installments: '', start_month: '', notes: '' })
-  const [savingBill, setSavingBill] = useState(false)
-  const [billError, setBillError]   = useState('')
-  const [editingBill, setEditingBill]     = useState(null)   // bill sendo editado no manage
-  const [editBillForm, setEditBillForm]   = useState({})
-  const [savingEditBill, setSavingEditBill] = useState(false)
+  // Confirmação de exclusão
+  const [confirmDelete, setConfirmDelete] = useState(null) // bill object
 
-  // ── Carregamento ────────────────────────────────────────────────────────────
+  // ── Carregamento ─────────────────────────────────────────────────────────────
   useEffect(() => { loadData() }, [currentMonth])
 
   async function loadData() {
     setLoading(true)
-
     const [{ data: b }, { data: p }, { data: cat }] = await Promise.all([
       supabase.from('recurring_bills').select('*').order('name'),
       supabase.from('people').select('*').eq('is_active', true).order('name'),
@@ -59,11 +178,9 @@ export default function ContasFixas() {
     setPeople(p || [])
     setCategories(cat || [])
 
-    // Gera entradas faltando para o mês
     const activeBills = allBills.filter(x => x.is_active)
     await generateMissingEntries(activeBills)
 
-    // Carrega entradas do mês com splits
     const { data: ents } = await supabase
       .from('bill_entries')
       .select('*, bill:recurring_bills(*), splits:bill_entry_splits(*, person:people(*))')
@@ -107,7 +224,59 @@ export default function ContasFixas() {
     }
   }
 
-  // ── Edição de entrada ───────────────────────────────────────────────────────
+  // ── Adicionar nova conta fixa ─────────────────────────────────────────────────
+  async function handleAddBill(form) {
+    const { error } = await supabase.from('recurring_bills').insert({
+      name:               form.name.trim(),
+      default_amount:     form.default_amount ? parseBRL(form.default_amount) : null,
+      due_day:            form.due_day ? Number(form.due_day) : null,
+      category_id:        form.category_id || null,
+      person_id:          form.person_id || null,
+      total_installments: form.total_installments ? Number(form.total_installments) : null,
+      start_month:        form.start_month || null,
+      notes:              form.notes || null,
+    })
+    if (error) throw new Error(error.message)
+    setShowAddModal(false)
+    loadData()
+  }
+
+  // ── Editar template ───────────────────────────────────────────────────────────
+  async function handleEditBill(form) {
+    await supabase.from('recurring_bills').update({
+      name:               form.name.trim(),
+      default_amount:     form.default_amount ? parseBRL(form.default_amount) : null,
+      due_day:            form.due_day ? Number(form.due_day) : null,
+      category_id:        form.category_id || null,
+      person_id:          form.person_id || null,
+      total_installments: form.total_installments ? Number(form.total_installments) : null,
+      start_month:        form.start_month || null,
+    }).eq('id', editModalBill.id)
+    setEditModalBill(null)
+    loadData()
+  }
+
+  // ── Excluir conta fixa ────────────────────────────────────────────────────────
+  async function deleteBill(bill) {
+    // Deleta splits → entradas → template (cascata manual para garantir)
+    const { data: allEntries } = await supabase
+      .from('bill_entries').select('id').eq('bill_id', bill.id)
+    const entryIds = (allEntries || []).map(e => e.id)
+    if (entryIds.length) {
+      await supabase.from('bill_entry_splits').delete().in('entry_id', entryIds)
+      await supabase.from('bill_entries').delete().in('id', entryIds)
+    }
+    await supabase.from('recurring_bills').delete().eq('id', bill.id)
+    setConfirmDelete(null)
+    loadData()
+  }
+
+  async function toggleBillActive(bill) {
+    await supabase.from('recurring_bills').update({ is_active: !bill.is_active }).eq('id', bill.id)
+    loadData()
+  }
+
+  // ── Edição inline de entrada ──────────────────────────────────────────────────
   function startEdit(entry) {
     setEditingId(entry.id)
     setEditAmount(String(entry.amount).replace('.', ','))
@@ -149,75 +318,18 @@ export default function ContasFixas() {
     setEditSplits(prev => { const n = { ...prev }; if (n[id] !== undefined) delete n[id]; else n[id] = ''; return n })
   }
 
-  // ── Gerenciar templates ─────────────────────────────────────────────────────
-  async function addBill() {
-    setBillError('')
-    if (!newBill.name.trim()) { setBillError('Nome é obrigatório.'); return }
-    setSavingBill(true)
-    const { error } = await supabase.from('recurring_bills').insert({
-      name:               newBill.name.trim(),
-      default_amount:     newBill.default_amount ? parseBRL(newBill.default_amount) : null,
-      due_day:            newBill.due_day ? Number(newBill.due_day) : null,
-      category_id:        newBill.category_id || null,
-      person_id:          newBill.person_id || null,
-      total_installments: newBill.total_installments ? Number(newBill.total_installments) : null,
-      start_month:        newBill.start_month || null,
-      notes:              newBill.notes || null,
-    })
-    if (error) { setBillError(error.message); setSavingBill(false); return }
-    setNewBill({ name: '', default_amount: '', due_day: '', category_id: '', person_id: '', total_installments: '', start_month: '', notes: '' })
-    setSavingBill(false)
-    loadData()
-  }
-
-  async function toggleBillActive(bill) {
-    await supabase.from('recurring_bills').update({ is_active: !bill.is_active }).eq('id', bill.id)
-    loadData()
-  }
-
-  function startEditBill(bill) {
-    setEditingBill(bill.id)
-    setEditBillForm({
-      name:               bill.name,
-      default_amount:     bill.default_amount != null ? String(bill.default_amount).replace('.', ',') : '',
-      due_day:            bill.due_day != null ? String(bill.due_day) : '',
-      category_id:        bill.category_id || '',
-      person_id:          bill.person_id || '',
-      total_installments: bill.total_installments != null ? String(bill.total_installments) : '',
-      start_month:        bill.start_month || '',
-    })
-  }
-
-  async function saveEditBill(billId) {
-    setSavingEditBill(true)
-    await supabase.from('recurring_bills').update({
-      name:               editBillForm.name.trim(),
-      default_amount:     editBillForm.default_amount ? parseBRL(editBillForm.default_amount) : null,
-      due_day:            editBillForm.due_day ? Number(editBillForm.due_day) : null,
-      category_id:        editBillForm.category_id || null,
-      person_id:          editBillForm.person_id || null,
-      total_installments: editBillForm.total_installments ? Number(editBillForm.total_installments) : null,
-      start_month:        editBillForm.start_month || null,
-    }).eq('id', billId)
-    setSavingEditBill(false)
-    setEditingBill(null)
-    loadData()
-  }
-
-  // ── Resumo ──────────────────────────────────────────────────────────────────
+  // ── Resumo ────────────────────────────────────────────────────────────────────
   const total = useMemo(() => entries.reduce((s, e) => s + Number(e.amount), 0), [entries])
 
   const totalByPerson = useMemo(() => {
     const map = {}
     entries.forEach(e => {
       if (e.splits?.length > 0) {
-        // Tem divisão → usa splits
         e.splits.forEach(s => {
           if (!map[s.person_id]) map[s.person_id] = { name: s.person?.name, color: s.person?.color, total: 0 }
           map[s.person_id].total += Number(s.amount)
         })
       } else if (e.bill?.person_id) {
-        // Sem divisão mas tem responsável → conta o total para essa pessoa
         const pid = e.bill.person_id
         const person = people.find(p => p.id === pid)
         if (!map[pid]) map[pid] = { name: person?.name, color: person?.color, total: 0 }
@@ -227,12 +339,79 @@ export default function ContasFixas() {
     return Object.values(map)
   }, [entries, people])
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div style={{ maxWidth: 720 }}>
-      <div className="c-page-header">
-        <h2>🏠 Contas Fixas</h2>
-        <p>Despesas recorrentes fora do cartão de crédito</p>
+
+      {/* Modal nova conta */}
+      <BillModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddBill}
+        people={people}
+        categories={categories}
+        title="➕ Nova Conta Fixa"
+      />
+
+      {/* Modal editar template */}
+      <BillModal
+        open={!!editModalBill}
+        onClose={() => setEditModalBill(null)}
+        onSave={handleEditBill}
+        people={people}
+        categories={categories}
+        initialData={editModalBill ? {
+          name:               editModalBill.name,
+          default_amount:     editModalBill.default_amount != null ? String(editModalBill.default_amount).replace('.', ',') : '',
+          due_day:            editModalBill.due_day != null ? String(editModalBill.due_day) : '',
+          category_id:        editModalBill.category_id || '',
+          person_id:          editModalBill.person_id || '',
+          total_installments: editModalBill.total_installments != null ? String(editModalBill.total_installments) : '',
+          start_month:        editModalBill.start_month || '',
+          notes:              editModalBill.notes || '',
+        } : null}
+        title="✏️ Editar Conta Fixa"
+      />
+
+      {/* Modal confirmação de exclusão */}
+      {confirmDelete && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) setConfirmDelete(null) }}
+        >
+          <div style={{ background: 'var(--c-bg, #fff)', borderRadius: 14, padding: '24px 28px', maxWidth: 380, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', textAlign: 'center' }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🗑️</div>
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Excluir "{confirmDelete.name}"?</div>
+            <div style={{ fontSize: 13, color: 'var(--c-text-muted)', marginBottom: 20 }}>
+              Isso vai remover a conta fixa e todos os lançamentos vinculados. Essa ação não pode ser desfeita.
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button className="c-btn c-btn-secondary" onClick={() => setConfirmDelete(null)}>Cancelar</button>
+              <button
+                className="c-btn"
+                style={{ background: '#ef4444', color: '#fff', border: 'none' }}
+                onClick={() => deleteBill(confirmDelete)}
+              >
+                Sim, excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>🏠 Contas Fixas</h2>
+          <p style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--c-text-muted)' }}>Despesas recorrentes fora do cartão de crédito</p>
+        </div>
+        <button
+          className="c-btn c-btn-primary"
+          onClick={() => setShowAddModal(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}
+        >
+          ➕ Nova Conta
+        </button>
       </div>
 
       {/* ── Navegação por mês ── */}
@@ -268,7 +447,7 @@ export default function ContasFixas() {
         <div className="c-card" style={{ textAlign: 'center', padding: 48, color: 'var(--c-text-muted)', marginBottom: 16 }}>
           <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
           <p style={{ marginBottom: 12 }}>Nenhuma conta fixa cadastrada ainda.</p>
-          <button className="c-btn c-btn-primary c-btn-sm" onClick={() => setShowManage(true)}>
+          <button className="c-btn c-btn-primary c-btn-sm" onClick={() => setShowAddModal(true)}>
             + Adicionar primeira conta
           </button>
         </div>
@@ -304,12 +483,12 @@ export default function ContasFixas() {
                         )}
                         {(() => {
                           const n = getInstallmentNumber(entry.bill?.start_month, currentMonth)
-                          const total = entry.bill?.total_installments
-                          if (!n || !total) return null
-                          const remaining = total - n
+                          const tot = entry.bill?.total_installments
+                          if (!n || !tot) return null
+                          const remaining = tot - n
                           return (
                             <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: '#ede9fe', color: '#7c3aed', fontWeight: 700 }}>
-                              📦 {n}/{total}x{remaining >= 0 ? ` · ${remaining} restantes` : ''}
+                              📦 {n}/{tot}x{remaining >= 0 ? ` · ${remaining} restantes` : ''}
                             </span>
                           )
                         })()}
@@ -333,15 +512,25 @@ export default function ContasFixas() {
                         ) : null
                       })() : null}
                     </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
                       <div style={{ fontSize: 20, fontWeight: 800 }}>{fmt(entry.amount)}</div>
-                      <button
-                        className="c-btn c-btn-secondary c-btn-sm"
-                        style={{ marginTop: 6, fontSize: 12 }}
-                        onClick={() => startEdit(entry)}
-                      >
-                        ✏️ Editar
-                      </button>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button
+                          className="c-btn c-btn-secondary c-btn-sm"
+                          style={{ fontSize: 12 }}
+                          onClick={() => startEdit(entry)}
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button
+                          className="c-btn c-btn-sm"
+                          style={{ fontSize: 12, background: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}
+                          onClick={() => setConfirmDelete(entry.bill)}
+                          title="Excluir conta fixa"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : (
@@ -427,75 +616,6 @@ export default function ContasFixas() {
 
         {showManage && (
           <div style={{ marginTop: 20 }}>
-
-            {/* Formulário nova conta */}
-            <div style={{ marginBottom: 20, padding: '16px', borderRadius: 10, background: 'var(--c-bg-alt)', border: '1px solid var(--c-border)' }}>
-              <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 14 }}>➕ Nova Conta Fixa</div>
-              {billError && <div className="c-alert c-alert-danger c-mb-2">{billError}</div>}
-
-              <div className="c-grid-2" style={{ marginBottom: 10 }}>
-                <div className="c-form-group" style={{ margin: 0 }}>
-                  <label className="c-form-label">Nome *</label>
-                  <input type="text" className="c-form-input" placeholder="Ex: Condomínio" value={newBill.name} onChange={e => setNewBill(p => ({ ...p, name: e.target.value }))} />
-                </div>
-                <div className="c-form-group" style={{ margin: 0 }}>
-                  <label className="c-form-label">Valor padrão <span style={{ color: 'var(--c-text-muted)', fontWeight: 400 }}>(vazio = variável)</span></label>
-                  <input type="text" className="c-form-input" placeholder="0,00" value={newBill.default_amount} onChange={e => setNewBill(p => ({ ...p, default_amount: e.target.value }))} />
-                </div>
-              </div>
-
-              <div className="c-grid-2" style={{ marginBottom: 10 }}>
-                <div className="c-form-group" style={{ margin: 0 }}>
-                  <label className="c-form-label">Dia do vencimento</label>
-                  <input type="number" className="c-form-input" placeholder="Ex: 10" min={1} max={31} value={newBill.due_day} onChange={e => setNewBill(p => ({ ...p, due_day: e.target.value }))} />
-                </div>
-                <div className="c-form-group" style={{ margin: 0 }}>
-                  <label className="c-form-label">Categoria</label>
-                  <select className="c-form-select" value={newBill.category_id} onChange={e => setNewBill(p => ({ ...p, category_id: e.target.value }))}>
-                    <option value="">Sem categoria</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="c-form-group" style={{ marginBottom: 10 }}>
-                <label className="c-form-label">Responsável <span style={{ color: 'var(--c-text-muted)', fontWeight: 400 }}>(opcional)</span></label>
-                <select className="c-form-select" value={newBill.person_id} onChange={e => setNewBill(p => ({ ...p, person_id: e.target.value }))}>
-                  <option value="">Sem responsável específico</option>
-                  {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-              </div>
-
-              {/* Parcelamento */}
-              <div style={{ padding: '12px 14px', borderRadius: 8, background: newBill.total_installments ? '#f5f3ff' : 'var(--c-bg)', border: `1.5px solid ${newBill.total_installments ? '#ddd6fe' : 'var(--c-border)'}`, marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: newBill.total_installments ? 12 : 0 }}>
-                  <input type="checkbox" id="newIsInst" checked={!!newBill.total_installments} onChange={e => setNewBill(p => ({ ...p, total_installments: e.target.checked ? '12' : '', start_month: e.target.checked ? format(new Date(), 'yyyy-MM') : '' }))} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
-                  <label htmlFor="newIsInst" style={{ fontWeight: 600, fontSize: 13, color: '#5b21b6', cursor: 'pointer' }}>📦 É parcelado?</label>
-                </div>
-                {!!newBill.total_installments && (
-                  <div className="c-grid-2">
-                    <div className="c-form-group" style={{ margin: 0 }}>
-                      <label className="c-form-label">Total de parcelas</label>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <button type="button" onClick={() => setNewBill(p => ({ ...p, total_installments: String(Math.max(2, Number(p.total_installments) - 1)) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>−</button>
-                        <input type="number" min={2} className="c-form-input" value={newBill.total_installments} onChange={e => setNewBill(p => ({ ...p, total_installments: e.target.value }))} style={{ textAlign: 'center', fontWeight: 700, color: '#7c3aed' }} />
-                        <button type="button" onClick={() => setNewBill(p => ({ ...p, total_installments: String(Number(p.total_installments) + 1) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>+</button>
-                      </div>
-                    </div>
-                    <div className="c-form-group" style={{ margin: 0 }}>
-                      <label className="c-form-label">Mês da 1ª parcela</label>
-                      <input type="month" className="c-form-input" value={newBill.start_month} onChange={e => setNewBill(p => ({ ...p, start_month: e.target.value }))} />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button className="c-btn c-btn-primary c-btn-sm" disabled={savingBill} onClick={addBill}>
-                {savingBill ? 'Salvando...' : '+ Adicionar'}
-              </button>
-            </div>
-
-            {/* Lista de templates */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {bills.length === 0 && (
                 <p style={{ color: 'var(--c-text-muted)', fontSize: 13, textAlign: 'center', padding: '12px 0' }}>
@@ -503,91 +623,33 @@ export default function ContasFixas() {
                 </p>
               )}
               {bills.map(bill => {
-                const cat       = categories.find(c => c.id === bill.category_id)
-                const isEditing = editingBill === bill.id
+                const cat = categories.find(c => c.id === bill.category_id)
                 return (
                   <div key={bill.id} style={{ borderRadius: 8, border: '1.5px solid var(--c-border)', overflow: 'hidden', opacity: bill.is_active ? 1 : 0.5 }}>
-                    {!isEditing ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px' }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 600, fontSize: 14 }}>{bill.name}</div>
-                          <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>
-                            {bill.default_amount != null ? fmt(bill.default_amount) : '⚡ Variável'}
-                            {bill.total_installments ? ` · ${bill.total_installments}x` : ''}
-                            {bill.due_day ? ` · vence dia ${bill.due_day}` : ''}
-                            {cat ? ` · ${cat.icon} ${cat.name}` : ''}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 6 }}>
-                          <button className="c-btn c-btn-secondary c-btn-sm" style={{ fontSize: 12 }} onClick={() => startEditBill(bill)}>✏️</button>
-                          <button className={`c-btn c-btn-sm ${bill.is_active ? 'c-btn-secondary' : 'c-btn-primary'}`} style={{ fontSize: 12 }} onClick={() => toggleBillActive(bill)}>
-                            {bill.is_active ? 'Desativar' : 'Ativar'}
-                          </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{bill.name}</div>
+                        <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>
+                          {bill.default_amount != null ? fmt(bill.default_amount) : '⚡ Variável'}
+                          {bill.total_installments ? ` · ${bill.total_installments}x` : ''}
+                          {bill.due_day ? ` · vence dia ${bill.due_day}` : ''}
+                          {cat ? ` · ${cat.icon} ${cat.name}` : ''}
                         </div>
                       </div>
-                    ) : (
-                      <div style={{ padding: '12px 14px', background: 'var(--c-bg-alt)' }}>
-                        <div className="c-grid-2" style={{ marginBottom: 8 }}>
-                          <div className="c-form-group" style={{ margin: 0 }}>
-                            <label className="c-form-label">Nome</label>
-                            <input type="text" className="c-form-input" value={editBillForm.name} onChange={e => setEditBillForm(p => ({ ...p, name: e.target.value }))} />
-                          </div>
-                          <div className="c-form-group" style={{ margin: 0 }}>
-                            <label className="c-form-label">Valor padrão</label>
-                            <input type="text" className="c-form-input" placeholder="vazio = variável" value={editBillForm.default_amount} onChange={e => setEditBillForm(p => ({ ...p, default_amount: e.target.value }))} />
-                          </div>
-                        </div>
-                        <div className="c-grid-2" style={{ marginBottom: 10 }}>
-                          <div className="c-form-group" style={{ margin: 0 }}>
-                            <label className="c-form-label">Dia vencimento</label>
-                            <input type="number" className="c-form-input" min={1} max={31} value={editBillForm.due_day} onChange={e => setEditBillForm(p => ({ ...p, due_day: e.target.value }))} />
-                          </div>
-                          <div className="c-form-group" style={{ margin: 0 }}>
-                            <label className="c-form-label">Categoria</label>
-                            <select className="c-form-select" value={editBillForm.category_id} onChange={e => setEditBillForm(p => ({ ...p, category_id: e.target.value }))}>
-                              <option value="">Sem categoria</option>
-                              {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                            </select>
-                          </div>
-                        </div>
-                        <div className="c-form-group" style={{ marginBottom: 10 }}>
-                          <label className="c-form-label">Responsável</label>
-                          <select className="c-form-select" value={editBillForm.person_id} onChange={e => setEditBillForm(p => ({ ...p, person_id: e.target.value }))}>
-                            <option value="">Sem responsável específico</option>
-                            {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                          </select>
-                        </div>
-                        {/* Parcelamento */}
-                        <div style={{ padding: '12px 14px', borderRadius: 8, background: editBillForm.total_installments ? '#f5f3ff' : 'var(--c-bg-alt)', border: `1.5px solid ${editBillForm.total_installments ? '#ddd6fe' : 'var(--c-border)'}`, marginBottom: 10 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: editBillForm.total_installments ? 12 : 0 }}>
-                            <input type="checkbox" id={`editIsInst-${editingBill}`} checked={!!editBillForm.total_installments} onChange={e => setEditBillForm(p => ({ ...p, total_installments: e.target.checked ? '12' : '', start_month: e.target.checked ? (p.start_month || format(new Date(), 'yyyy-MM')) : '' }))} style={{ width: 16, height: 16, accentColor: '#7c3aed' }} />
-                            <label htmlFor={`editIsInst-${editingBill}`} style={{ fontWeight: 600, fontSize: 13, color: '#5b21b6', cursor: 'pointer' }}>📦 É parcelado?</label>
-                          </div>
-                          {!!editBillForm.total_installments && (
-                            <div className="c-grid-2">
-                              <div className="c-form-group" style={{ margin: 0 }}>
-                                <label className="c-form-label">Total de parcelas</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                  <button type="button" onClick={() => setEditBillForm(p => ({ ...p, total_installments: String(Math.max(2, Number(p.total_installments) - 1)) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>−</button>
-                                  <input type="number" min={2} className="c-form-input" value={editBillForm.total_installments} onChange={e => setEditBillForm(p => ({ ...p, total_installments: e.target.value }))} style={{ textAlign: 'center', fontWeight: 700, color: '#7c3aed' }} />
-                                  <button type="button" onClick={() => setEditBillForm(p => ({ ...p, total_installments: String(Number(p.total_installments) + 1) }))} style={{ width: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--c-border)', background: 'var(--c-bg)', fontWeight: 700, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>+</button>
-                                </div>
-                              </div>
-                              <div className="c-form-group" style={{ margin: 0 }}>
-                                <label className="c-form-label">Mês da 1ª parcela</label>
-                                <input type="month" className="c-form-input" value={editBillForm.start_month} onChange={e => setEditBillForm(p => ({ ...p, start_month: e.target.value }))} />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button className="c-btn c-btn-primary c-btn-sm" disabled={savingEditBill} onClick={() => saveEditBill(bill.id)}>
-                            {savingEditBill ? 'Salvando...' : '✓ Salvar'}
-                          </button>
-                          <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => setEditingBill(null)}>Cancelar</button>
-                        </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button className="c-btn c-btn-secondary c-btn-sm" style={{ fontSize: 12 }} onClick={() => setEditModalBill(bill)}>✏️</button>
+                        <button className={`c-btn c-btn-sm ${bill.is_active ? 'c-btn-secondary' : 'c-btn-primary'}`} style={{ fontSize: 12 }} onClick={() => toggleBillActive(bill)}>
+                          {bill.is_active ? 'Desativar' : 'Ativar'}
+                        </button>
+                        <button
+                          className="c-btn c-btn-sm"
+                          style={{ fontSize: 12, background: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}
+                          onClick={() => setConfirmDelete(bill)}
+                        >
+                          🗑️
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )
               })}
