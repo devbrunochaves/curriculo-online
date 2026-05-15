@@ -37,21 +37,79 @@ function fmtBRL(v) {
 function instagramUrl(val) {
   if (!val) return null
   if (val.startsWith('http')) return val
-  const handle = val.replace('@', '')
-  return `https://instagram.com/${handle}`
+  return `https://instagram.com/${val.replace('@', '')}`
+}
+
+function InlineField({ icon, label, value, placeholder, type = 'text', onSave }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft]     = useState(value || '')
+  const [saving, setSaving]   = useState(false)
+
+  async function save() {
+    setSaving(true)
+    await onSave(draft)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  function cancel() {
+    setDraft(value || '')
+    setEditing(false)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--crm-text-faint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {icon} {label}
+        </span>
+        {!editing && (
+          <button
+            onClick={() => { setDraft(value || ''); setEditing(true) }}
+            style={{ background: 'none', border: 'none', color: 'var(--crm-accent)', fontSize: 12, cursor: 'pointer', padding: '2px 6px' }}
+          >
+            {value ? 'Editar' : '+ Adicionar'}
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input
+            className="crm-input"
+            type={type}
+            placeholder={placeholder}
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel() }}
+            autoFocus
+            style={{ flex: 1 }}
+          />
+          <button className="crm-btn crm-btn-primary crm-btn-sm" onClick={save} disabled={saving}>
+            {saving ? '...' : 'OK'}
+          </button>
+          <button className="crm-btn crm-btn-ghost crm-btn-sm" onClick={cancel}>✕</button>
+        </div>
+      ) : (
+        <div style={{ fontSize: 13, color: value ? 'var(--crm-text-muted)' : 'var(--crm-text-faint)', fontStyle: value ? 'normal' : 'italic' }}>
+          {value || `Nenhum ${label.toLowerCase()} cadastrado`}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ClienteDetalhe() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const fileRef = useRef(null)
+  const fileRef  = useRef(null)
 
-  const [cliente, setCliente]       = useState(null)
-  const [contratos, setContratos]   = useState([])
-  const [entregas, setEntregas]     = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [uploading, setUploading]   = useState(false)
-  const [uploadMsg, setUploadMsg]   = useState('')
+  const [cliente, setCliente]     = useState(null)
+  const [contratos, setContratos] = useState([])
+  const [entregas, setEntregas]   = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [uploadMsg, setUploadMsg] = useState('')
 
   useEffect(() => { load() }, [id])
 
@@ -67,6 +125,11 @@ export default function ClienteDetalhe() {
     setLoading(false)
   }
 
+  async function saveField(field, value) {
+    await supabase.from('crm_clientes').update({ [field]: value }).eq('id', id)
+    setCliente(c => ({ ...c, [field]: value }))
+  }
+
   async function handleContrato(e) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -74,20 +137,16 @@ export default function ClienteDetalhe() {
       setUploadMsg('Arquivo muito grande. Máximo: 10 MB.')
       return
     }
-
     setUploading(true)
     setUploadMsg('')
-
-    const ext      = file.name.split('.').pop()
-    const path     = `contratos/${id}/${Date.now()}.${ext}`
+    const ext  = file.name.split('.').pop()
+    const path = `contratos/${id}/${Date.now()}.${ext}`
     const { error: upErr } = await supabase.storage.from('crm-arquivos').upload(path, file, { upsert: true })
-
     if (upErr) {
       setUploadMsg('Erro no upload. Verifique se o bucket "crm-arquivos" existe no Supabase Storage.')
       setUploading(false)
       return
     }
-
     const { data: { publicUrl } } = supabase.storage.from('crm-arquivos').getPublicUrl(path)
     await supabase.from('crm_clientes').update({ contrato_url: publicUrl }).eq('id', id)
     setCliente(c => ({ ...c, contrato_url: publicUrl }))
@@ -153,8 +212,8 @@ export default function ClienteDetalhe() {
         </button>
       </div>
 
-      {/* Stats rápidos */}
-      <div className="crm-grid-3" style={{ marginBottom: 24 }}>
+      {/* Stats */}
+      <div className="crm-grid-3" style={{ marginBottom: 20 }}>
         <div className="crm-card crm-card-sm">
           <div className="crm-stat">
             <div className="crm-stat-label">MRR do cliente</div>
@@ -175,177 +234,196 @@ export default function ClienteDetalhe() {
         </div>
       </div>
 
-      <div className="crm-grid-2">
-        {/* Contato + Links */}
-        <div className="crm-card">
-          <div className="crm-section-title">Contato & Links</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
+      {/* Linha: Contato | Instagram | Drive */}
+      <div className="crm-grid-3" style={{ marginBottom: 20 }}>
 
-            {cliente.whatsapp && (
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>📱</span>
-                <a href={`https://wa.me/55${cliente.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
-                  style={{ color: 'var(--crm-accent)', fontSize: 13 }}>
-                  {cliente.whatsapp}
-                </a>
-              </div>
-            )}
+        {/* Contato */}
+        <div className="crm-card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="crm-section-title" style={{ marginBottom: 0 }}>Contato</div>
 
-            {cliente.email && (
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>✉️</span>
-                <a href={`mailto:${cliente.email}`} style={{ color: 'var(--crm-accent)', fontSize: 13 }}>
-                  {cliente.email}
-                </a>
-              </div>
-            )}
+          <InlineField
+            icon="📱" label="WhatsApp"
+            value={cliente.whatsapp}
+            placeholder="(27) 99999-9999"
+            onSave={v => saveField('whatsapp', v)}
+          />
+          <InlineField
+            icon="✉️" label="E-mail"
+            value={cliente.email}
+            placeholder="email@empresa.com"
+            type="email"
+            onSave={v => saveField('email', v)}
+          />
 
-            {igUrl && (
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>📸</span>
-                <a href={igUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--crm-accent)', fontSize: 13 }}>
-                  {cliente.instagram.startsWith('http') ? 'Instagram' : cliente.instagram}
-                </a>
-              </div>
-            )}
-
-            {cliente.drive_link && (
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>📁</span>
-                <a href={cliente.drive_link} target="_blank" rel="noreferrer" style={{ color: 'var(--crm-accent)', fontSize: 13 }}>
-                  Pasta no Drive
-                </a>
-              </div>
-            )}
-
-            {!cliente.whatsapp && !cliente.email && !igUrl && !cliente.drive_link && (
-              <p style={{ color: 'var(--crm-text-faint)', fontSize: 13 }}>Nenhum contato cadastrado</p>
-            )}
-
-            {cliente.notas && (
-              <div style={{ marginTop: 4, padding: '12px', background: 'var(--crm-surface2)', borderRadius: 8, fontSize: 13, color: 'var(--crm-text-muted)', lineHeight: 1.6 }}>
-                {cliente.notas}
-              </div>
-            )}
-          </div>
+          {cliente.whatsapp && (
+            <a
+              href={`https://wa.me/55${cliente.whatsapp.replace(/\D/g,'')}`}
+              target="_blank" rel="noreferrer"
+              className="crm-btn crm-btn-ghost crm-btn-sm"
+              style={{ justifyContent: 'center', marginTop: 4, color: '#25d366', borderColor: 'rgba(37,211,102,0.3)' }}
+            >
+              Abrir WhatsApp ↗
+            </a>
+          )}
         </div>
+
+        {/* Instagram */}
+        <div className="crm-card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="crm-section-title" style={{ marginBottom: 0 }}>Instagram</div>
+
+          <InlineField
+            icon="📸" label="Perfil"
+            value={cliente.instagram}
+            placeholder="@perfil ou URL completa"
+            onSave={v => saveField('instagram', v)}
+          />
+
+          {igUrl && (
+            <a
+              href={igUrl}
+              target="_blank" rel="noreferrer"
+              className="crm-btn crm-btn-ghost crm-btn-sm"
+              style={{ justifyContent: 'center', marginTop: 4, color: '#e1306c', borderColor: 'rgba(225,48,108,0.3)' }}
+            >
+              Abrir Instagram ↗
+            </a>
+          )}
+
+          {!igUrl && (
+            <div style={{ fontSize: 12, color: 'var(--crm-text-faint)', lineHeight: 1.5 }}>
+              Digite @handle ou cole a URL completa do perfil.
+            </div>
+          )}
+        </div>
+
+        {/* Google Drive */}
+        <div className="crm-card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="crm-section-title" style={{ marginBottom: 0 }}>Google Drive</div>
+
+          <InlineField
+            icon="📁" label="Pasta do cliente"
+            value={cliente.drive_link}
+            placeholder="https://drive.google.com/..."
+            onSave={v => saveField('drive_link', v)}
+          />
+
+          {cliente.drive_link && (
+            <a
+              href={cliente.drive_link}
+              target="_blank" rel="noreferrer"
+              className="crm-btn crm-btn-ghost crm-btn-sm"
+              style={{ justifyContent: 'center', marginTop: 4, color: '#4285f4', borderColor: 'rgba(66,133,244,0.3)' }}
+            >
+              Abrir Drive ↗
+            </a>
+          )}
+
+          {!cliente.drive_link && (
+            <div style={{ fontSize: 12, color: 'var(--crm-text-faint)', lineHeight: 1.5 }}>
+              Cole o link da pasta compartilhada no Drive.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Linha: Contrato + Serviços */}
+      <div className="crm-grid-2" style={{ marginBottom: 20 }}>
 
         {/* Contrato assinado */}
         <div className="crm-card">
           <div className="crm-section-title">Contrato Assinado</div>
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-
             {cliente.contrato_url ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '12px 14px', background: 'var(--crm-success-dim)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 8 }}>
                   <span style={{ fontSize: 20 }}>📄</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--crm-success)' }}>Contrato salvo</div>
                     <div style={{ fontSize: 11, color: 'var(--crm-text-faint)' }}>Clique para visualizar ou baixar</div>
                   </div>
-                  <a
-                    href={cliente.contrato_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="crm-btn crm-btn-ghost crm-btn-sm"
-                    style={{ flexShrink: 0 }}
-                  >
+                  <a href={cliente.contrato_url} target="_blank" rel="noreferrer" className="crm-btn crm-btn-ghost crm-btn-sm">
                     Abrir
                   </a>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    className="crm-btn crm-btn-ghost crm-btn-sm"
-                    style={{ flex: 1, justifyContent: 'center' }}
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                  >
+                  <button className="crm-btn crm-btn-ghost crm-btn-sm" style={{ flex: 1, justifyContent: 'center' }}
+                    onClick={() => fileRef.current?.click()} disabled={uploading}>
                     {uploading ? 'Enviando...' : '🔄 Substituir'}
                   </button>
-                  <button
-                    className="crm-btn crm-btn-danger-ghost crm-btn-sm"
-                    onClick={removerContrato}
-                  >
+                  <button className="crm-btn crm-btn-danger-ghost crm-btn-sm" onClick={removerContrato}>
                     Remover
                   </button>
                 </div>
-              </div>
+              </>
             ) : (
-              <div>
-                <div
-                  style={{
-                    border: '2px dashed var(--crm-border)', borderRadius: 10,
-                    padding: '28px 20px', textAlign: 'center', cursor: 'pointer',
-                    transition: 'border-color 0.15s',
-                  }}
-                  onClick={() => fileRef.current?.click()}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--crm-accent)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--crm-border)'}
-                >
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
-                  <div style={{ fontSize: 13, color: 'var(--crm-text-muted)', fontWeight: 500 }}>
-                    {uploading ? 'Enviando...' : 'Clique para subir o contrato'}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--crm-text-faint)', marginTop: 4 }}>
-                    PDF, DOC, DOCX ou imagem · máx. 10 MB
-                  </div>
+              <div
+                style={{ border: '2px dashed var(--crm-border)', borderRadius: 10, padding: '28px 20px', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.15s' }}
+                onClick={() => fileRef.current?.click()}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--crm-accent)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--crm-border)'}
+              >
+                <div style={{ fontSize: 28, marginBottom: 8 }}>📄</div>
+                <div style={{ fontSize: 13, color: 'var(--crm-text-muted)', fontWeight: 500 }}>
+                  {uploading ? 'Enviando...' : 'Clique para subir o contrato'}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--crm-text-faint)', marginTop: 4 }}>
+                  PDF, DOC, DOCX ou imagem · máx. 10 MB
                 </div>
               </div>
             )}
 
             {uploadMsg && (
-              <div style={{
-                fontSize: 12, padding: '8px 12px', borderRadius: 6,
+              <div style={{ fontSize: 12, padding: '8px 12px', borderRadius: 6,
                 background: uploadMsg.includes('sucesso') ? 'var(--crm-success-dim)' : 'var(--crm-danger-dim)',
-                color: uploadMsg.includes('sucesso') ? 'var(--crm-success)' : 'var(--crm-danger)',
-              }}>
+                color: uploadMsg.includes('sucesso') ? 'var(--crm-success)' : 'var(--crm-danger)' }}>
                 {uploadMsg}
               </div>
             )}
-
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-              style={{ display: 'none' }}
-              onChange={handleContrato}
-            />
+            <input ref={fileRef} type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" style={{ display: 'none' }} onChange={handleContrato} />
           </div>
+        </div>
+
+        {/* Serviços Contratados */}
+        <div className="crm-card">
+          <div className="crm-section-title">Serviços Contratados</div>
+          {contratos.length === 0 ? (
+            <div style={{ color: 'var(--crm-text-faint)', fontSize: 13, marginTop: 12 }}>
+              Nenhum contrato. <Link to="/crm/contratos" style={{ color: 'var(--crm-accent)' }}>Adicionar →</Link>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+              {contratos.map(ct => (
+                <div key={ct.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--crm-surface2)', borderRadius: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--crm-text)' }}>
+                      {SERVICO_LABEL[ct.servico] || ct.servico}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--crm-text-faint)' }}>
+                      {fmtBRL(ct.valor_mensal)}/mês
+                      {ct.data_inicio && ` · desde ${new Date(ct.data_inicio).toLocaleDateString('pt-BR')}`}
+                    </div>
+                  </div>
+                  <span className={`crm-badge ${STATUS_CONTRATO_BADGE[ct.status] || 'crm-badge-muted'}`}>
+                    {ct.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Serviços Contratados */}
-      <div className="crm-card" style={{ marginTop: 16 }}>
-        <div className="crm-section-title">Serviços Contratados</div>
-        {contratos.length === 0 ? (
-          <div style={{ color: 'var(--crm-text-faint)', fontSize: 13, marginTop: 12 }}>
-            Nenhum contrato. <Link to="/crm/contratos" style={{ color: 'var(--crm-accent)' }}>Adicionar →</Link>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-            {contratos.map(ct => (
-              <div key={ct.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', background: 'var(--crm-surface2)', borderRadius: 8 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--crm-text)' }}>
-                    {SERVICO_LABEL[ct.servico] || ct.servico}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--crm-text-faint)' }}>
-                    {fmtBRL(ct.valor_mensal)}/mês
-                    {ct.data_inicio && ` · desde ${new Date(ct.data_inicio).toLocaleDateString('pt-BR')}`}
-                  </div>
-                </div>
-                <span className={`crm-badge ${STATUS_CONTRATO_BADGE[ct.status] || 'crm-badge-muted'}`}>
-                  {ct.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Notas */}
+      {cliente.notas && (
+        <div className="crm-card" style={{ marginBottom: 20 }}>
+          <div className="crm-section-title">Notas</div>
+          <p style={{ fontSize: 13, color: 'var(--crm-text-muted)', lineHeight: 1.7, marginTop: 10 }}>{cliente.notas}</p>
+        </div>
+      )}
 
       {/* Entregas */}
       {entregas.length > 0 && (
-        <div className="crm-card" style={{ marginTop: 16 }}>
+        <div className="crm-card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <div className="crm-section-title" style={{ marginBottom: 0 }}>Entregas</div>
             <Link to="/crm/entregas" style={{ fontSize: 12, color: 'var(--crm-accent)', textDecoration: 'none' }}>Ver no kanban →</Link>
