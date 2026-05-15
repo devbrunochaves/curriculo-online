@@ -650,17 +650,19 @@ body {
   .profile-card {
     height: auto;
     margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   /* 3. Foto menor no mobile */
   .profile-card img {
-    height: 260px;
+    height: 320px;
     width: auto;
-    max-width: 100%;
+    max-width: 90%;
     object-fit: contain;
     object-position: bottom center;
     display: block;
-    margin: 0 auto;
   }
 
   /* 4. Texto menor no mobile */
