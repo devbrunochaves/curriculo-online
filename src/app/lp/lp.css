@@ -628,11 +628,51 @@ body {
 
 @media (max-width: 640px) {
   .topbar-content {
-    height: 72px;
+    height: 64px;
   }
 
+  /* 1. Remove o botão "Quero uma análise" da navbar no mobile */
+  .topbar-content .btn-primary {
+    display: none;
+  }
+
+  /* 2. Hero: foto aparece ANTES do texto */
   .hero {
-    padding-top: 40px;
+    padding-top: 24px;
+    min-height: auto;
+  }
+
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-card {
+    order: -1;
+    height: auto;
+    margin-bottom: 8px;
+  }
+
+  /* 3. Foto menor no mobile */
+  .profile-card img {
+    height: 260px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* 4. Texto menor no mobile */
+  .lp-page h1 {
+    font-size: clamp(1.9rem, 9vw, 2.6rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .hero p {
+    font-size: .95rem;
   }
 
   .btn {
