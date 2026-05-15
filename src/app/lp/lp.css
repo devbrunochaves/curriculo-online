@@ -636,7 +636,7 @@ body {
     display: none;
   }
 
-  /* 2. Hero: foto aparece ANTES do texto */
+  /* 2. Hero: texto primeiro, foto depois */
   .hero {
     padding-top: 24px;
     min-height: auto;
@@ -648,9 +648,8 @@ body {
   }
 
   .profile-card {
-    order: -1;
     height: auto;
-    margin-bottom: 8px;
+    margin-top: 24px;
   }
 
   /* 3. Foto menor no mobile */
