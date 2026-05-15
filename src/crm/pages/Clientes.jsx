@@ -20,7 +20,7 @@ function getInitials(nome) {
   return parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].slice(0, 2)
 }
 
-const EMPTY_FORM = { nome: '', empresa: '', nicho: '', whatsapp: '', email: '', status: 'lead', notas: '', avatar_color: '#f59e0b' }
+const EMPTY_FORM = { nome: '', empresa: '', nicho: '', whatsapp: '', email: '', instagram: '', drive_link: '', status: 'lead', notas: '', avatar_color: '#f59e0b' }
 
 export default function Clientes() {
   const [clientes, setClientes]   = useState([])
@@ -49,7 +49,7 @@ export default function Clientes() {
 
   function openEdit(c) {
     setEditId(c.id)
-    setForm({ nome: c.nome || '', empresa: c.empresa || '', nicho: c.nicho || '', whatsapp: c.whatsapp || '', email: c.email || '', status: c.status || 'lead', notas: c.notas || '', avatar_color: c.avatar_color || '#f59e0b' })
+    setForm({ nome: c.nome || '', empresa: c.empresa || '', nicho: c.nicho || '', whatsapp: c.whatsapp || '', email: c.email || '', instagram: c.instagram || '', drive_link: c.drive_link || '', status: c.status || 'lead', notas: c.notas || '', avatar_color: c.avatar_color || '#f59e0b' })
     setModal(true)
   }
 
@@ -214,6 +214,16 @@ export default function Clientes() {
                 <div className="crm-form-group">
                   <label>E-mail</label>
                   <input className="crm-input" type="email" placeholder="email@empresa.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+                </div>
+              </div>
+              <div className="crm-form-row">
+                <div className="crm-form-group">
+                  <label>Instagram</label>
+                  <input className="crm-input" placeholder="@perfil ou URL completa" value={form.instagram} onChange={e => setForm(f => ({ ...f, instagram: e.target.value }))} />
+                </div>
+                <div className="crm-form-group">
+                  <label>Link do Drive</label>
+                  <input className="crm-input" placeholder="https://drive.google.com/..." value={form.drive_link} onChange={e => setForm(f => ({ ...f, drive_link: e.target.value }))} />
                 </div>
               </div>
               <div className="crm-form-group">
