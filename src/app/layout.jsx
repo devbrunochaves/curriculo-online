@@ -38,7 +38,10 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body>{children}</body>
+      <body style={{ backgroundColor: '#F2EBDF', opacity: 0, animation: 'pageIn .25s ease .05s forwards' }}>
+        <style>{`@keyframes pageIn{from{opacity:0}to{opacity:1}}`}</style>
+        {children}
+      </body>
     </html>
   )
 }
