@@ -9,7 +9,7 @@ const faqs = [
   },
   {
     q: 'Você faz apenas o site?',
-    a: 'Não. Trabalho com presença digital completa: identidade visual, site, landing page, social media e Google Meu Negócio. A ideia é que tudo comunique a mesma mensagem.',
+    a: 'Não. Trabalho com a sua presença digital completa, um ecossistema que contempla: identidade visual, site, landing page, social media e Google Meu Negócio. A ideia é que tudo comunique a mesma mensagem.',
   },
   {
     q: 'A análise é gratuita mesmo?',

@@ -516,6 +516,8 @@ video {
 
 html { scroll-behavior: smooth; }
 
+body { background-color: var(--bg1, #F2EBDF); }
+
 ::-webkit-scrollbar       { width: 5px; }
 
 ::-webkit-scrollbar-track { background: var(--scroll-bg); }
@@ -714,6 +716,9 @@ html.dark .\!card:hover {
 }
 .italic{
   font-style: italic;
+}
+.line-through{
+  text-decoration-line: line-through;
 }
 .blur{
   --tw-blur: blur(8px);

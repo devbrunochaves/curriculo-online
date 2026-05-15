@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function LP() {
   const whatsappLink =
-    "https://wa.me/5527999999999?text=Olá,%20Bruno!%20Quero%20receber%20uma%20análise%20gratuita%20da%20minha%20presença%20digital.";
+    "https://wa.me/5527995999973?text=Oi%20Bruno%2C%20tudo%20bem%3F%0A%0AVi%20seu%20Instagram%20e%20quero%20entender%20como%20melhorar%20minha%20presen%C3%A7a%20digital.";
 
   return (
     <main className="lp-page">

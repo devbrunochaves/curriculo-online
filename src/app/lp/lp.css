@@ -229,7 +229,7 @@ body {
 
 .profile-card img {
   width: auto;
-  height: min(82vh, 760px);
+  height: 100vh;
   max-width: none;
   object-fit: contain;
   object-position: bottom center;
@@ -306,6 +306,15 @@ body {
 }
 
 /* ── Problemas ── */
+
+#problemas{
+  background: linear-gradient(135deg, #005d96 0%, #005d96 60%, #005d96 100%);
+ }
+
+ #problemas h2{
+  color: #f4ecdf;
+ }
+
 #problemas,
 #servicos {
   padding: 80px 0;
