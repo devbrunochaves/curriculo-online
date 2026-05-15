@@ -8,6 +8,7 @@ import Clientes    from './pages/Clientes'
 import ClienteDetalhe from './pages/ClienteDetalhe'
 import Contratos   from './pages/Contratos'
 import Entregas    from './pages/Entregas'
+import Demandas    from './pages/Demandas'
 import Financeiro  from './pages/Financeiro'
 import './styles/crm.css'
 
@@ -51,6 +52,7 @@ export default function CrmApp() {
                 <Route index element={<Dashboard />} />
                 <Route path="clientes" element={<Clientes />} />
                 <Route path="clientes/:id" element={<ClienteDetalhe />} />
+                <Route path="demandas" element={<Demandas />} />
                 <Route path="contratos" element={<Contratos />} />
                 <Route path="entregas" element={<Entregas />} />
                 <Route path="financeiro" element={<Financeiro />} />

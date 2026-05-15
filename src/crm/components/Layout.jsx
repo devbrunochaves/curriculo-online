@@ -3,11 +3,12 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const navItems = [
-  { to: '/crm/',          icon: '📊', label: 'Dashboard',  end: true },
-  { to: '/crm/clientes',  icon: '👥', label: 'Clientes'              },
-  { to: '/crm/contratos', icon: '📋', label: 'Contratos'             },
-  { to: '/crm/entregas',  icon: '🗂️', label: 'Entregas'              },
-  { to: '/crm/financeiro',icon: '💰', label: 'Financeiro'            },
+  { to: '/crm/',           icon: '📊', label: 'Dashboard',  end: true },
+  { to: '/crm/clientes',   icon: '👥', label: 'Clientes'              },
+  { to: '/crm/demandas',   icon: '⚡', label: 'Demandas'              },
+  { to: '/crm/contratos',  icon: '📋', label: 'Contratos'             },
+  { to: '/crm/entregas',   icon: '🗂️', label: 'Kanban'                },
+  { to: '/crm/financeiro', icon: '💰', label: 'Financeiro'            },
 ]
 
 export default function Layout({ session, children }) {
