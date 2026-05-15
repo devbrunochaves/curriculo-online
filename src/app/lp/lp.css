@@ -636,37 +636,37 @@ body {
     display: none;
   }
 
-  /* 2. Hero: foto ANTES do texto no mobile */
+  /* 2. Hero mobile: texto primeiro, foto depois em largura total */
   .hero {
-    padding-top: 16px;
-    padding-bottom: 40px;
+    padding-top: 24px;
+    padding-bottom: 0;
     min-height: auto;
   }
 
-  /* Mantém grid de 1 coluna mas reordena os filhos */
   .hero-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
   }
 
-  /* Foto sobe para antes do texto */
+  /* Foto após o texto, ocupa as laterais */
   .profile-card {
-    order: -1;
+    order: 1;
     height: auto;
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
   }
 
-  /* Foto compacta no mobile */
   .profile-card img {
-    width: min(260px, 72vw);
+    width: 100%;
     height: auto;
-    max-height: 280px;
+    max-height: none;
     object-fit: contain;
-    object-position: center center;
+    object-position: bottom center;
     display: block;
-    margin: 0 auto;
   }
 
   /* Texto menor no mobile */
