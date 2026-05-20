@@ -432,7 +432,7 @@
 /* Status dropdown */
 .crm-status-wrap { position: relative; }
 .crm-status-dropdown {
-  position: absolute; top: calc(100% + 6px); left: 0; z-index: 500;
+  position: fixed; z-index: 9999;
   background: var(--crm-surface); border: 1px solid var(--crm-border);
   border-radius: 8px; padding: 4px; min-width: 160px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.4);

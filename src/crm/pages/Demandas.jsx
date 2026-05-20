@@ -35,6 +35,7 @@ export default function Demandas() {
   const [loading, setLoading]         = useState(true)
   const [collapsed, setCollapsed]     = useState({})
   const [statusOpen, setStatusOpen]   = useState(null)
+  const [statusPos, setStatusPos]     = useState({ top: 0, left: 0 })
   const [briefingModal, setBriefingModal] = useState(null)
   const [commentModal, setCommentModal]   = useState(null)
   const [comments, setComments]       = useState([])
@@ -245,24 +246,14 @@ export default function Demandas() {
                                   <div
                                     className="crm-status-chip"
                                     style={{ background: grupo.chipBg, color: grupo.chipText }}
-                                    onClick={() => setStatusOpen(statusOpen === e.id ? null : e.id)}
+                                    onClick={(ev) => {
+                                      const rect = ev.currentTarget.getBoundingClientRect()
+                                      setStatusPos({ top: rect.bottom + 6, left: rect.left })
+                                      setStatusOpen(statusOpen === e.id ? null : e.id)
+                                    }}
                                   >
                                     {grupo.label}
                                   </div>
-                                  {statusOpen === e.id && (
-                                    <div className="crm-status-dropdown">
-                                      {GRUPOS.filter(g => g.key !== grupo.key).map(g => (
-                                        <div
-                                          key={g.key}
-                                          className="crm-status-dropdown-item"
-                                          onClick={() => changeStatus(e.id, g.key)}
-                                        >
-                                          <span className="crm-status-dot" style={{ background: g.color }} />
-                                          <span style={{ color: 'var(--crm-text)' }}>{g.label}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
                                 </div>
                               </td>
 
@@ -498,6 +489,29 @@ export default function Demandas() {
           </div>
         </div>
       )}
+
+      {/* ── Status Dropdown (fixed — fora de qualquer overflow) ── */}
+      {statusOpen && (() => {
+        const grupo = GRUPOS.find(g => g.key === (entregas.find(e => e.id === statusOpen)?.status)) || GRUPOS[0]
+        return (
+          <div
+            ref={statusRef}
+            className="crm-status-dropdown"
+            style={{ position: 'fixed', top: statusPos.top, left: statusPos.left }}
+          >
+            {GRUPOS.filter(g => g.key !== grupo.key).map(g => (
+              <div
+                key={g.key}
+                className="crm-status-dropdown-item"
+                onClick={() => changeStatus(statusOpen, g.key)}
+              >
+                <span className="crm-status-dot" style={{ background: g.color }} />
+                <span style={{ color: 'var(--crm-text)' }}>{g.label}</span>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }
