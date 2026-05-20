@@ -69,6 +69,35 @@ export default function Dashboard() {
       }
     }
 
+    // Copia splits do mês anterior para entradas existentes sem splits (ex: splits adicionados depois da auto-geração do mês)
+    {
+      const { data: allCurrentEntries } = await supabase
+        .from('bill_entries')
+        .select('id, bill_id, splits:bill_entry_splits(id)')
+        .eq('month_ref', monthRef)
+      const noSplitEntries = (allCurrentEntries || []).filter(e => !e.splits?.length)
+      if (noSplitEntries.length) {
+        const prevMonthRef = format(subMonths(new Date(monthRef + '-01'), 1), 'yyyy-MM')
+        const { data: prevEntries } = await supabase
+          .from('bill_entries')
+          .select('bill_id, splits:bill_entry_splits(person_id, amount)')
+          .eq('month_ref', prevMonthRef)
+          .in('bill_id', noSplitEntries.map(e => e.bill_id))
+        const splitsToInsert = []
+        for (const entry of noSplitEntries) {
+          const prev = prevEntries?.find(p => p.bill_id === entry.bill_id)
+          if (prev?.splits?.length) {
+            prev.splits.forEach(s => splitsToInsert.push({
+              entry_id: entry.id,
+              person_id: s.person_id,
+              amount: s.amount
+            }))
+          }
+        }
+        if (splitsToInsert.length) await supabase.from('bill_entry_splits').insert(splitsToInsert)
+      }
+    }
+
     const [{ data: billEntries }] = await Promise.all([
       supabase.from('bill_entries')
         .select('*, bill:recurring_bills(*), splits:bill_entry_splits(*, person:people(*))')
