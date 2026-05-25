@@ -27,6 +27,7 @@ export default function Clientes() {
   const [loading, setLoading]     = useState(true)
   const [search, setSearch]       = useState('')
   const [filtroStatus, setFiltro] = useState('')
+  const [filtroNicho, setFiltroNicho] = useState('')
   const [modal, setModal]         = useState(false)
   const [form, setForm]           = useState(EMPTY_FORM)
   const [editId, setEditId]       = useState(null)
@@ -74,11 +75,15 @@ export default function Clientes() {
     load()
   }
 
+  // Nichos únicos cadastrados no CRM (dinâmico)
+  const nichosDisponiveis = [...new Set(clientes.map(c => c.nicho).filter(Boolean))].sort()
+
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase()
     const matchSearch = !q || c.nome?.toLowerCase().includes(q) || c.empresa?.toLowerCase().includes(q) || c.nicho?.toLowerCase().includes(q)
     const matchStatus = !filtroStatus || c.status === filtroStatus
-    return matchSearch && matchStatus
+    const matchNicho  = !filtroNicho  || c.nicho === filtroNicho
+    return matchSearch && matchStatus && matchNicho
   })
 
   if (loading) return (
@@ -99,17 +104,42 @@ export default function Clientes() {
       </div>
 
       <div className="crm-search-bar">
-        <input
-          className="crm-input"
-          placeholder="Buscar por nome, empresa ou nicho..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ maxWidth: 300 }}
-        />
+        {/* Input com botão X */}
+        <div className="crm-search-input-wrap">
+          <input
+            className="crm-input"
+            placeholder="Buscar por nome, empresa ou nicho..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          {search && (
+            <button className="crm-search-clear" onClick={() => setSearch('')} title="Limpar busca">
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Filtro por status */}
         <select className="crm-select" style={{ width: 160 }} value={filtroStatus} onChange={e => setFiltro(e.target.value)}>
           <option value="">Todos os status</option>
           {STATUS_OPTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
         </select>
+
+        {/* Filtro por nicho (dinâmico) */}
+        <select className="crm-select" style={{ width: 190 }} value={filtroNicho} onChange={e => setFiltroNicho(e.target.value)}>
+          <option value="">Todos os nichos</option>
+          {nichosDisponiveis.map(n => <option key={n} value={n}>{n}</option>)}
+        </select>
+
+        {/* Indicador de filtros ativos */}
+        {(search || filtroStatus || filtroNicho) && (
+          <button
+            className="crm-btn crm-btn-ghost crm-btn-sm"
+            onClick={() => { setSearch(''); setFiltro(''); setFiltroNicho('') }}
+          >
+            ✕ Limpar filtros
+          </button>
+        )}
       </div>
 
       <div className="crm-card">
