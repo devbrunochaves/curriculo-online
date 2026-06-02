@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(addMonths(new Date(), 1))
   const [data, setData]   = useState(null)
   const [loading, setLoading] = useState(true)
+  const [catModal, setCatModal] = useState(null) // categoria clicada no gráfico de pizza
 
   const monthRef   = format(currentDate, 'yyyy-MM')
   const monthLabel = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
@@ -338,8 +339,13 @@ export default function Dashboard() {
             : (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
-                  <Pie data={catData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75}
-                    label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                  <Pie
+                    data={catData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75}
+                    label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
+                    labelLine={false} fontSize={10}
+                    onClick={(data) => setCatModal(data)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     {catData.map((c, i) => <Cell key={i} fill={c.color} />)}
                   </Pie>
                   <Tooltip formatter={v => fmt(v)} />
@@ -349,6 +355,76 @@ export default function Dashboard() {
           }
         </div>
       </div>
+
+      {/* ── Modal: lançamentos por categoria ── */}
+      {catModal && (() => {
+        const catExpenses = expenses
+          .filter(e => e.category?.name === catModal.name)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+        const total = catExpenses.reduce((s, e) => s + Number(e.total_amount), 0)
+
+        return (
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setCatModal(null) }}
+          >
+            <div style={{ background: 'var(--c-surface)', borderRadius: 16, width: '100%', maxWidth: 560, maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
+
+              {/* Header */}
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--c-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 26, lineHeight: 1 }}>{catModal.icon}</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--c-text)' }}>{catModal.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>
+                      {catExpenses.length} lançamento{catExpenses.length !== 1 ? 's' : ''} · <strong style={{ color: catModal.color }}>{fmt(total)}</strong>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setCatModal(null)}
+                  style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--c-text-muted)', lineHeight: 1, padding: '2px 6px', borderRadius: 6 }}
+                >✕</button>
+              </div>
+
+              {/* Lista */}
+              <div style={{ overflowY: 'auto', flex: 1, padding: '8px 20px 16px' }}>
+                {catExpenses.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: 32, color: 'var(--c-text-muted)', fontSize: 13 }}>
+                    Nenhum lançamento encontrado.
+                  </div>
+                ) : catExpenses.map(e => {
+                  const [y, m, d] = (e.date || '').split('-')
+                  const dateStr = d ? `${d}/${m}` : '—'
+                  return (
+                    <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--c-border)' }}>
+                      {/* Cor do cartão */}
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: e.card?.color || '#94a3b8', flexShrink: 0 }} />
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--c-text)' }}>
+                          {e.description}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 3, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                          <span>📅 {dateStr}</span>
+                          {e.card && <span>💳 {e.card.name}</span>}
+                          {e.splits?.length > 0 && (
+                            <span>👤 {e.splits.map(s => s.person?.name).filter(Boolean).join(', ')}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--c-text)', flexShrink: 0 }}>
+                        {fmt(e.total_amount)}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
