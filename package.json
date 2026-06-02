@@ -14,6 +14,8 @@
     "@sanity/vision": "^3.57.0",
     "@supabase/supabase-js": "^2.39.0",
     "date-fns": "^3.3.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "next": "^15.1.0",
     "next-sanity": "^9.8.0",
     "react": "^18.3.1",

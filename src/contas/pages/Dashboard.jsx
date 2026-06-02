@@ -7,14 +7,115 @@ import {
   PieChart, Pie, Cell, LineChart, Line,
   BarChart, Bar, Cell as BarCell
 } from 'recharts'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
+
+// Converte cor hex para [r, g, b] para o jsPDF
+function hexToRgb(hex) {
+  const h = hex?.replace('#', '') || '6366f1'
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function gerarPDF(person, personExpenses, personBills, monthLabel) {
+  const doc = new jsPDF()
+  const rgb = hexToRgb(person.color)
+
+  // Cabeçalho
+  doc.setFillColor(...rgb)
+  doc.rect(0, 0, 210, 36, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFontSize(20)
+  doc.setFont('helvetica', 'bold')
+  doc.text(`Relatório — ${person.name}`, 14, 16)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'normal')
+  doc.text(monthLabel, 14, 24)
+  doc.text(`Total: ${fmt(person.total)}`, 14, 31)
+
+  let y = 46
+
+  // ── Lançamentos em cartão ───────────────────────────────
+  if (personExpenses.length > 0) {
+    doc.setTextColor(30, 30, 30)
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Lançamentos em Cartão', 14, y)
+    doc.setFont('helvetica', 'normal')
+
+    const subtotalCartoes = personExpenses.reduce((s, e) => s + Number(e.myAmount), 0)
+
+    autoTable(doc, {
+      startY: y + 4,
+      head: [['Data', 'Descrição', 'Cartão', 'Meu valor']],
+      body: personExpenses.map(e => {
+        const [, mo, da] = (e.date || '').split('-')
+        return [
+          da ? `${da}/${mo}` : '—',
+          e.description || '—',
+          e.card?.name || '—',
+          fmt(e.myAmount),
+        ]
+      }),
+      foot: [['', '', 'Subtotal', fmt(subtotalCartoes)]],
+      theme: 'striped',
+      headStyles: { fillColor: rgb, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      footStyles: { fillColor: [241, 245, 249], textColor: [30, 30, 30], fontStyle: 'bold', fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 3: { halign: 'right' } },
+    })
+    y = doc.lastAutoTable.finalY + 12
+  }
+
+  // ── Contas fixas ────────────────────────────────────────
+  if (personBills.length > 0) {
+    if (y > 230) { doc.addPage(); y = 20 }
+    doc.setTextColor(30, 30, 30)
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Contas Fixas', 14, y)
+    doc.setFont('helvetica', 'normal')
+
+    const subtotalFixas = personBills.reduce((s, b) => s + Number(b.myAmount), 0)
+
+    autoTable(doc, {
+      startY: y + 4,
+      head: [['Conta', 'Vencimento', 'Meu valor']],
+      body: personBills.map(b => [
+        b.bill?.name || '—',
+        b.bill?.due_day ? `Dia ${b.bill.due_day}` : '—',
+        fmt(b.myAmount),
+      ]),
+      foot: [['', 'Subtotal', fmt(subtotalFixas)]],
+      theme: 'striped',
+      headStyles: { fillColor: rgb, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      footStyles: { fillColor: [241, 245, 249], textColor: [30, 30, 30], fontStyle: 'bold', fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 2: { halign: 'right' } },
+    })
+    y = doc.lastAutoTable.finalY + 12
+  }
+
+  // Rodapé
+  const pageCount = doc.getNumberOfPages()
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i)
+    doc.setFontSize(8)
+    doc.setTextColor(150)
+    doc.text(`Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm")} · Página ${i}/${pageCount}`, 14, 290)
+  }
+
+  doc.save(`despesas-${person.name.toLowerCase().replace(/\s+/g, '-')}-${monthLabel.replace(/\s/g, '-')}.pdf`)
+}
 
 export default function Dashboard() {
   const [currentDate, setCurrentDate] = useState(addMonths(new Date(), 1))
   const [data, setData]   = useState(null)
   const [loading, setLoading] = useState(true)
-  const [catModal, setCatModal] = useState(null) // categoria clicada no gráfico de pizza
+  const [catModal, setCatModal]       = useState(null)
+  const [personModal, setPersonModal] = useState(null)
 
   const monthRef   = format(currentDate, 'yyyy-MM')
   const monthLabel = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
@@ -229,7 +330,7 @@ export default function Dashboard() {
             Nenhum gasto registrado neste mês ainda.
           </div>
         ) : personData.map(p => (
-          <div key={p.id} className="c-card c-person-card" style={{ borderTop: `4px solid ${p.color}`, padding: '14px 16px' }}>
+          <div key={p.id} className="c-card c-person-card" onClick={() => setPersonModal(p)} style={{ borderTop: `4px solid ${p.color}`, padding: '14px 16px', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)' }} onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
               <span className="c-dot" style={{ background: p.color, width: 10, height: 10 }} />
               <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--c-text)' }}>{p.name}</span>
@@ -355,6 +456,133 @@ export default function Dashboard() {
           }
         </div>
       </div>
+
+      {/* ── Modal: despesas da pessoa ── */}
+      {personModal && (() => {
+        const p = personModal
+
+        // Lançamentos em cartão desta pessoa
+        const personExpenses = expenses
+          .filter(e => e.splits?.some(s => s.person?.id === p.id))
+          .map(e => ({ ...e, myAmount: e.splits.find(s => s.person?.id === p.id)?.amount || 0 }))
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+
+        // Contas fixas desta pessoa
+        const personBills = billEntries
+          .filter(e =>
+            e.splits?.some(s => s.person?.id === p.id) ||
+            e.bill?.person_id === p.id
+          )
+          .map(e => ({
+            ...e,
+            myAmount: e.splits?.find(s => s.person?.id === p.id)?.amount ??
+                      (e.bill?.person_id === p.id ? Number(e.amount) : 0)
+          }))
+
+        const subtotalCartoes = personExpenses.reduce((s, e) => s + Number(e.myAmount), 0)
+        const subtotalFixas   = personBills.reduce((s, b) => s + Number(b.myAmount), 0)
+
+        return (
+          <div
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+            onClick={e => { if (e.target === e.currentTarget) setPersonModal(null) }}
+          >
+            <div style={{ background: 'var(--c-surface)', borderRadius: 16, width: '100%', maxWidth: 620, maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.35)' }}>
+
+              {/* Header */}
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--c-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: `${p.color}15` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 16 }}>
+                    {p.name[0]}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: 17, color: p.color }}>{p.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>
+                      Total: <strong style={{ color: p.color }}>{fmt(p.total)}</strong>
+                      {' · '}{personExpenses.length} lançamentos · {personBills.length} contas fixas
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => gerarPDF(p, personExpenses, personBills, monthLabel)}
+                    style={{ background: p.color, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
+                  >
+                    ⬇️ Baixar PDF
+                  </button>
+                  <button onClick={() => setPersonModal(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: 'var(--c-text-muted)', lineHeight: 1, padding: '2px 6px', borderRadius: 6 }}>✕</button>
+                </div>
+              </div>
+
+              {/* Conteúdo com scroll */}
+              <div style={{ overflowY: 'auto', flex: 1, padding: '12px 20px 20px' }}>
+
+                {/* Lançamentos em cartão */}
+                {personExpenses.length > 0 && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '12px 0 8px' }}>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>💳 Lançamentos em Cartão</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{fmt(subtotalCartoes)}</span>
+                    </div>
+                    {personExpenses.map(e => {
+                      const [, mo, da] = (e.date || '').split('-')
+                      return (
+                        <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--c-border)' }}>
+                          <div style={{ width: 9, height: 9, borderRadius: '50%', background: e.card?.color || '#94a3b8', flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description}</div>
+                            <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2, display: 'flex', gap: 8 }}>
+                              {da && <span>📅 {da}/{mo}</span>}
+                              {e.card && <span>💳 {e.card.name}</span>}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: 13 }}>{fmt(e.myAmount)}</div>
+                            {Number(e.myAmount) !== Number(e.total_amount) && (
+                              <div style={{ fontSize: 10, color: 'var(--c-text-muted)' }}>total {fmt(e.total_amount)}</div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </>
+                )}
+
+                {/* Contas fixas */}
+                {personBills.length > 0 && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0 8px' }}>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>🏠 Contas Fixas</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{fmt(subtotalFixas)}</span>
+                    </div>
+                    {personBills.map(b => (
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--c-border)' }}>
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{b.bill?.name || '—'}</div>
+                          {b.bill?.due_day && <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2 }}>📅 Vence dia {b.bill.due_day}</div>}
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{fmt(b.myAmount)}</div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {personExpenses.length === 0 && personBills.length === 0 && (
+                  <div style={{ textAlign: 'center', padding: 40, color: 'var(--c-text-muted)', fontSize: 13 }}>Nenhum lançamento encontrado.</div>
+                )}
+              </div>
+
+              {/* Footer com total */}
+              <div style={{ padding: '12px 20px', borderTop: '1px solid var(--c-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${p.color}10` }}>
+                <span style={{ fontSize: 13, color: 'var(--c-text-muted)' }}>Total geral</span>
+                <span style={{ fontWeight: 800, fontSize: 18, color: p.color }}>{fmt(p.total)}</span>
+              </div>
+
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Modal: lançamentos por categoria ── */}
       {catModal && (() => {
