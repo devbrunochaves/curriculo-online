@@ -462,6 +462,31 @@
   }
 }
 
+/* ── Carrossel de cartões (Lançamentos) ─────────────────────────── */
+.contas-root .c-cards-carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.contas-root .c-cards-carousel::-webkit-scrollbar { display: none; }
+.contas-root .c-cards-carousel-item {
+  flex: 0 0 180px;
+}
+
+@media (max-width: 768px) {
+  .contas-root .c-cards-carousel {
+    scroll-snap-type: x mandatory;
+  }
+  .contas-root .c-cards-carousel-item {
+    flex: 0 0 66vw;
+    max-width: 260px;
+    scroll-snap-align: start;
+  }
+}
+
 /* ── FAB Nova Compra — só aparece no mobile ──────────────────────── */
 @media (max-width: 768px) {
   .contas-root .c-fab-nova {
