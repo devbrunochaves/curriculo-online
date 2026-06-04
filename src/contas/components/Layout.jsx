@@ -12,6 +12,7 @@ const navItems = [
   { to: '/contas/agenda',        icon: '📅', label: 'Agenda Familiar'  },
   { to: '/contas/cardapio',      icon: '🥗', label: 'Compras de casa'  },
   { to: '/contas/documentos',    icon: '📁', label: 'Documentos'       },
+  { to: '/contas/apartamento',   icon: '🏠', label: 'Apartamento'      },
   { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações' },
 ]
 
@@ -36,6 +37,8 @@ export default function Layout({ session, children }) {
 
   const currentPage = navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to))
   const isAgenda = location.pathname.startsWith('/contas/agenda')
+  const isApartamento = location.pathname.startsWith('/contas/apartamento')
+  const hideFab = isAgenda || isApartamento
 
   return (
     <div className="c-app-shell">
@@ -50,12 +53,12 @@ export default function Layout({ session, children }) {
         <span className="c-mobile-title">
           {currentPage ? `${currentPage.icon} ${currentPage.label}` : '💰 Contas'}
         </span>
-        {!isAgenda && (
+        {!hideFab && (
           <button className="c-hamburger" onClick={() => navigate('/contas/nova')} aria-label="Nova compra" style={{ fontSize: 20 }}>
             ➕
           </button>
         )}
-        {isAgenda && <div style={{ width: 40 }} />}
+        {hideFab && <div style={{ width: 40 }} />}
       </div>
 
       {/* ── Overlay backdrop ─────────────────────────────────── */}
@@ -114,7 +117,7 @@ export default function Layout({ session, children }) {
       </main>
 
       {/* ── FAB Nova Compra (mobile) ──────────────────────────── */}
-      {!isAgenda && (
+      {!hideFab && (
         <button
           onClick={() => navigate('/contas/nova')}
           aria-label="Nova Compra"
