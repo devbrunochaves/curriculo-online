@@ -49,25 +49,23 @@ const fmtDisplay = s => format(parseISO(s), "dd 'de' MMMM", { locale: ptBR })
 const getCat     = key => CATEGORIAS.find(c => c.key === key) ?? CATEGORIAS.at(-1)
 
 /* ══ Modal: formulário de evento ═══════════════════════════════════ */
-function EventFormModal({ event, defaultDate, people, onSave, onClose }) {
+function EventFormModal({ event, defaultDate, onSave, onClose }) {
   const isEdit = !!event?.id
 
   const [form, setForm] = useState({
-    titulo:         event?.titulo         ?? '',
-    descricao:      event?.descricao      ?? '',
-    categoria:      event?.categoria      ?? 'outros',
-    data_inicio:    event?.data_inicio    ?? (defaultDate ? fmtDate(defaultDate) : fmtDate(new Date())),
-    data_fim:       event?.data_fim       ?? '',
-    hora_inicio:    event?.hora_inicio?.slice(0,5) ?? '',
-    hora_fim:       event?.hora_fim?.slice(0,5)    ?? '',
-    local:          event?.local          ?? '',
-    responsavel_id: event?.responsavel_id ?? '',
-    participantes:  event?.participantes  ?? [],
-    dia_inteiro:    event?.dia_inteiro    ?? true,
-    recorrencia:    event?.recorrencia    ?? 'nenhuma',
-    lembrete:       event?.lembrete       ?? '',
-    notas:          event?.notas          ?? '',
-    status:         event?.status         ?? 'ativo',
+    titulo:      event?.titulo         ?? '',
+    descricao:   event?.descricao      ?? '',
+    categoria:   event?.categoria      ?? 'outros',
+    data_inicio: event?.data_inicio    ?? (defaultDate ? fmtDate(defaultDate) : fmtDate(new Date())),
+    data_fim:    event?.data_fim       ?? '',
+    hora_inicio: event?.hora_inicio?.slice(0,5) ?? '',
+    hora_fim:    event?.hora_fim?.slice(0,5)    ?? '',
+    local:       event?.local          ?? '',
+    dia_inteiro: event?.dia_inteiro    ?? true,
+    recorrencia: event?.recorrencia    ?? 'nenhuma',
+    lembrete:    event?.lembrete       ?? '',
+    notas:       event?.notas          ?? '',
+    status:      event?.status         ?? 'ativo',
   })
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
@@ -88,15 +86,14 @@ function EventFormModal({ event, defaultDate, people, onSave, onClose }) {
 
     const payload = {
       ...form,
-      titulo:         form.titulo.trim(),
-      hora_inicio:    form.dia_inteiro ? null : form.hora_inicio || null,
-      hora_fim:       form.dia_inteiro ? null : form.hora_fim    || null,
-      data_fim:       form.data_fim       || null,
-      responsavel_id: form.responsavel_id || null,
-      lembrete:       form.lembrete       || null,
-      descricao:      form.descricao      || null,
-      local:          form.local          || null,
-      notas:          form.notas          || null,
+      titulo:      form.titulo.trim(),
+      hora_inicio: form.dia_inteiro ? null : form.hora_inicio || null,
+      hora_fim:    form.dia_inteiro ? null : form.hora_fim    || null,
+      data_fim:    form.data_fim    || null,
+      lembrete:    form.lembrete    || null,
+      descricao:   form.descricao   || null,
+      local:       form.local       || null,
+      notas:       form.notas       || null,
     }
 
     const { error: err } = isEdit
@@ -106,11 +103,6 @@ function EventFormModal({ event, defaultDate, people, onSave, onClose }) {
     if (err) { setError(err.message); setSaving(false); return }
     onSave()
   }
-
-  const toggleParticipante = id =>
-    set('participantes', form.participantes.includes(id)
-      ? form.participantes.filter(x => x !== id)
-      : [...form.participantes, id])
 
   return (
     <div className="c-modal-overlay" onClick={onClose}>
@@ -137,31 +129,22 @@ function EventFormModal({ event, defaultDate, people, onSave, onClose }) {
             {/* Categoria */}
             <div>
               <label className="c-form-label">Categoria</label>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <select className="c-form-select" value={form.categoria} onChange={e => set('categoria', e.target.value)}>
                 {CATEGORIAS.map(c => (
-                  <button key={c.key} type="button" onClick={() => set('categoria', c.key)}
-                    style={{
-                      padding: '5px 10px', borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                      background: form.categoria === c.key ? c.color + '20' : 'var(--c-surface2)',
-                      border: `1.5px solid ${form.categoria === c.key ? c.color : 'var(--c-border)'}`,
-                      color: form.categoria === c.key ? c.color : 'var(--c-text-muted)',
-                      transition: 'all .15s',
-                    }}>
-                    {c.icon} {c.label}
-                  </button>
+                  <option key={c.key} value={c.key}>{c.icon} {c.label}</option>
                 ))}
-              </div>
+              </select>
             </div>
 
             {/* Datas */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                 <label className="c-form-label">Data início *</label>
-                <input type="date" className="c-form-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} />
+                <input type="date" className="c-form-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} style={{ width: '100%', boxSizing: 'border-box' }} />
               </div>
-              <div>
+              <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                 <label className="c-form-label">Data fim</label>
-                <input type="date" className="c-form-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} />
+                <input type="date" className="c-form-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} style={{ width: '100%', boxSizing: 'border-box' }} />
               </div>
             </div>
 
@@ -191,38 +174,6 @@ function EventFormModal({ event, defaultDate, people, onSave, onClose }) {
               <label className="c-form-label">Local</label>
               <input className="c-form-input" placeholder="Endereço ou nome do local" value={form.local} onChange={e => set('local', e.target.value)} />
             </div>
-
-            {/* Responsável + Participantes */}
-            {people.length > 0 && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="c-form-label">Responsável</label>
-                  <select className="c-form-select" value={form.responsavel_id} onChange={e => set('responsavel_id', e.target.value)}>
-                    <option value="">— Nenhum —</option>
-                    {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="c-form-label">Participantes</label>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', paddingTop: 4 }}>
-                    {people.map(p => {
-                      const sel = form.participantes.includes(p.id)
-                      return (
-                        <button key={p.id} type="button" onClick={() => toggleParticipante(p.id)}
-                          style={{
-                            padding: '4px 10px', borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                            background: sel ? p.color + '20' : 'var(--c-surface2)',
-                            border: `1.5px solid ${sel ? p.color : 'var(--c-border)'}`,
-                            color: sel ? p.color : 'var(--c-text-muted)',
-                          }}>
-                          {p.name}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Recorrência + Lembrete */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -283,10 +234,8 @@ function EventFormModal({ event, defaultDate, people, onSave, onClose }) {
 }
 
 /* ══ Modal: detalhe do evento ═══════════════════════════════════════ */
-function EventDetailModal({ event: e, people, onEdit, onDelete, onClose, deleting }) {
+function EventDetailModal({ event: e, onEdit, onDelete, onClose, deleting }) {
   const cat         = getCat(e.categoria)
-  const responsavel = people.find(p => p.id === e.responsavel_id)
-  const partic      = people.filter(p => e.participantes?.includes(p.id))
   const lembrete    = LEMBRETES.find(l => l.key === e.lembrete)
   const recorrencia = RECORRENCIAS.find(r => r.key === e.recorrencia)
 
@@ -356,22 +305,6 @@ function EventDetailModal({ event: e, people, onEdit, onDelete, onClose, deletin
             </div>
           )}
 
-          {responsavel && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 16 }}>👤</span>
-              <span className="c-chip" style={{ background: responsavel.color + '20', color: responsavel.color }}>{responsavel.name}</span>
-            </div>
-          )}
-
-          {partic.length > 0 && (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 6 }}>Participantes</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {partic.map(p => <span key={p.id} className="c-chip" style={{ background: p.color + '20', color: p.color }}>{p.name}</span>)}
-              </div>
-            </div>
-          )}
-
           {recorrencia && e.recorrencia !== 'nenhuma' && (
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <span style={{ fontSize: 16 }}>🔁</span>
@@ -417,9 +350,8 @@ function EventDetailModal({ event: e, people, onEdit, onDelete, onClose, deletin
 }
 
 /* ══ EventCard ══════════════════════════════════════════════════════ */
-function EventCard({ event: e, people, onClick }) {
-  const cat  = getCat(e.categoria)
-  const resp = people.find(p => p.id === e.responsavel_id)
+function EventCard({ event: e, onClick }) {
+  const cat = getCat(e.categoria)
 
   return (
     <div
@@ -446,7 +378,6 @@ function EventCard({ event: e, people, onClick }) {
             ? 'Dia inteiro'
             : e.hora_inicio ? `${e.hora_inicio.slice(0,5)}${e.hora_fim ? ` → ${e.hora_fim.slice(0,5)}` : ''}` : ''}
           {e.local && <span>📍 {e.local}</span>}
-          {resp && <span style={{ color: resp.color, fontWeight: 600 }}>👤 {resp.name}</span>}
         </div>
       </div>
       <span style={{ fontSize: 11, fontWeight: 700, color: cat.color, background: cat.color + '15', padding: '2px 8px', borderRadius: 99, flexShrink: 0 }}>
@@ -457,7 +388,7 @@ function EventCard({ event: e, people, onClick }) {
 }
 
 /* ══ Visualização: Calendário ═══════════════════════════════════════ */
-function CalendarioView({ currentDate, setCurrentDate, eventsByDay, onDayClick, selectedDay, people }) {
+function CalendarioView({ currentDate, setCurrentDate, eventsByDay, onDayClick, selectedDay }) {
   const calDays = useMemo(() => {
     const start = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 0 })
     const end   = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 0 })
@@ -559,7 +490,7 @@ function CalendarioView({ currentDate, setCurrentDate, eventsByDay, onDayClick, 
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {selectedDayEvents.map(ev => (
-                <EventCard key={ev.id} event={ev} people={people} onClick={() => {}} />
+                <EventCard key={ev.id} event={ev} onClick={() => {}} />
               ))}
             </div>
           )}
@@ -570,7 +501,7 @@ function CalendarioView({ currentDate, setCurrentDate, eventsByDay, onDayClick, 
 }
 
 /* ══ Visualização: Lista ════════════════════════════════════════════ */
-function ListaView({ events, people, onClick }) {
+function ListaView({ events, onClick }) {
   const groups = useMemo(() => {
     const todayStr    = fmtDate(new Date())
     const tomorrowStr = fmtDate(addDays(new Date(), 1))
@@ -604,7 +535,7 @@ function ListaView({ events, people, onClick }) {
             {g.label}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {g.items.map(ev => <EventCard key={ev.id} event={ev} people={people} onClick={() => onClick(ev)} />)}
+            {g.items.map(ev => <EventCard key={ev.id} event={ev} onClick={() => onClick(ev)} />)}
           </div>
         </div>
       ))}
@@ -613,7 +544,7 @@ function ListaView({ events, people, onClick }) {
 }
 
 /* ══ Visualização: Meu Dia ══════════════════════════════════════════ */
-function MeuDiaView({ events, people, onClick }) {
+function MeuDiaView({ events, onClick }) {
   const h        = new Date().getHours()
   const greeting = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
   const todayStr = fmtDate(new Date())
@@ -660,7 +591,7 @@ function MeuDiaView({ events, people, onClick }) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {hoje.map(ev => <EventCard key={ev.id} event={ev} people={people} onClick={() => onClick(ev)} />)}
+            {hoje.map(ev => <EventCard key={ev.id} event={ev} onClick={() => onClick(ev)} />)}
           </div>
         )}
       </div>
@@ -676,7 +607,7 @@ function MeuDiaView({ events, people, onClick }) {
                   {format(parseISO(ev.data_inicio), 'EEE dd/MM', { locale: ptBR })}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <EventCard event={ev} people={people} onClick={() => onClick(ev)} />
+                  <EventCard event={ev} onClick={() => onClick(ev)} />
                 </div>
               </div>
             ))}
@@ -718,24 +649,18 @@ export default function Agenda() {
   const [view, setView]             = useState('meudia')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [events, setEvents]         = useState([])
-  const [people, setPeople]         = useState([])
   const [loading, setLoading]       = useState(true)
   const [selectedDay, setSelectedDay] = useState(null)
   const [showForm, setShowForm]     = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [deleting, setDeleting]     = useState(null)
-  const [filterPerson, setFilterPerson] = useState('')
   const [filterCat, setFilterCat]   = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [{ data: ev }, { data: p }] = await Promise.all([
-      supabase.from('agenda_eventos').select('*').order('data_inicio').order('hora_inicio'),
-      supabase.from('people').select('*').eq('is_active', true),
-    ])
+    const { data: ev } = await supabase.from('agenda_eventos').select('*').order('data_inicio').order('hora_inicio')
     setEvents(ev || [])
-    setPeople(p || [])
     setLoading(false)
   }, [])
 
@@ -755,11 +680,9 @@ export default function Agenda() {
   function afterSave()  { setShowForm(false); setEditingEvent(null); load() }
 
   const filtered = useMemo(() => {
-    let ev = events
-    if (filterPerson) ev = ev.filter(e => e.participantes?.includes(filterPerson) || e.responsavel_id === filterPerson)
-    if (filterCat)    ev = ev.filter(e => e.categoria === filterCat)
-    return ev
-  }, [events, filterPerson, filterCat])
+    if (!filterCat) return events
+    return events.filter(e => e.categoria === filterCat)
+  }, [events, filterCat])
 
   const eventsByDay = useMemo(() => {
     const map = {}
@@ -797,16 +720,12 @@ export default function Agenda() {
 
       {/* ── Filtros ── */}
       <div className="c-flex c-gap-2 c-mb-4" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-        <select className="c-form-select" style={{ width: 'auto', fontSize: 12 }} value={filterPerson} onChange={e => setFilterPerson(e.target.value)}>
-          <option value="">Todas as pessoas</option>
-          {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
         <select className="c-form-select" style={{ width: 'auto', fontSize: 12 }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
           <option value="">Todas as categorias</option>
           {CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
         </select>
-        {(filterPerson || filterCat) && (
-          <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => { setFilterPerson(''); setFilterCat('') }}>✕ Limpar</button>
+        {filterCat && (
+          <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => setFilterCat('')}>✕ Limpar</button>
         )}
       </div>
 
@@ -815,7 +734,7 @@ export default function Agenda() {
       ) : (
         <>
           {view === 'meudia' && (
-            <MeuDiaView events={filtered} people={people} onNew={() => openNew(null)} onClick={setSelectedEvent} />
+            <MeuDiaView events={filtered} onClick={setSelectedEvent} />
           )}
           {view === 'calendario' && (
             <CalendarioView
@@ -830,11 +749,10 @@ export default function Agenda() {
                 }
               }}
               selectedDay={selectedDay}
-              people={people}
             />
           )}
           {view === 'lista' && (
-            <ListaView events={filtered} people={people} onClick={setSelectedEvent} />
+            <ListaView events={filtered} onClick={setSelectedEvent} />
           )}
         </>
       )}
@@ -843,7 +761,6 @@ export default function Agenda() {
         <EventFormModal
           event={editingEvent}
           defaultDate={selectedDay}
-          people={people}
           onSave={afterSave}
           onClose={() => { setShowForm(false); setEditingEvent(null) }}
         />
@@ -852,7 +769,6 @@ export default function Agenda() {
       {selectedEvent && (
         <EventDetailModal
           event={selectedEvent}
-          people={people}
           onEdit={openEdit}
           onDelete={handleDelete}
           onClose={() => setSelectedEvent(null)}
