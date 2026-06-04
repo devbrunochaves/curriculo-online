@@ -495,8 +495,6 @@
   box-sizing: border-box;
 }
 .contas-root .c-date-input {
-  -webkit-appearance: none;
-  appearance: none;
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
