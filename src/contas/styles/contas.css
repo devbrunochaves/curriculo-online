@@ -488,6 +488,22 @@
   }
 }
 
+/* ── Date/time inputs — evita overflow no iOS ───────────────────── */
+.contas-root .c-date-wrapper {
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+.contas-root .c-date-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
 /* ── FAB Nova Compra — só aparece no mobile ──────────────────────── */
 @media (max-width: 768px) {
   .contas-root .c-fab-nova {

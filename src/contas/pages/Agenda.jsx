@@ -136,37 +136,37 @@ function EventFormModal({ event, defaultDate, onSave, onClose }) {
               </select>
             </div>
 
-            {/* Datas */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ overflow: 'hidden', width: '100%' }}>
-                <label className="c-form-label">Data início *</label>
-                <input type="date" className="c-form-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} style={{ display: 'block', width: '100%', boxSizing: 'border-box', minWidth: 0 }} />
-              </div>
-              <div style={{ overflow: 'hidden', width: '100%' }}>
-                <label className="c-form-label">Data fim</label>
-                <input type="date" className="c-form-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} style={{ display: 'block', width: '100%', boxSizing: 'border-box', minWidth: 0 }} />
-              </div>
-            </div>
-
-            {/* Dia inteiro */}
+            {/* Dia inteiro — primeiro */}
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               <input type="checkbox" checked={form.dia_inteiro} onChange={e => set('dia_inteiro', e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: 'var(--c-accent)' }} />
+                style={{ width: 16, height: 16, accentColor: 'var(--c-accent)', flexShrink: 0 }} />
               Evento de dia inteiro
             </label>
 
-            {/* Horário */}
+            {/* Data início — sempre visível */}
+            <div className="c-date-wrapper">
+              <label className="c-form-label">Data início *</label>
+              <input type="date" className="c-form-input c-date-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} />
+            </div>
+
+            {/* Data fim + Horários — só se não for dia inteiro */}
             {!form.dia_inteiro && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="c-form-label">Hora início</label>
-                  <input type="time" className="c-form-input" value={form.hora_inicio} onChange={e => set('hora_inicio', e.target.value)} />
+              <>
+                <div className="c-date-wrapper">
+                  <label className="c-form-label">Data fim</label>
+                  <input type="date" className="c-form-input c-date-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} />
                 </div>
-                <div>
-                  <label className="c-form-label">Hora fim</label>
-                  <input type="time" className="c-form-input" value={form.hora_fim} onChange={e => set('hora_fim', e.target.value)} />
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                    <label className="c-form-label">Hora início</label>
+                    <input type="time" className="c-form-input c-date-input" value={form.hora_inicio} onChange={e => set('hora_inicio', e.target.value)} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                    <label className="c-form-label">Hora fim</label>
+                    <input type="time" className="c-form-input c-date-input" value={form.hora_fim} onChange={e => set('hora_fim', e.target.value)} />
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
             {/* Local */}
