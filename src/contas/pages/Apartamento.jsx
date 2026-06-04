@@ -56,7 +56,7 @@ function EmptyState({ icon, title, desc }) {
   )
 }
 
-function ModalShell({ title, onClose, onSubmit, saving, children }) {
+function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
   return (
     <div className="c-modal-overlay" onClick={onClose}>
       <div className="c-modal-sheet" style={{maxWidth:560}} onClick={e=>e.stopPropagation()}>
@@ -73,7 +73,7 @@ function ModalShell({ title, onClose, onSubmit, saving, children }) {
           </div>
           <div style={{padding:'12px 20px 24px',borderTop:'1px solid var(--c-border)',display:'flex',gap:10}}>
             <button type="button" className="c-btn c-btn-secondary" style={{flex:1}} onClick={onClose}>Cancelar</button>
-            <button type="submit" className="c-btn c-btn-primary" style={{flex:2}} disabled={saving}>{saving?'Salvando...':'Salvar'}</button>
+            <button type="submit" className="c-btn c-btn-primary" style={{flex:2}} disabled={saving}>{saveLabel ?? (saving?'Salvando...':'Salvar')}</button>
           </div>
         </form>
       </div>
@@ -207,8 +207,8 @@ function GaleriaTab() {
   const [showModal, setShowModal] = useState(false)
   const [lightbox, setLightbox] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ titulo:'', descricao:'', album: ALBUNS[0], data:'' })
-  const [file, setFile] = useState(null)
+  const [form, setForm] = useState({ descricao:'', album: ALBUNS[0] })
+  const [files, setFiles] = useState([])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -227,14 +227,16 @@ function GaleriaTab() {
 
   async function handleSave(e) {
     e.preventDefault()
-    if (!file) return alert('Selecione uma foto.')
+    if (!files.length) return alert('Selecione ao menos uma foto.')
     setSaving(true)
     try {
-      const path = await uploadFile(file, 'fotos')
-      await supabase.from('apartamento_fotos').insert({...form, storage_path:path})
+      await Promise.all(Array.from(files).map(async file => {
+        const path = await uploadFile(file, 'fotos')
+        await supabase.from('apartamento_fotos').insert({ descricao: form.descricao, album: form.album, storage_path: path })
+      }))
       setShowModal(false)
-      setForm({ titulo:'', descricao:'', album: ALBUNS[0], data:'' })
-      setFile(null)
+      setForm({ descricao:'', album: ALBUNS[0] })
+      setFiles([])
       await load()
     } catch(err) { alert(err.message) } finally { setSaving(false) }
   }
@@ -278,7 +280,6 @@ function GaleriaTab() {
                   ) : (
                     <div style={{width:'100%',height:120,display:'flex',alignItems:'center',justifyContent:'center',fontSize:30}}>📷</div>
                   )}
-                  <div style={{padding:'4px 8px 6px',fontSize:12,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{f.titulo||'Sem título'}</div>
                   <button className="del-btn" onClick={()=>handleDelete(f)}
                     style={{position:'absolute',top:6,right:6,background:'rgba(0,0,0,.55)',color:'#fff',border:'none',borderRadius:99,width:26,height:26,cursor:'pointer',fontSize:13,opacity:0,transition:'opacity .2s'}}>
                     ✕
@@ -298,21 +299,18 @@ function GaleriaTab() {
       )}
 
       {showModal && (
-        <ModalShell title="Nova Foto" onClose={()=>setShowModal(false)} onSubmit={handleSave} saving={saving}>
-          <Field label="Título">
-            <input className="c-form-input" value={form.titulo} onChange={e=>setForm(f=>({...f,titulo:e.target.value}))} placeholder="Ex: Sala de estar" />
-          </Field>
+        <ModalShell title="Nova Foto" onClose={()=>setShowModal(false)} onSubmit={handleSave} saving={saving} saveLabel={saving ? 'Enviando...' : `Enviar${files.length > 1 ? ` (${files.length})` : ''}`}>
           <Field label="Álbum">
             <select className="c-form-select" value={form.album} onChange={e=>setForm(f=>({...f,album:e.target.value}))}>
               {ALBUNS.map(a=><option key={a}>{a}</option>)}
             </select>
           </Field>
-          <DateField label="Data" value={form.data} onChange={e=>setForm(f=>({...f,data:e.target.value}))} />
           <Field label="Descrição">
-            <textarea className="c-form-textarea" value={form.descricao} onChange={e=>setForm(f=>({...f,descricao:e.target.value}))} rows={2} />
+            <textarea className="c-form-textarea" value={form.descricao} onChange={e=>setForm(f=>({...f,descricao:e.target.value}))} rows={2} placeholder="Opcional..." />
           </Field>
-          <Field label="Foto *">
-            <input type="file" accept="image/*" onChange={e=>setFile(e.target.files[0]||null)} required />
+          <Field label="Fotos *">
+            <input type="file" accept="image/*" multiple onChange={e=>setFiles(e.target.files)} required />
+            {files.length > 1 && <div style={{fontSize:12,color:'var(--c-text-muted)',marginTop:4}}>{files.length} fotos selecionadas</div>}
           </Field>
         </ModalShell>
       )}
