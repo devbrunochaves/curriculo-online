@@ -160,6 +160,7 @@
   padding: 9px 12px; border: 1.5px solid var(--c-border); border-radius: var(--c-radius-sm);
   font-size: 13.5px; color: var(--c-text); background: var(--c-surface);
   outline: none; transition: border-color 0.15s; width: 100%; font-family: inherit;
+  box-sizing: border-box; max-width: 100%;
 }
 .contas-root .c-form-input:focus, .contas-root .c-form-select:focus, .contas-root .c-form-textarea:focus {
   border-color: var(--c-accent);
@@ -198,6 +199,7 @@
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
+  overflow-x: hidden;
   overflow-y: auto;
   box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
   animation: slideUp 0.22s ease;
