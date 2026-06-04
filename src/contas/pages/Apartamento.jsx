@@ -232,7 +232,13 @@ function GaleriaTab() {
     try {
       await Promise.all(Array.from(files).map(async file => {
         const path = await uploadFile(file, 'fotos')
-        await supabase.from('apartamento_fotos').insert({ descricao: form.descricao, album: form.album, storage_path: path })
+        const { error } = await supabase.from('apartamento_fotos').insert({
+          titulo: '',
+          descricao: form.descricao || null,
+          album: form.album,
+          storage_path: path,
+        })
+        if (error) throw error
       }))
       setShowModal(false)
       setForm({ descricao:'', album: ALBUNS[0] })
