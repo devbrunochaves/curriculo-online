@@ -7,7 +7,6 @@ import Dashboard from './pages/Dashboard'
 import NovaCompra from './pages/NovaCompra'
 import Lancamentos from './pages/Lancamentos'
 import Pessoas from './pages/Pessoas'
-import Cartoes from './pages/Cartoes'
 import Configuracoes from './pages/Configuracoes'
 import Previsao from './pages/Previsao'
 import ContasFixas from './pages/ContasFixas'
@@ -58,7 +57,7 @@ export default function ContasApp() {
                 <Route path="fixas" element={<ContasFixas />} />
                 <Route path="pessoas" element={<Pessoas />} />
                 <Route path="previsao" element={<Previsao />} />
-                <Route path="cartoes" element={<Cartoes />} />
+                <Route path="cartoes" element={<Navigate to="/contas/configuracoes" replace />} />
                 <Route path="agenda" element={<Agenda />} />
                 <Route path="lista" element={<Navigate to="/contas/cardapio" replace />} />
                 <Route path="cardapio" element={<Cardapio />} />

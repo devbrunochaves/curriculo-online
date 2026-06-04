@@ -9,7 +9,6 @@ const navItems = [
   { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas' },
   { to: '/contas/previsao',      icon: '📆', label: 'Previsão'     },
   { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'      },
-  { to: '/contas/cartoes',       icon: '💳', label: 'Cartões'         },
   { to: '/contas/agenda',        icon: '📅', label: 'Agenda Familiar'  },
   { to: '/contas/cardapio',      icon: '🥗', label: 'Compras de casa'  },
   { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações' },
