@@ -11,6 +11,7 @@ const navItems = [
   { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'      },
   { to: '/contas/agenda',        icon: '📅', label: 'Agenda Familiar'  },
   { to: '/contas/cardapio',      icon: '🥗', label: 'Compras de casa'  },
+  { to: '/contas/documentos',    icon: '📁', label: 'Documentos'       },
   { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações' },
 ]
 

@@ -12,6 +12,7 @@ import Previsao from './pages/Previsao'
 import ContasFixas from './pages/ContasFixas'
 import Agenda from './pages/Agenda'
 import Cardapio from './pages/Cardapio'
+import Documentos from './pages/Documentos'
 import './styles/contas.css'
 
 function ProtectedRoute({ session, children }) {
@@ -61,6 +62,7 @@ export default function ContasApp() {
                 <Route path="agenda" element={<Agenda />} />
                 <Route path="lista" element={<Navigate to="/contas/cardapio" replace />} />
                 <Route path="cardapio" element={<Cardapio />} />
+                <Route path="documentos" element={<Documentos />} />
                 <Route path="configuracoes" element={<Configuracoes />} />
               </Routes>
             </Layout>
