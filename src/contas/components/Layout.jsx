@@ -35,6 +35,7 @@ export default function Layout({ session, children }) {
   }
 
   const currentPage = navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to))
+  const isAgenda = location.pathname.startsWith('/contas/agenda')
 
   return (
     <div className="c-app-shell">
@@ -49,9 +50,12 @@ export default function Layout({ session, children }) {
         <span className="c-mobile-title">
           {currentPage ? `${currentPage.icon} ${currentPage.label}` : '💰 Contas'}
         </span>
-        <button className="c-hamburger" onClick={() => navigate('/contas/nova')} aria-label="Nova compra" style={{ fontSize: 20 }}>
-          ➕
-        </button>
+        {!isAgenda && (
+          <button className="c-hamburger" onClick={() => navigate('/contas/nova')} aria-label="Nova compra" style={{ fontSize: 20 }}>
+            ➕
+          </button>
+        )}
+        {isAgenda && <div style={{ width: 40 }} />}
       </div>
 
       {/* ── Overlay backdrop ─────────────────────────────────── */}
@@ -110,26 +114,28 @@ export default function Layout({ session, children }) {
       </main>
 
       {/* ── FAB Nova Compra (mobile) ──────────────────────────── */}
-      <button
-        onClick={() => navigate('/contas/nova')}
-        aria-label="Nova Compra"
-        style={{
-          position: 'fixed', bottom: 24, right: 20, zIndex: 300,
-          width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-          color: '#fff', fontSize: 26, fontWeight: 700,
-          border: 'none', cursor: 'pointer',
-          display: 'none',   // visível só no mobile via CSS
-          alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 16px rgba(99,102,241,.5)',
-          transition: 'transform .15s',
-        }}
-        className="c-fab-nova"
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-      >
-        +
-      </button>
+      {!isAgenda && (
+        <button
+          onClick={() => navigate('/contas/nova')}
+          aria-label="Nova Compra"
+          style={{
+            position: 'fixed', bottom: 24, right: 20, zIndex: 300,
+            width: 56, height: 56, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+            color: '#fff', fontSize: 26, fontWeight: 700,
+            border: 'none', cursor: 'pointer',
+            display: 'none',   // visível só no mobile via CSS
+            alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(99,102,241,.5)',
+            transition: 'transform .15s',
+          }}
+          className="c-fab-nova"
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.08)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          +
+        </button>
+      )}
 
     </div>
   )
