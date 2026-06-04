@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ListaCompras from './ListaCompras'
 
 // ── Dados do cardápio ────────────────────────────────────────────────────────
 const REFEICOES = [
@@ -140,7 +141,8 @@ const MEAL_COLORS = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function Cardapio() {
-  const [semana, setSemana] = useState(0)   // 0 = semana 1, 1 = semana 2
+  const [tab, setTab]       = useState('cardapio') // 'cardapio' | 'lista'
+  const [semana, setSemana] = useState(0)
   const dias = SEMANAS[semana]
 
   return (
@@ -152,13 +154,34 @@ export default function Cardapio() {
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
               🥗 Cardápio
             </h2>
-            <p style={{ margin: '3px 0 0', fontSize: 13, color: 'var(--c-text-muted)' }}>
-              Plano Bianca Calil · 2 semanas
-            </p>
+            {tab === 'cardapio' && (
+              <p style={{ margin: '3px 0 0', fontSize: 13, color: 'var(--c-text-muted)' }}>
+                Plano Bianca Calil · 2 semanas
+              </p>
+            )}
           </div>
-          {/* Seletor de semana */}
-          <div style={{ display: 'flex', gap: 6 }}>
-            {['Semana 1', 'Semana 2'].map((s, i) => (
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: 4, background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 10, padding: 3 }}>
+              <button
+                onClick={() => setTab('cardapio')}
+                className={`c-btn c-btn-sm ${tab === 'cardapio' ? 'c-btn-primary' : 'c-btn-secondary'}`}
+                style={{ border: 'none' }}
+              >
+                🥗 Cardápio
+              </button>
+              <button
+                onClick={() => setTab('lista')}
+                className={`c-btn c-btn-sm ${tab === 'lista' ? 'c-btn-primary' : 'c-btn-secondary'}`}
+                style={{ border: 'none' }}
+              >
+                🛒 Lista
+              </button>
+            </div>
+
+            {/* Seletor de semana — só no cardápio */}
+            {tab === 'cardapio' && ['Semana 1', 'Semana 2'].map((s, i) => (
               <button
                 key={i}
                 onClick={() => setSemana(i)}
@@ -170,16 +193,24 @@ export default function Cardapio() {
           </div>
         </div>
 
-        {/* Legenda pessoas */}
-        <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '5px 12px', borderRadius: 99, background: '#fce7f3', color: '#9d174d', fontWeight: 700 }}>
-            🌿 Gabriela · 1.400 kcal · 62,35 kg
+        {/* Legenda pessoas — só no cardápio */}
+        {tab === 'cardapio' && (
+          <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '5px 12px', borderRadius: 99, background: '#fce7f3', color: '#9d174d', fontWeight: 700 }}>
+              🌿 Gabriela · 1.400 kcal · 62,35 kg
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '5px 12px', borderRadius: 99, background: '#dbeafe', color: '#1e40af', fontWeight: 700 }}>
+              💪 Bruno · 2.900 kcal · 110 kg
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '5px 12px', borderRadius: 99, background: '#dbeafe', color: '#1e40af', fontWeight: 700 }}>
-            💪 Bruno · 2.900 kcal · 110 kg
-          </div>
-        </div>
+        )}
       </div>
+
+      {/* ── Aba Lista de Compras ── */}
+      {tab === 'lista' && <ListaCompras />}
+
+      {/* ── Aba Cardápio ── */}
+      {tab === 'cardapio' && <>
 
       {/* ── Colunas Trello ── */}
       <div
@@ -296,6 +327,8 @@ export default function Cardapio() {
 
       {/* Esconde a scrollbar via style global inline */}
       <style>{`.cardapio-board::-webkit-scrollbar { display: none; }`}</style>
+
+      </>}
     </div>
   )
 }
