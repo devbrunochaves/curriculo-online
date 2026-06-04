@@ -199,8 +199,7 @@
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
   animation: slideUp 0.22s ease;
 }

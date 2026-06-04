@@ -117,7 +117,7 @@ function EventFormModal({ event, defaultDate, onSave, onClose }) {
         </div>
 
         <form onSubmit={handleSave}>
-          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '65vh', overflowY: 'auto' }}>
+          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '65vh', overflowY: 'auto', overflowX: 'hidden' }}>
 
             {/* Título */}
             <div>
@@ -138,13 +138,13 @@ function EventFormModal({ event, defaultDate, onSave, onClose }) {
 
             {/* Datas */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div>
+              <div style={{ overflow: 'hidden', width: '100%' }}>
                 <label className="c-form-label">Data início *</label>
-                <input type="date" className="c-form-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} style={{ width: '100%', boxSizing: 'border-box' }} />
+                <input type="date" className="c-form-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} style={{ display: 'block', width: '100%', boxSizing: 'border-box', minWidth: 0 }} />
               </div>
-              <div>
+              <div style={{ overflow: 'hidden', width: '100%' }}>
                 <label className="c-form-label">Data fim</label>
-                <input type="date" className="c-form-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} style={{ width: '100%', boxSizing: 'border-box' }} />
+                <input type="date" className="c-form-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} style={{ display: 'block', width: '100%', boxSizing: 'border-box', minWidth: 0 }} />
               </div>
             </div>
 
