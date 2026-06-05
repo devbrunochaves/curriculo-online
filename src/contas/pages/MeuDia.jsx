@@ -72,6 +72,8 @@ export default function MeuDia({ userName: userNameProp }) {
     metas:          [],
     metasAlerta:    [],
     veiculosAlerta: [],
+    saudeConsultas: [],
+    saudeVacinas:   [],
   })
 
   /* ── Resolve display name ───────────────────────────────────── */
@@ -113,6 +115,8 @@ export default function MeuDia({ userName: userNameProp }) {
       metasR,
       metasAlertaR,
       veiculosAlertaR,
+      saudeConsultasR,
+      saudeVacinasR,
     ] = await Promise.allSettled([
       supabase.from('agenda_eventos').select('*').eq('data_inicio', today).order('hora_inicio'),
       supabase.from('agenda_eventos').select('*').gt('data_inicio', today).lte('data_inicio', plus7).order('data_inicio').order('hora_inicio'),
@@ -129,6 +133,8 @@ export default function MeuDia({ userName: userNameProp }) {
       supabase.from('metas').select('*').in('status', ['andamento', 'planejada']).order('data_limite', { ascending: true, nullsLast: true }).limit(3),
       supabase.from('metas').select('id,nome,data_limite,cor,icone,status').neq('status', 'concluida').neq('status', 'cancelada').not('data_limite', 'is', null).lte('data_limite', plus30).order('data_limite'),
       supabase.from('veiculos_documentos').select('id,nome,tipo,data_validade').not('data_validade','is',null).lte('data_validade', plus30).gte('data_validade', today).order('data_validade'),
+      supabase.from('saude_consultas').select('id,especialidade,medico,data,hora').gte('data', today).lte('data', plus7).order('data').order('hora'),
+      supabase.from('saude_vacinas').select('id,vacina,proxima_dose').not('proxima_dose','is',null).lte('proxima_dose', plus30).gte('proxima_dose', today).order('proxima_dose'),
     ])
 
     setData({
@@ -147,6 +153,8 @@ export default function MeuDia({ userName: userNameProp }) {
       metas:            metasR.value?.data            || [],
       metasAlerta:      metasAlertaR.value?.data      || [],
       veiculosAlerta:   veiculosAlertaR.value?.data   || [],
+      saudeConsultas:   saudeConsultasR.value?.data   || [],
+      saudeVacinas:     saudeVacinasR.value?.data     || [],
     })
     setLoading(false)
   }, [])
@@ -207,13 +215,31 @@ export default function MeuDia({ userName: userNameProp }) {
         color: m.cor || '#6366f1',
       }
     }),
-    ...(data.veiculosAlerta || []).slice(0, 2).map(d => {
+    ...(data.veiculosAlerta || []).slice(0, 1).map(d => {
       const dias = differenceInDays(parseISO(d.data_validade), new Date())
       return {
         icon: '🚗',
         text: `Veículo — ${d.tipo || d.nome} vence em ${dias} dia${dias !== 1 ? 's' : ''}`,
         urgency: dias <= 7 ? 'urgente' : 'breve',
         color: '#f97316',
+      }
+    }),
+    ...(data.saudeConsultas || []).slice(0, 1).map(c => {
+      const dias = differenceInDays(parseISO(c.data), new Date())
+      return {
+        icon: '🏥',
+        text: `Consulta ${c.especialidade}${c.medico ? ` — Dr(a). ${c.medico}` : ''} ${dias === 0 ? 'hoje' : `em ${dias} dia${dias !== 1 ? 's' : ''}`}`,
+        urgency: dias === 0 ? 'hoje' : dias <= 2 ? 'urgente' : 'breve',
+        color: '#6366f1',
+      }
+    }),
+    ...(data.saudeVacinas || []).slice(0, 1).map(v => {
+      const dias = differenceInDays(parseISO(v.proxima_dose), new Date())
+      return {
+        icon: '💉',
+        text: `Vacina ${v.vacina} — próxima dose em ${dias} dia${dias !== 1 ? 's' : ''}`,
+        urgency: dias <= 7 ? 'urgente' : 'breve',
+        color: '#ec4899',
       }
     }),
   ].slice(0, 5)
