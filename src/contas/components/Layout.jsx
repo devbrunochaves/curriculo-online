@@ -6,6 +6,7 @@ const navItems = [
   { to: '/contas/meudia',        icon: '☀️', label: 'Meu Dia',         end: true },
   { to: '/contas/metas',         icon: '🎯', label: 'Metas'            },
   { to: '/contas/agenda',        icon: '📅', label: 'Agenda Familiar'  },
+  { to: '/contas/veiculos',      icon: '🚗', label: 'Veículos'         },
   { to: '/contas/cardapio',      icon: '🛒', label: 'Compras de Casa'  },
   { to: '/contas/documentos',    icon: '📁', label: 'Documentos'       },
   { to: '/contas/apartamento',   icon: '🏠', label: 'Apartamento'      },
@@ -40,8 +41,9 @@ export default function Layout({ session, children }) {
   const isAgenda = location.pathname.startsWith('/contas/agenda')
   const isApartamento = location.pathname.startsWith('/contas/apartamento')
   const isMeuDia = location.pathname.startsWith('/contas/meudia')
-  const isMetas  = location.pathname.startsWith('/contas/metas')
-  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas
+  const isMetas    = location.pathname.startsWith('/contas/metas')
+  const isVeiculos = location.pathname.startsWith('/contas/veiculos')
+  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos
 
   return (
     <div className="c-app-shell">
