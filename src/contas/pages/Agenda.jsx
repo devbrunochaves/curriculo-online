@@ -144,26 +144,30 @@ function EventFormModal({ event, defaultDate, onSave, onClose }) {
             </label>
 
             {/* Data início — sempre visível */}
-            <div className="c-date-wrapper">
+            <div>
               <label className="c-form-label">Data início *</label>
-              <input type="date" className="c-form-input c-date-input" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)} />
+              <input type="date" value={form.data_inicio} onChange={e => set('data_inicio', e.target.value)}
+                style={{ display:'block', width:'100%', boxSizing:'border-box', padding:'9px 12px', border:'1.5px solid var(--c-border)', borderRadius:8, fontSize:16, color:'var(--c-text)', background:'var(--c-surface)', fontFamily:'inherit' }} />
             </div>
 
             {/* Data fim + Horários — só se não for dia inteiro */}
             {!form.dia_inteiro && (
               <>
-                <div className="c-date-wrapper">
+                <div>
                   <label className="c-form-label">Data fim</label>
-                  <input type="date" className="c-form-input c-date-input" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)} />
+                  <input type="date" value={form.data_fim} min={form.data_inicio} onChange={e => set('data_fim', e.target.value)}
+                    style={{ display:'block', width:'100%', boxSizing:'border-box', padding:'9px 12px', border:'1.5px solid var(--c-border)', borderRadius:8, fontSize:16, color:'var(--c-text)', background:'var(--c-surface)', fontFamily:'inherit' }} />
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                  <div style={{ flex: 1 }}>
                     <label className="c-form-label">Hora início</label>
-                    <input type="time" className="c-form-input c-date-input" value={form.hora_inicio} onChange={e => set('hora_inicio', e.target.value)} />
+                    <input type="time" value={form.hora_inicio} onChange={e => set('hora_inicio', e.target.value)}
+                      style={{ display:'block', width:'100%', boxSizing:'border-box', padding:'9px 12px', border:'1.5px solid var(--c-border)', borderRadius:8, fontSize:16, color:'var(--c-text)', background:'var(--c-surface)', fontFamily:'inherit' }} />
                   </div>
-                  <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                  <div style={{ flex: 1 }}>
                     <label className="c-form-label">Hora fim</label>
-                    <input type="time" className="c-form-input c-date-input" value={form.hora_fim} onChange={e => set('hora_fim', e.target.value)} />
+                    <input type="time" value={form.hora_fim} onChange={e => set('hora_fim', e.target.value)}
+                      style={{ display:'block', width:'100%', boxSizing:'border-box', padding:'9px 12px', border:'1.5px solid var(--c-border)', borderRadius:8, fontSize:16, color:'var(--c-text)', background:'var(--c-surface)', fontFamily:'inherit' }} />
                   </div>
                 </div>
               </>

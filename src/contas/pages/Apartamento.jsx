@@ -93,16 +93,13 @@ function Field({ label, children }) {
 function DateField({ label, value, onChange, required }) {
   return (
     <Field label={label}>
-      <div style={{overflow:'hidden'}}>
-        <input
-          type="date"
-          className="c-form-input c-date-input"
-          style={{display:'block',width:'100%',boxSizing:'border-box',minWidth:0}}
-          value={value}
-          onChange={onChange}
-          required={required}
-        />
-      </div>
+      <input
+        type="date"
+        value={value}
+        onChange={onChange}
+        required={required}
+        style={{ display:'block', width:'100%', boxSizing:'border-box', padding:'9px 12px', border:'1.5px solid var(--c-border)', borderRadius:8, fontSize:16, color:'var(--c-text)', background:'var(--c-surface)', fontFamily:'inherit' }}
+      />
     </Field>
   )
 }
