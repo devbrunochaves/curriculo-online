@@ -521,7 +521,7 @@ function ExamesTab({ pessoa }) {
   const [saving, setSaving] = useState(false)
   const [file, setFile] = useState(null)
   const [signedUrls, setSignedUrls] = useState({})
-  const [form, setForm] = useState({ tipo: TIPOS_EXAME[0], data: '', medico_solicitante: '', observacao: '' })
+  const [form, setForm] = useState({ tipo: '', data: '', medico_solicitante: '', observacao: '' })
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -541,14 +541,14 @@ function ExamesTab({ pessoa }) {
   function openNew() {
     setEditingExame(null)
     setFile(null)
-    setForm({ tipo: TIPOS_EXAME[0], data: '', medico_solicitante: '', observacao: '' })
+    setForm({ tipo: '', data: '', medico_solicitante: '', observacao: '' })
     setShowForm(true)
   }
 
   function openEdit(e) {
     setEditingExame(e)
     setFile(null)
-    setForm({ tipo: e.tipo || TIPOS_EXAME[0], data: e.data || '', medico_solicitante: e.medico_solicitante || '', observacao: e.observacao || '' })
+    setForm({ tipo: e.tipo || '', data: e.data || '', medico_solicitante: e.medico_solicitante || '', observacao: e.observacao || '' })
     setShowForm(true)
   }
 
@@ -625,9 +625,7 @@ function ExamesTab({ pessoa }) {
       {showForm && (
         <ModalShell title={editingExame ? 'Editar Exame' : 'Novo Exame'} onClose={() => setShowForm(false)} onSave={handleSave} saving={saving}>
           <Field label="Tipo">
-            <select className="c-form-select" value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}>
-              {TIPOS_EXAME.map(t => <option key={t}>{t}</option>)}
-            </select>
+            <input type="text" className="c-form-input" value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))} placeholder="Ex: Hemograma, Ultrassom, Raio-X..." />
           </Field>
           <Field label="Data">
             <input type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} style={dateInputStyle} />
