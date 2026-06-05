@@ -75,7 +75,10 @@ export default function MeuDia({ userName: userNameProp }) {
   useEffect(() => {
     if (userNameProp) return
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) {
+      if (!user) return
+      if (user.user_metadata?.full_name) {
+        setUserName(user.user_metadata.full_name)
+      } else if (user.email) {
         const name = user.email.split('@')[0]
         setUserName(name.charAt(0).toUpperCase() + name.slice(1))
       }

@@ -8,22 +8,88 @@ const ICONS  = ['🍽️','🛒','⛽','💊','🏠','🚗','🎬','📱','👕'
 const CARD_COLORS = ['#6366f1','#EC4899','#F97316','#10b981','#EAB308','#DC2626','#2563EB','#8B5CF6','#14B8A6','#059669','#00B4D8','#F43F5E']
 
 export default function Configuracoes() {
-  const [tab, setTab] = useState('pessoas')
+  const [tab, setTab] = useState('perfil')
   return (
     <div>
       <div className="c-page-header">
         <h2>Configurações</h2>
-        <p>Gerencie pessoas, cartões, categorias e entradas</p>
+        <p>Gerencie seu perfil, pessoas, cartões, categorias e entradas</p>
       </div>
       <div className="c-flex c-gap-2 c-mb-4" style={{ flexWrap: 'wrap' }}>
-        {[['pessoas','👥 Pessoas'],['cartoes','💳 Cartões'],['categorias','🏷️ Categorias'],['entradas','💵 Entradas']].map(([key, label]) => (
+        {[['perfil','👤 Perfil'],['pessoas','👥 Pessoas'],['cartoes','💳 Cartões'],['categorias','🏷️ Categorias'],['entradas','💵 Entradas']].map(([key, label]) => (
           <button key={key} className={`c-btn ${tab === key ? 'c-btn-primary' : 'c-btn-secondary'}`} onClick={() => setTab(key)}>{label}</button>
         ))}
       </div>
+      {tab === 'perfil'     && <PerfilTab />}
       {tab === 'pessoas'    && <PessoasTab />}
       {tab === 'cartoes'    && <CartoesTab />}
       {tab === 'categorias' && <CategoriasTab />}
       {tab === 'entradas'   && <EntradasTab />}
+    </div>
+  )
+}
+
+/* ── Aba Perfil ──────────────────────────────────────────────────── */
+function PerfilTab() {
+  const [email, setEmail]       = useState('')
+  const [fullName, setFullName] = useState('')
+  const [saving, setSaving]     = useState(false)
+  const [saved, setSaved]       = useState(false)
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setEmail(user.email || '')
+        setFullName(user.user_metadata?.full_name || '')
+      }
+    })
+  }, [])
+
+  async function handleSave(e) {
+    e.preventDefault()
+    setSaving(true)
+    const { error } = await supabase.auth.updateUser({ data: { full_name: fullName.trim() } })
+    setSaving(false)
+    if (!error) { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+  }
+
+  return (
+    <div style={{ maxWidth: 480 }}>
+      <div className="c-card" style={{ padding: '20px 24px' }}>
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Dados da conta</div>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="c-form-group">
+            <label className="c-form-label">E-mail</label>
+            <input
+              type="email"
+              className="c-form-input"
+              value={email}
+              readOnly
+              style={{ opacity: 0.7, cursor: 'default' }}
+            />
+          </div>
+          <div className="c-form-group">
+            <label className="c-form-label">Nome de exibição</label>
+            <input
+              type="text"
+              className="c-form-input"
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+              placeholder="Ex: Bruno"
+              maxLength={60}
+            />
+            <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 4 }}>
+              Este nome aparece no "Bom dia" da página Meu Dia.
+            </div>
+          </div>
+          <div className="c-flex c-gap-2 c-items-center">
+            <button type="submit" className="c-btn c-btn-primary" disabled={saving}>
+              {saving ? 'Salvando...' : 'Salvar nome'}
+            </button>
+            {saved && <span style={{ fontSize: 13, color: 'var(--c-success, #16a34a)', fontWeight: 600 }}>✅ Salvo!</span>}
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
