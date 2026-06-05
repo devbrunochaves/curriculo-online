@@ -69,6 +69,8 @@ export default function MeuDia({ userName: userNameProp }) {
     contasFixas:   0,
     listaCompras:  [],
     boletosPendentes: 0,
+    metas:         [],
+    metasAlerta:   [],
   })
 
   /* ── Resolve display name ───────────────────────────────────── */
@@ -107,6 +109,8 @@ export default function MeuDia({ userName: userNameProp }) {
       contasFixasR,
       listaComprasR,
       boletosPendentesR,
+      metasR,
+      metasAlertaR,
     ] = await Promise.allSettled([
       supabase.from('agenda_eventos').select('*').eq('data_inicio', today).order('hora_inicio'),
       supabase.from('agenda_eventos').select('*').gt('data_inicio', today).lte('data_inicio', plus7).order('data_inicio').order('hora_inicio'),
@@ -120,6 +124,8 @@ export default function MeuDia({ userName: userNameProp }) {
       supabase.from('contas_fixas').select('id').eq('is_active', true),
       supabase.from('lista_compras').select('id,nome').eq('checked', false).limit(5),
       supabase.from('apartamento_boletos').select('id').neq('status', 'pago'),
+      supabase.from('metas').select('*').in('status', ['andamento', 'planejada']).order('data_limite', { ascending: true, nullsLast: true }).limit(3),
+      supabase.from('metas').select('id,nome,data_limite,cor,icone,status').neq('status', 'concluida').neq('status', 'cancelada').not('data_limite', 'is', null).lte('data_limite', plus30).order('data_limite'),
     ])
 
     setData({
@@ -135,6 +141,8 @@ export default function MeuDia({ userName: userNameProp }) {
       contasFixas:      contasFixasR.value?.data?.length || 0,
       listaCompras:     listaComprasR.value?.data      || [],
       boletosPendentes: boletosPendentesR.value?.data?.length || 0,
+      metas:            metasR.value?.data            || [],
+      metasAlerta:      metasAlertaR.value?.data      || [],
     })
     setLoading(false)
   }, [])
@@ -184,6 +192,15 @@ export default function MeuDia({ userName: userNameProp }) {
         text: `Garantia ${g.produto} expira em ${dias} dia${dias !== 1 ? 's' : ''}`,
         urgency: dias <= 7 ? 'urgente' : 'breve',
         color: '#f59e0b',
+      }
+    }),
+    ...(data.metasAlerta || []).slice(0, 2).map(m => {
+      const dias = differenceInDays(parseISO(m.data_limite), new Date())
+      return {
+        icon: '🎯',
+        text: `Meta "${m.nome}" ${dias < 0 ? `atrasada ${Math.abs(dias)}d` : `vence em ${dias} dia${dias !== 1 ? 's' : ''}`}`,
+        urgency: dias < 0 ? 'urgente' : dias <= 7 ? 'urgente' : 'breve',
+        color: m.cor || '#6366f1',
       }
     }),
   ].slice(0, 5)
@@ -408,7 +425,44 @@ export default function MeuDia({ userName: userNameProp }) {
         </section>
       )}
 
-      {/* ── 7. RESUMO FINANCEIRO ─────────────────────────────── */}
+      {/* ── 7. METAS EM DESTAQUE ─────────────────────────────── */}
+      {data.metas.length > 0 && (
+        <section style={{ marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>🎯 Metas em Destaque</h2>
+            <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => navigate('/contas/metas')}>
+              Ver todas →
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {data.metas.map(meta => {
+              const pct = meta.valor_objetivo > 0 ? Math.min(100, (meta.valor_atual / meta.valor_objetivo) * 100) : 0
+              const color = meta.cor || '#6366f1'
+              return (
+                <div key={meta.id} className="c-card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => navigate('/contas/metas')}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: 20 }}>{meta.icone || '🎯'}</span>
+                    <span style={{ flex: 1, fontWeight: 600, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {meta.nome}
+                    </span>
+                    <span style={{ fontWeight: 800, color, fontSize: 15, flexShrink: 0 }}>{pct.toFixed(0)}%</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: '#e2e8f0', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 3, background: color, transition: 'width .4s' }} />
+                  </div>
+                  {meta.data_limite && (
+                    <div style={{ fontSize: 12, color: 'var(--c-text-muted,#64748b)', marginTop: 6 }}>
+                      Prazo: {format(parseISO(meta.data_limite), 'dd/MM/yyyy')}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── RESUMO FINANCEIRO ────────────────────────────────── */}
       <section style={{ marginBottom: 28 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 12px' }}>💰 Resumo Financeiro</h2>
         <div className="c-card" style={{ padding: '16px 18px' }}>
