@@ -478,7 +478,10 @@ function GastosTab() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
+  const [detailItem, setDetailItem] = useState(null)
+  const [detailUrl, setDetailUrl] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [compFile, setCompFile] = useState(null)
   const [form, setForm] = useState({ descricao:'', categoria:CAT_GASTOS[0], valor:'', data:'', forma_pagamento:FORMAS_PGTO[0], observacao:'' })
 
   const load = useCallback(async () => {
@@ -492,26 +495,42 @@ function GastosTab() {
 
   function openNew() {
     setEditItem(null)
+    setCompFile(null)
     setForm({ descricao:'', categoria:CAT_GASTOS[0], valor:'', data:'', forma_pagamento:FORMAS_PGTO[0], observacao:'' })
     setShowModal(true)
   }
 
   function openEdit(g) {
     setEditItem(g)
+    setCompFile(null)
     setForm({ descricao:g.descricao||'', categoria:g.categoria||CAT_GASTOS[0], valor:g.valor||'', data:g.data||'', forma_pagamento:g.forma_pagamento||FORMAS_PGTO[0], observacao:g.observacao||'' })
+    setDetailItem(null)
     setShowModal(true)
+  }
+
+  async function openDetail(g) {
+    setDetailItem(g)
+    setDetailUrl(null)
+    if (g.comprovante_path) {
+      const url = await getSignedUrl(g.comprovante_path)
+      setDetailUrl(url)
+    }
   }
 
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
     try {
-      const payload = { ...form, valor: Number(form.valor) || null }
-      if (editItem) {
-        await supabase.from('apartamento_gastos').update(payload).eq('id', editItem.id)
-      } else {
-        await supabase.from('apartamento_gastos').insert(payload)
+      let comprovante_path = editItem?.comprovante_path || null
+      if (compFile) {
+        if (comprovante_path) await deleteFile(comprovante_path)
+        comprovante_path = await uploadFile(compFile, 'gastos')
       }
+      const payload = { ...form, valor: Number(form.valor) || null, comprovante_path }
+      const { error } = editItem
+        ? await supabase.from('apartamento_gastos').update(payload).eq('id', editItem.id)
+        : await supabase.from('apartamento_gastos').insert(payload)
+      if (error) throw error
       setShowModal(false)
       await load()
     } catch(err) { alert(err.message) } finally { setSaving(false) }
@@ -519,11 +538,14 @@ function GastosTab() {
 
   async function handleDelete(g) {
     if (!confirm('Excluir este gasto?')) return
+    if (g.comprovante_path) await deleteFile(g.comprovante_path)
     await supabase.from('apartamento_gastos').delete().eq('id', g.id)
+    setDetailItem(null)
     await load()
   }
 
   const total = gastos.reduce((s,g)=>s+Number(g.valor||0),0)
+  const isImg = path => path && /\.(jpg|jpeg|png|webp|gif)$/i.test(path)
 
   if (loading) return <Loading />
 
@@ -544,22 +566,79 @@ function GastosTab() {
       ) : (
         <div style={{display:'flex',flexDirection:'column',gap:10}}>
           {gastos.map(g=>(
-            <div key={g.id} style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:12,padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12}}>
+            <div key={g.id} onClick={()=>openDetail(g)}
+              style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:12,padding:'12px 16px',
+                display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,cursor:'pointer',transition:'box-shadow .15s'}}
+              onMouseEnter={e=>e.currentTarget.style.boxShadow='0 2px 12px rgba(99,102,241,.12)'}
+              onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
                   <div style={{fontWeight:700}}>{g.descricao}</div>
-                  <span className="c-chip" style={{fontSize:11,padding:'2px 8px',borderRadius:99,background:'var(--c-border)',color:'var(--c-text-muted)'}}>{g.categoria}</span>
+                  <span style={{fontSize:11,padding:'2px 8px',borderRadius:99,background:'var(--c-border)',color:'var(--c-text-muted)'}}>{g.categoria}</span>
+                  {g.comprovante_path && <span style={{fontSize:11}}>📎</span>}
                 </div>
                 <div style={{fontSize:18,fontWeight:700,color:'#6366f1'}}>{fmt(g.valor)}</div>
                 <div style={{fontSize:12,color:'var(--c-text-muted)',marginTop:2}}>{fmtDate(g.data)} · {g.forma_pagamento}</div>
-                {g.observacao && <div style={{fontSize:12,color:'var(--c-text-muted)',marginTop:2}}>{g.observacao}</div>}
               </div>
-              <div style={{display:'flex',gap:6}}>
+              <div style={{display:'flex',gap:6}} onClick={e=>e.stopPropagation()}>
                 <button className="c-btn c-btn-secondary c-btn-sm" onClick={()=>openEdit(g)}>Editar</button>
                 <button className="c-btn c-btn-danger c-btn-sm" onClick={()=>handleDelete(g)}>✕</button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal de detalhes */}
+      {detailItem && (
+        <div className="c-modal-overlay" onClick={()=>setDetailItem(null)}>
+          <div className="c-modal-sheet" style={{maxWidth:520}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}>
+              <div style={{width:40,height:4,borderRadius:99,background:'var(--c-border)'}}/>
+            </div>
+            <div style={{padding:'8px 20px 14px',borderBottom:'1px solid var(--c-border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div style={{fontWeight:700,fontSize:17}}>Detalhes do Gasto</div>
+              <button onClick={()=>setDetailItem(null)} style={{background:'none',border:'none',cursor:'pointer',fontSize:20,color:'var(--c-text-muted)',lineHeight:1}}>✕</button>
+            </div>
+            <div style={{padding:'20px',display:'flex',flexDirection:'column',gap:14,maxHeight:'70vh',overflowY:'auto',overflowX:'hidden'}}>
+              <div>
+                <div style={{fontSize:22,fontWeight:800,marginBottom:4}}>{detailItem.descricao}</div>
+                <span style={{fontSize:12,padding:'3px 10px',borderRadius:99,background:'#ede9fe',color:'#6366f1',fontWeight:600}}>{detailItem.categoria}</span>
+              </div>
+              <div style={{fontSize:32,fontWeight:800,color:'#6366f1'}}>{fmt(detailItem.valor)}</div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {[
+                  ['📅 Data', fmtDate(detailItem.data)],
+                  ['💳 Pagamento', detailItem.forma_pagamento],
+                  detailItem.observacao ? ['📝 Observação', detailItem.observacao] : null,
+                ].filter(Boolean).map(([k,v])=>(
+                  <div key={k} style={{display:'flex',gap:8,fontSize:13}}>
+                    <span style={{color:'var(--c-text-muted)',minWidth:110}}>{k}</span>
+                    <span style={{fontWeight:500}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+              {detailItem.comprovante_path && (
+                <div>
+                  <div style={{fontSize:12,fontWeight:700,color:'var(--c-text-muted)',textTransform:'uppercase',letterSpacing:'.5px',marginBottom:8}}>Comprovante</div>
+                  {detailUrl ? (
+                    isImg(detailItem.comprovante_path) ? (
+                      <img src={detailUrl} alt="comprovante" style={{width:'100%',borderRadius:10,border:'1px solid var(--c-border)'}} />
+                    ) : (
+                      <a href={detailUrl} target="_blank" rel="noreferrer"
+                        style={{display:'inline-flex',alignItems:'center',gap:8,padding:'10px 16px',borderRadius:10,background:'#f1f5f9',color:'#1e40af',fontWeight:600,fontSize:13,textDecoration:'none',border:'1px solid #bfdbfe'}}>
+                        📄 Abrir PDF
+                      </a>
+                    )
+                  ) : <div style={{fontSize:13,color:'var(--c-text-muted)'}}>Carregando...</div>}
+                </div>
+              )}
+            </div>
+            <div style={{padding:'12px 20px 24px',borderTop:'1px solid var(--c-border)',display:'flex',gap:10}}>
+              <button className="c-btn c-btn-secondary" style={{flex:1}} onClick={()=>openEdit(detailItem)}>✏️ Editar</button>
+              <button className="c-btn c-btn-danger" style={{flex:1}} onClick={()=>handleDelete(detailItem)}>🗑️ Excluir</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -584,6 +663,10 @@ function GastosTab() {
           </Field>
           <Field label="Observação">
             <textarea className="c-form-textarea" value={form.observacao} onChange={e=>setForm(f=>({...f,observacao:e.target.value}))} rows={2} />
+          </Field>
+          <Field label="Comprovante (foto ou PDF)">
+            <input type="file" accept="image/*,.pdf" onChange={e=>setCompFile(e.target.files[0]||null)} />
+            {editItem?.comprovante_path && !compFile && <div style={{fontSize:12,color:'#15803d',marginTop:4}}>✓ Comprovante já anexado</div>}
           </Field>
         </ModalShell>
       )}
