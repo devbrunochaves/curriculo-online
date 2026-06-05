@@ -69,8 +69,9 @@ export default function MeuDia({ userName: userNameProp }) {
     contasFixas:   0,
     listaCompras:  [],
     boletosPendentes: 0,
-    metas:         [],
-    metasAlerta:   [],
+    metas:          [],
+    metasAlerta:    [],
+    veiculosAlerta: [],
   })
 
   /* ── Resolve display name ───────────────────────────────────── */
@@ -111,6 +112,7 @@ export default function MeuDia({ userName: userNameProp }) {
       boletosPendentesR,
       metasR,
       metasAlertaR,
+      veiculosAlertaR,
     ] = await Promise.allSettled([
       supabase.from('agenda_eventos').select('*').eq('data_inicio', today).order('hora_inicio'),
       supabase.from('agenda_eventos').select('*').gt('data_inicio', today).lte('data_inicio', plus7).order('data_inicio').order('hora_inicio'),
@@ -126,6 +128,7 @@ export default function MeuDia({ userName: userNameProp }) {
       supabase.from('apartamento_boletos').select('id').neq('status', 'pago'),
       supabase.from('metas').select('*').in('status', ['andamento', 'planejada']).order('data_limite', { ascending: true, nullsLast: true }).limit(3),
       supabase.from('metas').select('id,nome,data_limite,cor,icone,status').neq('status', 'concluida').neq('status', 'cancelada').not('data_limite', 'is', null).lte('data_limite', plus30).order('data_limite'),
+      supabase.from('veiculos_documentos').select('id,nome,tipo,data_validade').not('data_validade','is',null).lte('data_validade', plus30).gte('data_validade', today).order('data_validade'),
     ])
 
     setData({
@@ -143,6 +146,7 @@ export default function MeuDia({ userName: userNameProp }) {
       boletosPendentes: boletosPendentesR.value?.data?.length || 0,
       metas:            metasR.value?.data            || [],
       metasAlerta:      metasAlertaR.value?.data      || [],
+      veiculosAlerta:   veiculosAlertaR.value?.data   || [],
     })
     setLoading(false)
   }, [])
@@ -201,6 +205,15 @@ export default function MeuDia({ userName: userNameProp }) {
         text: `Meta "${m.nome}" ${dias < 0 ? `atrasada ${Math.abs(dias)}d` : `vence em ${dias} dia${dias !== 1 ? 's' : ''}`}`,
         urgency: dias < 0 ? 'urgente' : dias <= 7 ? 'urgente' : 'breve',
         color: m.cor || '#6366f1',
+      }
+    }),
+    ...(data.veiculosAlerta || []).slice(0, 2).map(d => {
+      const dias = differenceInDays(parseISO(d.data_validade), new Date())
+      return {
+        icon: '🚗',
+        text: `Veículo — ${d.tipo || d.nome} vence em ${dias} dia${dias !== 1 ? 's' : ''}`,
+        urgency: dias <= 7 ? 'urgente' : 'breve',
+        color: '#f97316',
       }
     }),
   ].slice(0, 5)
