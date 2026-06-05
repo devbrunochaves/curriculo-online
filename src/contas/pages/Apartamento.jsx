@@ -268,20 +268,20 @@ function GaleriaTab() {
         byAlbum.map(g=>(
           <div key={g.album} style={{marginBottom:24}}>
             <div style={{fontWeight:600,fontSize:15,marginBottom:10,color:'var(--c-text-muted)'}}>{g.album}</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:6}}>
               {g.items.map(f=>(
-                <div key={f.id} style={{position:'relative',borderRadius:10,overflow:'hidden',background:'var(--c-surface)',border:'1px solid var(--c-border)'}}
+                <div key={f.id} style={{position:'relative',borderRadius:8,overflow:'hidden',background:'var(--c-surface)',border:'1px solid var(--c-border)',aspectRatio:'1/1'}}
                   onMouseEnter={e=>{ const btn=e.currentTarget.querySelector('.del-btn'); if(btn) btn.style.opacity='1' }}
                   onMouseLeave={e=>{ const btn=e.currentTarget.querySelector('.del-btn'); if(btn) btn.style.opacity='0' }}>
                   {signedUrls[f.id] ? (
                     <img
                       src={signedUrls[f.id]}
                       alt={f.titulo}
-                      style={{width:'100%',height:120,objectFit:'cover',cursor:'pointer',display:'block'}}
+                      style={{width:'100%',height:'100%',objectFit:'cover',cursor:'pointer',display:'block'}}
                       onClick={()=>setLightbox(signedUrls[f.id])}
                     />
                   ) : (
-                    <div style={{width:'100%',height:120,display:'flex',alignItems:'center',justifyContent:'center',fontSize:30}}>📷</div>
+                    <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:30}}>📷</div>
                   )}
                   <button className="del-btn" onClick={()=>handleDelete(f)}
                     style={{position:'absolute',top:6,right:6,background:'rgba(0,0,0,.55)',color:'#fff',border:'none',borderRadius:99,width:26,height:26,cursor:'pointer',fontSize:13,opacity:0,transition:'opacity .2s'}}>
