@@ -3,17 +3,17 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const navItems = [
-  { to: '/contas/',              icon: '📊', label: 'Dashboard',    end: true },
-  { to: '/contas/nova',          icon: '➕', label: 'Nova Compra'  },
-  { to: '/contas/lancamentos',   icon: '📋', label: 'Lançamentos'  },
-  { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas' },
-  { to: '/contas/previsao',      icon: '📆', label: 'Previsão'     },
-  { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'      },
+  { to: '/contas/meudia',        icon: '☀️', label: 'Meu Dia',         end: true },
   { to: '/contas/agenda',        icon: '📅', label: 'Agenda Familiar'  },
-  { to: '/contas/cardapio',      icon: '🥗', label: 'Compras de casa'  },
+  { to: '/contas/cardapio',      icon: '🛒', label: 'Compras de Casa'  },
   { to: '/contas/documentos',    icon: '📁', label: 'Documentos'       },
   { to: '/contas/apartamento',   icon: '🏠', label: 'Apartamento'      },
-  { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações' },
+  { to: '/contas/dashboard',     icon: '📊', label: 'Dashboard'          },
+  { to: '/contas/lancamentos',   icon: '📋', label: 'Lançamentos'      },
+  { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas'     },
+  { to: '/contas/previsao',      icon: '📆', label: 'Previsão'         },
+  { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'          },
+  { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações'   },
 ]
 
 export default function Layout({ session, children }) {
@@ -38,7 +38,8 @@ export default function Layout({ session, children }) {
   const currentPage = navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to))
   const isAgenda = location.pathname.startsWith('/contas/agenda')
   const isApartamento = location.pathname.startsWith('/contas/apartamento')
-  const hideFab = isAgenda || isApartamento
+  const isMeuDia = location.pathname.startsWith('/contas/meudia')
+  const hideFab = isAgenda || isApartamento || isMeuDia
 
   return (
     <div className="c-app-shell">
