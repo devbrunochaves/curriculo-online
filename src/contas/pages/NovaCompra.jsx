@@ -213,7 +213,7 @@ export default function NovaCompra() {
       setTimeout(() => {
         setSuccess(false)
         if (editId) navigate('/contas/lancamentos')
-        else navigate('/contas/')
+        else navigate('/contas/dashboard')
       }, 1400)
     } catch (err) {
       setError(err.message || 'Erro ao salvar.')
