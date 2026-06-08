@@ -46,7 +46,8 @@ export default function Layout({ session, children }) {
   const isMetas    = location.pathname.startsWith('/contas/metas')
   const isVeiculos = location.pathname.startsWith('/contas/veiculos')
   const isSaude    = location.pathname.startsWith('/contas/saude')
-  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude
+  const isAcertos  = location.pathname.startsWith('/contas/acertos')
+  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude || isAcertos
 
   return (
     <div className="c-app-shell">

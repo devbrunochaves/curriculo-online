@@ -46,12 +46,12 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
   const selectedCard = cards.find(c => c.id === cardId)
 
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--c-border)' }} />
-        </div>
-
+    <div className="c-modal-overlay" onClick={onClose} style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: 'var(--c-card)', borderRadius: 16, width: '92%', maxWidth: 420,
+        boxShadow: '0 8px 40px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column',
+        maxHeight: '90vh', overflow: 'hidden',
+      }}>
         <div className="c-modal-header">
           <div>
             <div className="c-modal-title">Registrar Pagamento</div>
@@ -312,16 +312,18 @@ export default function Acertos() {
       </div>
 
       {/* ── Cards de resumo ───────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
-        <div className="c-card" style={{ padding: '14px 16px' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Total a receber</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--c-text)' }}>{fmt(totalGeral)}</div>
-          <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 3 }}>{pessoaData.length} pessoa{pessoaData.length !== 1 ? 's' : ''}</div>
-        </div>
-        <div className="c-card" style={{ padding: '14px 16px', borderColor: '#16a34a40' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Já quitado</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#16a34a' }}>{fmt(totalQuitado)}</div>
-          <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 3 }}>{qtdQuitados} pessoa{qtdQuitados !== 1 ? 's' : ''} quitada{qtdQuitados !== 1 ? 's' : ''}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div className="c-card" style={{ padding: '14px 16px' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Total a receber</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--c-text)' }}>{fmt(totalGeral)}</div>
+            <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 3 }}>{pessoaData.length} pessoa{pessoaData.length !== 1 ? 's' : ''}</div>
+          </div>
+          <div className="c-card" style={{ padding: '14px 16px', borderColor: '#16a34a40' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Já quitado</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: '#16a34a' }}>{fmt(totalQuitado)}</div>
+            <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 3 }}>{qtdQuitados} quitada{qtdQuitados !== 1 ? 's' : ''}</div>
+          </div>
         </div>
         <div className="c-card" style={{ padding: '14px 16px', borderColor: totalPendente > 0 ? '#ef444440' : '#16a34a40' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: totalPendente > 0 ? '#ef4444' : '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Pendente</div>
