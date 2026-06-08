@@ -58,12 +58,12 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
           <button className="c-modal-close" onClick={onClose}>✕</button>
         </div>
 
-        <div className="c-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="c-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Cartão */}
-          <div>
-            <label className="c-label">Cartão</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label className="c-form-label">Cartão</label>
             <select
-              className="c-input"
+              className="c-form-select"
               value={cardId}
               onChange={e => handleCardChange(e.target.value)}
             >
@@ -75,7 +75,7 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
               ))}
             </select>
             {selectedCard && (
-              <div style={{ marginTop: 6, fontSize: 12, color: 'var(--c-text-muted)' }}>
+              <div style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>
                 Total devido nesse cartão:{' '}
                 <strong style={{ color: selectedCard.color }}>
                   {fmt(pd.cardItems.find(c => c.cardId === cardId)?.totalDevido || 0)}
@@ -85,11 +85,11 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
           </div>
 
           {/* Valor */}
-          <div>
-            <label className="c-label">Valor recebido (R$)</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label className="c-form-label">Valor recebido (R$)</label>
             <input
               type="number"
-              className="c-input"
+              className="c-form-input"
               value={valor}
               onChange={e => setValor(e.target.value)}
               min="0"
@@ -99,22 +99,22 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
           </div>
 
           {/* Data */}
-          <div>
-            <label className="c-label">Data do recebimento</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label className="c-form-label">Data do recebimento</label>
             <input
               type="date"
-              className="c-input"
+              className="c-form-input"
               value={data}
               onChange={e => setData(e.target.value)}
             />
           </div>
 
           {/* Observação */}
-          <div>
-            <label className="c-label">Observação (opcional)</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <label className="c-form-label">Observação (opcional)</label>
             <input
               type="text"
-              className="c-input"
+              className="c-form-input"
               value={obs}
               onChange={e => setObs(e.target.value)}
               placeholder="Ex: Pix recebido"
