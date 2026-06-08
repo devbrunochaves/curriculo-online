@@ -18,6 +18,7 @@ import MeuDia from './pages/MeuDia'
 import Metas from './pages/Metas'
 import Veiculos from './pages/Veiculos'
 import Saude from './pages/Saude'
+import Acertos from './pages/Acertos'
 import './styles/contas.css'
 
 function ProtectedRoute({ session, children }) {
@@ -65,6 +66,7 @@ export default function ContasApp() {
                 <Route path="saude" element={<Saude />} />
                 <Route path="nova" element={<NovaCompra />} />
                 <Route path="lancamentos" element={<Lancamentos />} />
+                <Route path="acertos" element={<Acertos />} />
                 <Route path="fixas" element={<ContasFixas />} />
                 <Route path="pessoas" element={<Pessoas />} />
                 <Route path="previsao" element={<Previsao />} />
