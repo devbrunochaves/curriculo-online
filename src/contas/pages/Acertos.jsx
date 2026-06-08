@@ -54,6 +54,16 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
     appearance: 'auto',
   }
 
+  const dateInputStyle = {
+    ...inputStyle,
+    WebkitAppearance: 'none',
+    appearance: 'none',
+    fontSize: 13,
+    padding: '10px 10px',
+    display: 'block',
+    overflow: 'hidden',
+  }
+
   return (
     <div className="c-modal-overlay" onClick={onClose} style={{ alignItems: 'center', padding: '20px' }}>
       <div className="c-modal-sheet" onClick={e => e.stopPropagation()} style={{ borderRadius: 16, width: '100%', maxWidth: 420 }}>
@@ -114,7 +124,7 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
               type="date"
               value={data}
               onChange={e => setData(e.target.value)}
-              style={inputStyle}
+              style={dateInputStyle}
             />
           </div>
 
