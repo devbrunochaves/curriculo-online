@@ -45,6 +45,15 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
 
   const selectedCard = cards.find(c => c.id === cardId)
 
+  const inputStyle = {
+    width: '100%', boxSizing: 'border-box',
+    padding: '10px 12px', fontSize: 14,
+    border: '1.5px solid #d1d5db', borderRadius: 10,
+    background: '#f9fafb', color: '#111827',
+    outline: 'none', fontFamily: 'inherit',
+    appearance: 'auto',
+  }
+
   return (
     <div className="c-modal-overlay" onClick={onClose} style={{ alignItems: 'center', padding: '20px' }}>
       <div className="c-modal-sheet" onClick={e => e.stopPropagation()} style={{ borderRadius: 16, width: '100%', maxWidth: 420 }}>
@@ -61,11 +70,11 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
         <div className="c-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Cartão */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <label className="c-form-label">Cartão</label>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Cartão</span>
             <select
-              className="c-form-select"
               value={cardId}
               onChange={e => handleCardChange(e.target.value)}
+              style={inputStyle}
             >
               <option value="">Selecione...</option>
               {pd.cardItems.map(item => (
@@ -76,7 +85,7 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
             </select>
             {selectedCard && (
               <div style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>
-                Total devido nesse cartão:{' '}
+                Total devido:{' '}
                 <strong style={{ color: selectedCard.color }}>
                   {fmt(pd.cardItems.find(c => c.cardId === cardId)?.totalDevido || 0)}
                 </strong>
@@ -86,38 +95,38 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
 
           {/* Valor */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <label className="c-form-label">Valor recebido (R$)</label>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Valor recebido (R$)</span>
             <input
               type="number"
-              className="c-form-input"
               value={valor}
               onChange={e => setValor(e.target.value)}
               min="0"
               step="0.01"
               placeholder="0,00"
+              style={inputStyle}
             />
           </div>
 
           {/* Data */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <label className="c-form-label">Data do recebimento</label>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Data do recebimento</span>
             <input
               type="date"
-              className="c-form-input"
               value={data}
               onChange={e => setData(e.target.value)}
+              style={inputStyle}
             />
           </div>
 
           {/* Observação */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <label className="c-form-label">Observação (opcional)</label>
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Observação (opcional)</span>
             <input
               type="text"
-              className="c-form-input"
               value={obs}
               onChange={e => setObs(e.target.value)}
               placeholder="Ex: Pix recebido"
+              style={inputStyle}
             />
           </div>
         </div>
