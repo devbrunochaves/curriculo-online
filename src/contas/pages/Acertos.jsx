@@ -46,12 +46,8 @@ function ModalPagamento({ pd, monthRef, cards, onClose, onSaved }) {
   const selectedCard = cards.find(c => c.id === cardId)
 
   return (
-    <div className="c-modal-overlay" onClick={onClose} style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--c-card)', borderRadius: 16, width: '92%', maxWidth: 420,
-        boxShadow: '0 8px 40px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column',
-        maxHeight: '90vh', overflow: 'hidden',
-      }}>
+    <div className="c-modal-overlay" onClick={onClose} style={{ alignItems: 'center', padding: '20px' }}>
+      <div className="c-modal-sheet" onClick={e => e.stopPropagation()} style={{ borderRadius: 16, width: '100%', maxWidth: 420 }}>
         <div className="c-modal-header">
           <div>
             <div className="c-modal-title">Registrar Pagamento</div>
