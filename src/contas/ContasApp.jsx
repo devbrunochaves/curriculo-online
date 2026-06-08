@@ -13,6 +13,7 @@ import Previsao from './pages/Previsao'
 import ContasFixas from './pages/ContasFixas'
 import ListaCompras from './pages/ListaCompras'
 import Cardapio from './pages/Cardapio'
+import Acertos from './pages/Acertos'
 import './styles/contas.css'
 
 function ProtectedRoute({ session, children }) {
@@ -55,6 +56,7 @@ export default function ContasApp() {
                 <Route index element={<Dashboard />} />
                 <Route path="nova" element={<NovaCompra />} />
                 <Route path="lancamentos" element={<Lancamentos />} />
+                <Route path="acertos" element={<Acertos />} />
                 <Route path="fixas" element={<ContasFixas />} />
                 <Route path="pessoas" element={<Pessoas />} />
                 <Route path="previsao" element={<Previsao />} />

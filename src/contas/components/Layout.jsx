@@ -3,16 +3,17 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const navItems = [
-  { to: '/contas/',              icon: '📊', label: 'Dashboard',    end: true },
-  { to: '/contas/nova',          icon: '➕', label: 'Nova Compra'  },
-  { to: '/contas/lancamentos',   icon: '📋', label: 'Lançamentos'  },
-  { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas' },
-  { to: '/contas/previsao',      icon: '📆', label: 'Previsão'     },
-  { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'      },
-  { to: '/contas/cartoes',       icon: '💳', label: 'Cartões'      },
-  { to: '/contas/lista',         icon: '🛒', label: 'Lista de Compras' },
-  { to: '/contas/cardapio',     icon: '🥗', label: 'Cardápio'         },
-  { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações' },
+  { to: '/contas/',              icon: '📊', label: 'Dashboard',        end: true },
+  { to: '/contas/nova',          icon: '➕', label: 'Nova Compra'       },
+  { to: '/contas/lancamentos',   icon: '📋', label: 'Lançamentos'       },
+  { to: '/contas/acertos',       icon: '🤝', label: 'Acertos'           },
+  { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas'      },
+  { to: '/contas/previsao',      icon: '📆', label: 'Previsão'          },
+  { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'           },
+  { to: '/contas/cartoes',       icon: '💳', label: 'Cartões'           },
+  { to: '/contas/lista',         icon: '🛒', label: 'Lista de Compras'  },
+  { to: '/contas/cardapio',      icon: '🥗', label: 'Cardápio'          },
+  { to: '/contas/configuracoes', icon: '⚙️', label: 'Configurações'    },
 ]
 
 export default function Layout({ session, children }) {
@@ -20,10 +21,8 @@ export default function Layout({ session, children }) {
   const location  = useLocation()
   const [open, setOpen] = useState(false)
 
-  // Fecha o menu ao navegar
   useEffect(() => { setOpen(false) }, [location.pathname])
 
-  // Impede scroll do body quando menu está aberto no mobile
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -119,7 +118,7 @@ export default function Layout({ session, children }) {
           background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
           color: '#fff', fontSize: 26, fontWeight: 700,
           border: 'none', cursor: 'pointer',
-          display: 'none',   // visível só no mobile via CSS
+          display: 'none',
           alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 16px rgba(99,102,241,.5)',
           transition: 'transform .15s',
