@@ -225,12 +225,42 @@ export default function Acertos() {
 
   const load = useCallback(async () => {
     setLoading(true)
+
+    // Gera entradas do mês se ainda não existirem (igual ao ContasFixas)
+    const { data: allBills } = await supabase
+      .from('recurring_bills').select('id, default_amount').eq('is_active', true)
+    if (allBills?.length) {
+      const { data: existing } = await supabase
+        .from('bill_entries').select('bill_id').eq('month_ref', monthRef)
+      const existingIds = new Set((existing || []).map(e => e.bill_id))
+      const toCreate = allBills
+        .filter(b => !existingIds.has(b.id))
+        .map(b => ({ bill_id: b.id, month_ref: monthRef, amount: b.default_amount ?? 0 }))
+      if (toCreate.length) {
+        const { data: created } = await supabase.from('bill_entries').insert(toCreate).select()
+        if (created?.length) {
+          const prevRef = format(subMonths(new Date(monthRef + '-01'), 1), 'yyyy-MM')
+          const { data: prev } = await supabase
+            .from('bill_entries')
+            .select('id, bill_id, splits:bill_entry_splits(person_id, amount)')
+            .eq('month_ref', prevRef)
+            .in('bill_id', created.map(e => e.bill_id))
+          const toCopy = []
+          for (const entry of created) {
+            const p = prev?.find(e => e.bill_id === entry.bill_id)
+            p?.splits?.forEach(s => toCopy.push({ entry_id: entry.id, person_id: s.person_id, amount: s.amount }))
+          }
+          if (toCopy.length) await supabase.from('bill_entry_splits').insert(toCopy)
+        }
+      }
+    }
+
     const [{ data: exp }, { data: bills }, { data: c }, { data: p }, { data: ac }] = await Promise.all([
       supabase.from('expenses')
         .select('*, splits:expense_splits(*, person:people(*))')
         .eq('month_ref', monthRef),
       supabase.from('bill_entries')
-        .select('*, bill:recurring_bills(name, color), splits:bill_entry_splits(*, person:people(id, name, color))')
+        .select('*, bill:recurring_bills(name, color, person_id), splits:bill_entry_splits(person_id, amount)')
         .eq('month_ref', monthRef),
       supabase.from('cards').select('*').eq('is_active', true),
       supabase.from('people').select('*').eq('is_active', true),
@@ -263,12 +293,16 @@ export default function Acertos() {
       splitsByCard[expense.card_id] = (splitsByCard[expense.card_id] || 0) + Number(split.amount || 0)
     }
 
-    // Splits por conta fixa
+    // Splits por conta fixa (split multi-pessoa OU atribuição direta via person_id)
     const splitsByBill = {}
     for (const entry of billEntries) {
-      const split = (entry.splits || []).find(s => s.person_id === pessoa.id)
-      if (!split) continue
-      splitsByBill[entry.id] = (splitsByBill[entry.id] || 0) + Number(split.amount || 0)
+      const entryAmount = Number(entry.amount || 0)
+      const multiSplit = (entry.splits || []).find(s => s.person_id === pessoa.id)
+      if (multiSplit) {
+        splitsByBill[entry.id] = (splitsByBill[entry.id] || 0) + Number(multiSplit.amount || 0)
+      } else if (entry.bill?.person_id === pessoa.id) {
+        splitsByBill[entry.id] = (splitsByBill[entry.id] || 0) + entryAmount
+      }
     }
 
     // Acertos registrados
