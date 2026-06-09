@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 /* ── Definição das colunas Kanban ── */
@@ -54,9 +54,6 @@ export default function Clientes() {
   const [draggedId, setDraggedId]   = useState(null)
   const [dragOverCol, setDragOverCol] = useState(null)
   const dragNode = useRef(null)
-
-  /* card notas expandida */
-  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => { load() }, [])
 
@@ -261,8 +258,6 @@ export default function Clientes() {
                     key={c.id}
                     cliente={c}
                     col={col}
-                    expanded={expandedId === c.id}
-                    onToggleExpand={() => setExpandedId(expandedId === c.id ? null : c.id)}
                     onEdit={() => openEdit(c)}
                     onDelete={() => del(c.id)}
                     deleting={deleting === c.id}
@@ -373,9 +368,13 @@ export default function Clientes() {
   )
 }
 
-/* ── Componente de card do Kanban ── */
-function KanbanCard({ cliente: c, col, expanded, onToggleExpand, onEdit, onDelete, deleting, onDragStart, onDragEnd }) {
-  const notasLinhas = (c.notas || '').split('\n').filter(Boolean)
+/* ── Card compacto do Kanban ── */
+function KanbanCard({ cliente: c, col, onEdit, onDelete, deleting, onDragStart, onDragEnd }) {
+  const navigate = useNavigate()
+
+  function handleClick() {
+    navigate(`/crm/clientes/${c.id}`)
+  }
 
   return (
     <div
@@ -383,82 +382,34 @@ function KanbanCard({ cliente: c, col, expanded, onToggleExpand, onEdit, onDelet
       draggable
       onDragStart={e => onDragStart(e, c.id)}
       onDragEnd={onDragEnd}
+      onClick={handleClick}
+      title={`Ver perfil de ${c.nome}`}
     >
-      {/* Linha de cor no topo */}
+      {/* Barra de cor */}
       <div className="crm-kb-card-accent" style={{ background: col.color }} />
 
-      {/* Header do card */}
-      <div className="crm-kb-card-header">
+      {/* Corpo compacto */}
+      <div className="crm-kb-card-body">
         <div className="crm-avatar crm-kb-avatar" style={{ background: c.avatar_color || '#6366f1' }}>
           {getInitials(c.nome).toUpperCase()}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Link to={`/crm/clientes/${c.id}`} className="crm-client-link">
-            <div className="crm-kb-card-name">{c.nome}</div>
-          </Link>
-          {c.empresa && <div className="crm-kb-card-empresa">{c.empresa}</div>}
-          {c.nicho && (
-            <span className="crm-badge crm-badge-info crm-kb-nicho">{c.nicho}</span>
-          )}
+        <div className="crm-kb-card-info">
+          <div className="crm-kb-card-name">{c.nome}</div>
+          {c.nicho && <span className="crm-kb-nicho-tag">{c.nicho}</span>}
         </div>
-        {/* Drag handle visual */}
-        <span className="crm-kb-drag-handle" title="Arraste para classificar">⠿</span>
+        <span className="crm-kb-drag-handle" title="Arraste para mover">⠿</span>
       </div>
 
-      {/* Contatos */}
-      {(c.whatsapp || c.instagram) && (
-        <div className="crm-kb-contacts">
-          {c.whatsapp && (
-            <a
-              href={`https://wa.me/55${c.whatsapp.replace(/\D/g, '')}`}
-              target="_blank"
-              rel="noreferrer"
-              className="crm-kb-contact-link crm-kb-wpp"
-              onClick={e => e.stopPropagation()}
-            >
-              <span>📱</span> {c.whatsapp}
-            </a>
-          )}
-          {c.instagram && (
-            <a
-              href={c.instagram.startsWith('http') ? c.instagram : `https://instagram.com/${c.instagram.replace('@', '')}`}
-              target="_blank"
-              rel="noreferrer"
-              className="crm-kb-contact-link crm-kb-insta"
-              onClick={e => e.stopPropagation()}
-            >
-              <span>📷</span> {c.instagram}
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* Notas preview */}
-      {notasLinhas.length > 0 && (
-        <div className="crm-kb-notas">
-          <div className={`crm-kb-notas-text${expanded ? ' crm-kb-notas-expanded' : ''}`}>
-            {expanded ? notasLinhas.join('\n') : notasLinhas[0]}
-          </div>
-          {notasLinhas.length > 1 && (
-            <button className="crm-kb-notas-toggle" onClick={onToggleExpand}>
-              {expanded ? '▲ menos' : `▼ +${notasLinhas.length - 1} linhas`}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Rodapé com ações */}
-      <div className="crm-kb-card-footer">
-        <button className="crm-kb-action crm-kb-action-edit" onClick={onEdit} title="Editar">
-          ✏️ Editar
-        </button>
+      {/* Ações — visíveis só no hover, não propagam o click */}
+      <div className="crm-kb-card-actions" onClick={e => e.stopPropagation()}>
+        <button className="crm-kb-action-icon" onClick={onEdit} title="Editar dados">✏️</button>
         <button
-          className="crm-kb-action crm-kb-action-del"
+          className="crm-kb-action-icon crm-kb-action-del-icon"
           onClick={onDelete}
           disabled={deleting}
           title="Remover"
         >
-          {deleting ? '...' : '🗑️'}
+          {deleting ? '…' : '🗑️'}
         </button>
       </div>
     </div>
