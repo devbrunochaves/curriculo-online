@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 /* ── Definição das colunas Kanban ── */
@@ -40,11 +40,24 @@ const EMPTY_FORM = {
 }
 
 export default function Clientes() {
-  const [clientes, setClientes]       = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [search, setSearch]           = useState('')
-  const [filtroNicho, setFiltroNicho] = useState('')
-  const [modal, setModal]             = useState(false)
+  const [clientes, setClientes] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [modal, setModal]       = useState(false)
+
+  /* Filtros persistidos na URL — sobrevivem ao navigate(-1) */
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search      = searchParams.get('q')     || ''
+  const filtroNicho = searchParams.get('nicho') || ''
+
+  function setSearch(val) {
+    setSearchParams(p => { const n = new URLSearchParams(p); val ? n.set('q', val) : n.delete('q'); return n }, { replace: true })
+  }
+  function setFiltroNicho(val) {
+    setSearchParams(p => { const n = new URLSearchParams(p); val ? n.set('nicho', val) : n.delete('nicho'); return n }, { replace: true })
+  }
+  function limparFiltros() {
+    setSearchParams({}, { replace: true })
+  }
   const [form, setForm]               = useState(EMPTY_FORM)
   const [editId, setEditId]           = useState(null)
   const [saving, setSaving]           = useState(false)
@@ -207,10 +220,7 @@ export default function Clientes() {
         </select>
 
         {(search || filtroNicho) && (
-          <button
-            className="crm-btn crm-btn-ghost crm-btn-sm"
-            onClick={() => { setSearch(''); setFiltroNicho('') }}
-          >
+          <button className="crm-btn crm-btn-ghost crm-btn-sm" onClick={limparFiltros}>
             ✕ Limpar filtros
           </button>
         )}
