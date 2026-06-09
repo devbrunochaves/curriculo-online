@@ -260,7 +260,7 @@ export default function Acertos() {
         .select('*, splits:expense_splits(*, person:people(*))')
         .eq('month_ref', monthRef),
       supabase.from('bill_entries')
-        .select('*, bill:recurring_bills(name, color, person_id), splits:bill_entry_splits(person_id, amount)')
+        .select('*, bill:recurring_bills(name, person_id), splits:bill_entry_splits(person_id, amount)')
         .eq('month_ref', monthRef),
       supabase.from('cards').select('*').eq('is_active', true),
       supabase.from('people').select('*').eq('is_active', true),
