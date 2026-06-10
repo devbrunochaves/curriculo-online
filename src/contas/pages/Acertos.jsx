@@ -317,13 +317,15 @@ export default function Acertos() {
     const cardItems = Object.entries(splitsByCard).map(([cardId, totalDevido]) => {
       const card      = cards.find(c => c.id === cardId)
       const totalPago = acertosByCard[cardId] || 0
-      return { type: 'card', key: cardId, name: card?.name, color: card?.color || '#6366f1', totalDevido, totalPago, falta: totalDevido - totalPago }
+      const falta     = Math.round((totalDevido - totalPago) * 100) / 100
+      return { type: 'card', key: cardId, name: card?.name, color: card?.color || '#6366f1', totalDevido, totalPago, falta }
     }).filter(i => i.name).sort((a, b) => b.totalDevido - a.totalDevido)
 
     const billItems = Object.entries(splitsByBill).map(([entryId, totalDevido]) => {
       const entry     = billEntries.find(e => e.id === entryId)
       const totalPago = acertosByBill[entryId] || 0
-      return { type: 'bill', key: entryId, name: entry?.bill?.name, color: '#f59e0b', totalDevido, totalPago, falta: totalDevido - totalPago }
+      const falta     = Math.round((totalDevido - totalPago) * 100) / 100
+      return { type: 'bill', key: entryId, name: entry?.bill?.name, color: '#f59e0b', totalDevido, totalPago, falta }
     }).filter(i => i.name).sort((a, b) => b.totalDevido - a.totalDevido)
 
     const allItems    = [...cardItems, ...billItems]
@@ -433,10 +435,12 @@ export default function Acertos() {
                     </div>
                   </div>
 
-                  {/* Itens (cartões + contas fixas) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
-                    {pd.allItems.map(item => <ItemRow key={`${item.type}:${item.key}`} item={item} />)}
-                  </div>
+                  {/* Itens pendentes (cartões + contas fixas) — quitados somem daqui */}
+                  {pd.allItems.some(i => i.falta > 0) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
+                      {pd.allItems.filter(i => i.falta > 0).map(item => <ItemRow key={`${item.type}:${item.key}`} item={item} />)}
+                    </div>
+                  )}
 
                   {/* Totalizador */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 10, background: 'var(--c-bg)', border: '1px solid var(--c-border)', marginBottom: pd.pessoaAcertos.length > 0 ? 14 : 0 }}>
