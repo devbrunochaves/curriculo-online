@@ -1,17 +1,31 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState, useRef } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
-const NICHOS = ['Advocacia','Saúde','Nutrição','Barbearia','Moda','Estética','Gastronomia','Educação','Imobiliária','Tecnologia','Outro']
-const STATUS_OPTS = ['lead','ativo','pausado','encerrado']
+/* ── Definição das colunas Kanban ── */
+const COLUNAS = [
+  { key: 'lead',           label: 'Leads',                icon: '🎯', color: '#6366f1', desc: 'Capturados pelo agente' },
+  { key: 'sem_presenca',   label: 'Sem Presença Digital', icon: '❌', color: '#ef4444', desc: 'Sem site ou redes sociais' },
+  { key: 'presenca_fraca', label: 'Presença Fraca',       icon: '⚠️', color: '#f59e0b', desc: 'Site ou perfil desatualizado' },
+  { key: 'presenca_ativa', label: 'Presença Ativa',       icon: '✅', color: '#10b981', desc: 'Bem posicionados online' },
+]
 
-const STATUS_BADGE = {
-  lead:      'crm-badge-info',
-  ativo:     'crm-badge-success',
-  pausado:   'crm-badge-warning',
-  encerrado: 'crm-badge-muted',
+/* Mapeia status legado → coluna Kanban */
+function getColuna(status) {
+  if (COLUNAS.some(c => c.key === status)) return status
+  if (status === 'ativo')     return 'presenca_ativa'
+  if (status === 'pausado')   return 'presenca_fraca'
+  return 'lead'
 }
 
+const STATUS_OPTS = [
+  { key: 'lead',           label: 'Lead (capturado)' },
+  { key: 'sem_presenca',   label: 'Sem Presença Digital' },
+  { key: 'presenca_fraca', label: 'Presença Fraca' },
+  { key: 'presenca_ativa', label: 'Presença Ativa' },
+]
+
+const NICHOS = ['Advocacia','Saúde','Nutrição','Barbearia','Moda','Estética','Gastronomia','Educação','Imobiliária','Tecnologia','Outro']
 const AVATAR_COLORS = ['#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#ec4899','#06b6d4','#84cc16']
 
 function getInitials(nome) {
@@ -20,37 +34,69 @@ function getInitials(nome) {
   return parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].slice(0, 2)
 }
 
-const EMPTY_FORM = { nome: '', empresa: '', nicho: '', whatsapp: '', email: '', instagram: '', drive_link: '', status: 'lead', notas: '', avatar_color: '#f59e0b' }
+const EMPTY_FORM = {
+  nome: '', empresa: '', nicho: '', whatsapp: '', email: '',
+  instagram: '', drive_link: '', status: 'lead', notas: '', avatar_color: '#f59e0b',
+}
 
 export default function Clientes() {
-  const [clientes, setClientes]   = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [search, setSearch]       = useState('')
-  const [filtroStatus, setFiltro] = useState('')
-  const [filtroNicho, setFiltroNicho] = useState('')
-  const [modal, setModal]         = useState(false)
-  const [form, setForm]           = useState(EMPTY_FORM)
-  const [editId, setEditId]       = useState(null)
-  const [saving, setSaving]       = useState(false)
-  const [deleting, setDeleting]   = useState(null)
+  const [clientes, setClientes] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [modal, setModal]       = useState(false)
+
+  /* Filtros persistidos na URL — sobrevivem ao navigate(-1) */
+  const [searchParams, setSearchParams] = useSearchParams()
+  const search      = searchParams.get('q')     || ''
+  const filtroNicho = searchParams.get('nicho') || ''
+
+  function setSearch(val) {
+    setSearchParams(p => { const n = new URLSearchParams(p); val ? n.set('q', val) : n.delete('q'); return n }, { replace: true })
+  }
+  function setFiltroNicho(val) {
+    setSearchParams(p => { const n = new URLSearchParams(p); val ? n.set('nicho', val) : n.delete('nicho'); return n }, { replace: true })
+  }
+  function limparFiltros() {
+    setSearchParams({}, { replace: true })
+  }
+  const [form, setForm]               = useState(EMPTY_FORM)
+  const [editId, setEditId]           = useState(null)
+  const [saving, setSaving]           = useState(false)
+  const [deleting, setDeleting]       = useState(null)
+
+  /* drag & drop */
+  const [draggedId, setDraggedId]   = useState(null)
+  const [dragOverCol, setDragOverCol] = useState(null)
+  const dragNode = useRef(null)
 
   useEffect(() => { load() }, [])
 
   async function load() {
-    const { data } = await supabase.from('crm_clientes').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase
+      .from('crm_clientes')
+      .select('*')
+      .order('created_at', { ascending: false })
     setClientes(data || [])
     setLoading(false)
   }
 
-  function openNew() {
+  function openNew(defaultStatus = 'lead') {
     setEditId(null)
-    setForm({ ...EMPTY_FORM, avatar_color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)] })
+    setForm({
+      ...EMPTY_FORM,
+      status: defaultStatus,
+      avatar_color: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    })
     setModal(true)
   }
 
   function openEdit(c) {
     setEditId(c.id)
-    setForm({ nome: c.nome || '', empresa: c.empresa || '', nicho: c.nicho || '', whatsapp: c.whatsapp || '', email: c.email || '', instagram: c.instagram || '', drive_link: c.drive_link || '', status: c.status || 'lead', notas: c.notas || '', avatar_color: c.avatar_color || '#f59e0b' })
+    setForm({
+      nome: c.nome || '', empresa: c.empresa || '', nicho: c.nicho || '',
+      whatsapp: c.whatsapp || '', email: c.email || '', instagram: c.instagram || '',
+      drive_link: c.drive_link || '', status: c.status || 'lead',
+      notas: c.notas || '', avatar_color: c.avatar_color || '#f59e0b',
+    })
     setModal(true)
   }
 
@@ -75,15 +121,56 @@ export default function Clientes() {
     load()
   }
 
-  // Nichos únicos cadastrados no CRM (dinâmico)
+  /* ── Drag & Drop handlers ── */
+  function handleDragStart(e, id) {
+    setDraggedId(id)
+    dragNode.current = e.target
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', id)
+    // pequeno delay para o ghost aparecer antes do .dragging
+    setTimeout(() => { if (dragNode.current) dragNode.current.classList.add('crm-kb-card-dragging') }, 0)
+  }
+
+  function handleDragEnd() {
+    if (dragNode.current) dragNode.current.classList.remove('crm-kb-card-dragging')
+    dragNode.current = null
+    setDraggedId(null)
+    setDragOverCol(null)
+  }
+
+  function handleDragOver(e, colKey) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragOverCol !== colKey) setDragOverCol(colKey)
+  }
+
+  function handleDragLeave(e) {
+    // só limpa se saiu para fora do container da coluna
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setDragOverCol(null)
+    }
+  }
+
+  async function handleDrop(e, colKey) {
+    e.preventDefault()
+    const id = draggedId || e.dataTransfer.getData('text/plain')
+    setDraggedId(null)
+    setDragOverCol(null)
+    if (!id || !colKey) return
+    const cliente = clientes.find(c => c.id === id)
+    if (cliente && getColuna(cliente.status) === colKey) return // sem mudança
+    await supabase.from('crm_clientes').update({ status: colKey }).eq('id', id)
+    load()
+  }
+
+  /* ── Filtros ── */
   const nichosDisponiveis = [...new Set(clientes.map(c => c.nicho).filter(Boolean))].sort()
 
   const filtered = clientes.filter(c => {
     const q = search.toLowerCase()
     const matchSearch = !q || c.nome?.toLowerCase().includes(q) || c.empresa?.toLowerCase().includes(q) || c.nicho?.toLowerCase().includes(q)
-    const matchStatus = !filtroStatus || c.status === filtroStatus
-    const matchNicho  = !filtroNicho  || c.nicho === filtroNicho
-    return matchSearch && matchStatus && matchNicho
+    const matchNicho  = !filtroNicho || c.nicho === filtroNicho
+    return matchSearch && matchNicho
   })
 
   if (loading) return (
@@ -93,18 +180,23 @@ export default function Clientes() {
     </div>
   )
 
+  const totalLeads = clientes.filter(c => getColuna(c.status) === 'lead').length
+
   return (
     <div>
+      {/* ── Header ── */}
       <div className="crm-page-header">
         <div className="crm-page-header-left">
-          <h2>Clientes</h2>
-          <p>{clientes.filter(c => c.status === 'ativo').length} ativos · {clientes.length} total</p>
+          <h2>Pipeline de Clientes</h2>
+          <p>{totalLeads} leads · {clientes.length} total</p>
         </div>
-        <button className="crm-btn crm-btn-primary" onClick={openNew}>+ Novo Cliente</button>
+        <button className="crm-btn crm-btn-primary" onClick={() => openNew('lead')}>
+          + Novo Lead
+        </button>
       </div>
 
+      {/* ── Barra de filtros ── */}
       <div className="crm-search-bar">
-        {/* Input com botão X */}
         <div className="crm-search-input-wrap">
           <input
             className="crm-input"
@@ -113,96 +205,91 @@ export default function Clientes() {
             onChange={e => setSearch(e.target.value)}
           />
           {search && (
-            <button className="crm-search-clear" onClick={() => setSearch('')} title="Limpar busca">
-              ×
-            </button>
+            <button className="crm-search-clear" onClick={() => setSearch('')} title="Limpar busca">×</button>
           )}
         </div>
 
-        {/* Filtro por status */}
-        <select className="crm-select" style={{ width: 160 }} value={filtroStatus} onChange={e => setFiltro(e.target.value)}>
-          <option value="">Todos os status</option>
-          {STATUS_OPTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-        </select>
-
-        {/* Filtro por nicho (dinâmico) */}
-        <select className="crm-select" style={{ width: 190 }} value={filtroNicho} onChange={e => setFiltroNicho(e.target.value)}>
+        <select
+          className="crm-select"
+          style={{ width: 190 }}
+          value={filtroNicho}
+          onChange={e => setFiltroNicho(e.target.value)}
+        >
           <option value="">Todos os nichos</option>
           {nichosDisponiveis.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
 
-        {/* Indicador de filtros ativos */}
-        {(search || filtroStatus || filtroNicho) && (
-          <button
-            className="crm-btn crm-btn-ghost crm-btn-sm"
-            onClick={() => { setSearch(''); setFiltro(''); setFiltroNicho('') }}
-          >
+        {(search || filtroNicho) && (
+          <button className="crm-btn crm-btn-ghost crm-btn-sm" onClick={limparFiltros}>
             ✕ Limpar filtros
           </button>
         )}
       </div>
 
-      <div className="crm-card">
-        {filtered.length === 0 ? (
-          <div className="crm-empty">
-            <div className="crm-empty-icon">👥</div>
-            <p>{search || filtroStatus ? 'Nenhum cliente encontrado' : 'Nenhum cliente cadastrado ainda'}</p>
-          </div>
-        ) : (
-          <div className="crm-table-wrap">
-            <table className="crm-table">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Nicho</th>
-                  <th>WhatsApp</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(c => (
-                  <tr key={c.id}>
-                    <td className="crm-td-main">
-                      <Link to={`/crm/clientes/${c.id}`} className="crm-client-link">
-                        <div className="crm-client-info">
-                          <div className="crm-avatar" style={{ background: c.avatar_color || '#f59e0b' }}>
-                            {getInitials(c.nome).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="crm-client-name">{c.nome}</div>
-                            {c.empresa && <div className="crm-client-company">{c.empresa}</div>}
-                          </div>
-                        </div>
-                      </Link>
-                    </td>
-                    <td>{c.nicho || '—'}</td>
-                    <td>{c.whatsapp || '—'}</td>
-                    <td>
-                      <span className={`crm-badge ${STATUS_BADGE[c.status] || 'crm-badge-muted'}`}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-                        <button className="crm-btn crm-btn-ghost crm-btn-sm" onClick={() => openEdit(c)}>Editar</button>
-                        <button
-                          className="crm-btn crm-btn-danger-ghost crm-btn-sm"
-                          onClick={() => del(c.id)}
-                          disabled={deleting === c.id}
-                        >
-                          {deleting === c.id ? '...' : 'Excluir'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+      {/* ── Kanban Board ── */}
+      <div className="crm-kb-board">
+        {COLUNAS.map(col => {
+          const cards = filtered.filter(c => getColuna(c.status) === col.key)
+          const isDragOver = dragOverCol === col.key
+
+          return (
+            <div
+              key={col.key}
+              className={`crm-kb-col${isDragOver ? ' crm-kb-col-over' : ''}`}
+              style={{ '--col-color': col.color }}
+              onDragOver={e => handleDragOver(e, col.key)}
+              onDragLeave={handleDragLeave}
+              onDrop={e => handleDrop(e, col.key)}
+            >
+              {/* Header da coluna */}
+              <div className="crm-kb-col-header">
+                <div className="crm-kb-col-title">
+                  <span className="crm-kb-col-icon">{col.icon}</span>
+                  <div>
+                    <div className="crm-kb-col-name">{col.label}</div>
+                    <div className="crm-kb-col-desc">{col.desc}</div>
+                  </div>
+                </div>
+                <span className="crm-kb-col-count" style={{ background: col.color + '22', color: col.color }}>
+                  {cards.length}
+                </span>
+              </div>
+
+              {/* Cards */}
+              <div className="crm-kb-cards">
+                {cards.length === 0 && (
+                  <div className={`crm-kb-empty${isDragOver ? ' crm-kb-empty-over' : ''}`}>
+                    {isDragOver ? '↓ Soltar aqui' : 'Nenhum lead'}
+                  </div>
+                )}
+
+                {cards.map(c => (
+                  <KanbanCard
+                    key={c.id}
+                    cliente={c}
+                    col={col}
+                    onEdit={() => openEdit(c)}
+                    onDelete={() => del(c.id)}
+                    deleting={deleting === c.id}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                  />
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </div>
+
+              {/* Adicionar nesta coluna */}
+              <button
+                className="crm-kb-add-btn"
+                onClick={() => openNew(col.key)}
+              >
+                + Adicionar
+              </button>
+            </div>
+          )
+        })}
       </div>
 
+      {/* ── Modal de cadastro / edição ── */}
       {modal && (
         <div className="crm-modal-backdrop" onClick={e => e.target === e.currentTarget && setModal(false)}>
           <div className="crm-modal">
@@ -230,9 +317,9 @@ export default function Clientes() {
                   </select>
                 </div>
                 <div className="crm-form-group">
-                  <label>Status</label>
+                  <label>Coluna (estágio)</label>
                   <select className="crm-select" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                    {STATUS_OPTS.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                    {STATUS_OPTS.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
                   </select>
                 </div>
               </div>
@@ -266,8 +353,8 @@ export default function Clientes() {
                       onClick={() => setForm(f => ({ ...f, avatar_color: cor }))}
                       style={{
                         width: 28, height: 28, borderRadius: '50%', background: cor, border: 'none',
-                        cursor: 'pointer', outline: form.avatar_color === cor ? '2px solid #fff' : 'none',
-                        outlineOffset: 2,
+                        cursor: 'pointer', outline: form.avatar_color === cor ? '3px solid #fff' : 'none',
+                        outlineOffset: 2, boxShadow: form.avatar_color === cor ? `0 0 0 5px ${cor}55` : 'none',
                       }}
                     />
                   ))}
@@ -281,12 +368,60 @@ export default function Clientes() {
             <div className="crm-modal-footer">
               <button className="crm-btn crm-btn-ghost" onClick={() => setModal(false)}>Cancelar</button>
               <button className="crm-btn crm-btn-primary" onClick={save} disabled={saving || !form.nome.trim()}>
-                {saving ? 'Salvando...' : editId ? 'Salvar' : 'Criar Cliente'}
+                {saving ? 'Salvando...' : editId ? 'Salvar' : 'Criar'}
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/* ── Card compacto do Kanban ── */
+function KanbanCard({ cliente: c, col, onEdit, onDelete, deleting, onDragStart, onDragEnd }) {
+  const navigate = useNavigate()
+
+  function handleClick() {
+    navigate(`/crm/clientes/${c.id}`)
+  }
+
+  return (
+    <div
+      className="crm-kb-card"
+      draggable
+      onDragStart={e => onDragStart(e, c.id)}
+      onDragEnd={onDragEnd}
+      onClick={handleClick}
+      title={`Ver perfil de ${c.nome}`}
+    >
+      {/* Barra de cor */}
+      <div className="crm-kb-card-accent" style={{ background: col.color }} />
+
+      {/* Corpo compacto */}
+      <div className="crm-kb-card-body">
+        <div className="crm-avatar crm-kb-avatar" style={{ background: c.avatar_color || '#6366f1' }}>
+          {getInitials(c.nome).toUpperCase()}
+        </div>
+        <div className="crm-kb-card-info">
+          <div className="crm-kb-card-name">{c.nome}</div>
+          {c.nicho && <span className="crm-kb-nicho-tag">{c.nicho}</span>}
+        </div>
+        <span className="crm-kb-drag-handle" title="Arraste para mover">⠿</span>
+      </div>
+
+      {/* Ações — visíveis só no hover, não propagam o click */}
+      <div className="crm-kb-card-actions" onClick={e => e.stopPropagation()}>
+        <button className="crm-kb-action-icon" onClick={onEdit} title="Editar dados">✏️</button>
+        <button
+          className="crm-kb-action-icon crm-kb-action-del-icon"
+          onClick={onDelete}
+          disabled={deleting}
+          title="Remover"
+        >
+          {deleting ? '…' : '🗑️'}
+        </button>
+      </div>
     </div>
   )
 }

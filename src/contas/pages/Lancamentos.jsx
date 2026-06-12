@@ -226,6 +226,18 @@ export default function Lancamentos() {
     ? expenses.filter(e => e.card_id === filterCard).reduce((s, e) => s + Number(e.total_amount), 0)
     : 0
 
+  const pessoaSelecionada = filterPerson ? people.find(p => p.id === filterPerson) : null
+  const baseParaPessoa = filterCard ? expenses.filter(e => e.card_id === filterCard) : expenses
+  const totalPessoa = filterPerson
+    ? baseParaPessoa
+        .flatMap(e => (e.splits || []))
+        .filter(s => s.person_id === filterPerson)
+        .reduce((sum, s) => sum + Number(s.amount || 0), 0)
+    : 0
+  const lancamentosPessoa = filterPerson
+    ? baseParaPessoa.filter(e => e.splits?.some(s => s.person_id === filterPerson)).length
+    : 0
+
   return (
     <div>
       <div className="c-flex c-items-center c-justify-between c-mb-4">
@@ -302,6 +314,7 @@ export default function Lancamentos() {
             background: cartaoSelecionado.color + '12',
             border: `1.5px solid ${cartaoSelecionado.color}40`,
             boxShadow: 'var(--c-shadow)',
+            marginBottom: pessoaSelecionada ? 10 : 0,
           }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: cartaoSelecionado.color, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: cartaoSelecionado.color, display: 'inline-block' }} />
@@ -312,6 +325,32 @@ export default function Lancamentos() {
             </div>
             <div style={{ fontSize: 12, color: cartaoSelecionado.color, opacity: 0.7, marginTop: 4 }}>
               {expenses.filter(e => e.card_id === filterCard).length} lançamento{expenses.filter(e => e.card_id === filterCard).length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        )}
+
+        {/* Total da pessoa selecionada */}
+        {pessoaSelecionada && (
+          <div style={{
+            padding: '16px 20px', borderRadius: 12,
+            background: pessoaSelecionada.color + '12',
+            border: `1.5px solid ${pessoaSelecionada.color}40`,
+            boxShadow: 'var(--c-shadow)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: pessoaSelecionada.color, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: pessoaSelecionada.color, display: 'inline-block' }} />
+              {pessoaSelecionada.name}{cartaoSelecionado ? ` · ${cartaoSelecionado.name}` : ''}
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: pessoaSelecionada.color, letterSpacing: '-0.5px' }}>
+              {fmt(totalPessoa)}
+            </div>
+            <div style={{ fontSize: 12, color: pessoaSelecionada.color, opacity: 0.7, marginTop: 4 }}>
+              {lancamentosPessoa} lançamento{lancamentosPessoa !== 1 ? 's' : ''}
+              {totalCartaoSelecionado > 0 && (
+                <span style={{ marginLeft: 8 }}>
+                  · {((totalPessoa / totalCartaoSelecionado) * 100).toFixed(0)}% do cartão
+                </span>
+              )}
             </div>
           </div>
         )}

@@ -287,37 +287,225 @@
   border-top: 1px solid var(--crm-border);
 }
 
-/* ===== KANBAN ===== */
+/* ===== KANBAN LEGADO (mantido para compat) ===== */
 .crm-kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
-.crm-kanban-col {
-  background: var(--crm-surface);
-  border: 1px solid var(--crm-border);
-  border-radius: var(--crm-radius);
-  overflow: hidden;
-}
-.crm-kanban-col-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--crm-border);
-  display: flex; align-items: center; justify-content: space-between;
-}
+.crm-kanban-col { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: var(--crm-radius); overflow: hidden; }
+.crm-kanban-col-header { padding: 12px 16px; border-bottom: 1px solid var(--crm-border); display: flex; align-items: center; justify-content: space-between; }
 .crm-kanban-col-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--crm-text-muted); }
-.crm-kanban-col-count {
-  font-size: 11px; font-weight: 700;
-  background: var(--crm-surface2); color: var(--crm-text-faint);
-  padding: 2px 7px; border-radius: 99px;
-}
+.crm-kanban-col-count { font-size: 11px; font-weight: 700; background: var(--crm-surface2); color: var(--crm-text-faint); padding: 2px 7px; border-radius: 99px; }
 .crm-kanban-cards { padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
-.crm-kanban-card {
-  background: var(--crm-surface2);
-  border: 1px solid var(--crm-border);
-  border-radius: var(--crm-radius-sm);
-  padding: 12px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
+.crm-kanban-card { background: var(--crm-surface2); border: 1px solid var(--crm-border); border-radius: var(--crm-radius-sm); padding: 12px; cursor: pointer; transition: all 0.15s; }
 .crm-kanban-card:hover { border-color: var(--crm-accent); transform: translateY(-1px); }
 .crm-kanban-card-title { font-size: 13px; font-weight: 500; color: var(--crm-text); margin-bottom: 6px; }
 .crm-kanban-card-meta { font-size: 11px; color: var(--crm-text-faint); display: flex; flex-direction: column; gap: 3px; }
+
+/* ===== KANBAN CLIENTES (novo — crm-kb-*) ===== */
+.crm-kb-board {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* minmax(0) evita que conteúdo expanda a coluna */
+  gap: 14px;
+  align-items: start;
+}
+
+/* Coluna */
+.crm-kb-col {
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-top: 3px solid var(--col-color, #6366f1);
+  border-radius: var(--crm-radius);
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
+  min-width: 0;                   /* impede overflow */
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.crm-kb-col-over {
+  background: color-mix(in srgb, var(--col-color, #6366f1) 6%, var(--crm-surface));
+  border-color: var(--col-color, #6366f1);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--col-color, #6366f1) 30%, transparent);
+}
+
+/* Header da coluna */
+.crm-kb-col-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 12px 8px;
+  gap: 8px;
+}
+.crm-kb-col-title { display: flex; align-items: flex-start; gap: 7px; flex: 1; min-width: 0; }
+.crm-kb-col-icon { font-size: 14px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+.crm-kb-col-name { font-size: 11px; font-weight: 700; color: var(--crm-text); text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.3; }
+.crm-kb-col-desc { font-size: 10px; color: var(--crm-text-faint); margin-top: 2px; line-height: 1.3; }
+.crm-kb-col-count {
+  font-size: 11px; font-weight: 700;
+  padding: 2px 7px; border-radius: 99px;
+  flex-shrink: 0; white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Área de cards */
+.crm-kb-cards {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 8px 8px;
+  min-height: 40px;
+}
+
+/* Placeholder vazio */
+.crm-kb-empty {
+  font-size: 11px;
+  color: var(--crm-text-faint);
+  text-align: center;
+  padding: 16px 10px;
+  border: 2px dashed var(--crm-border);
+  border-radius: var(--crm-radius-sm);
+  transition: all 0.15s;
+}
+.crm-kb-empty-over {
+  border-color: var(--col-color, #6366f1);
+  color: var(--col-color, #6366f1);
+  background: color-mix(in srgb, var(--col-color, #6366f1) 8%, transparent);
+  font-weight: 600;
+}
+
+/* Botão "+ Adicionar" na base da coluna */
+.crm-kb-add-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--crm-border);
+  padding: 9px 12px;
+  font-size: 11px;
+  color: var(--crm-text-faint);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s, background 0.15s;
+  border-radius: 0 0 var(--crm-radius) var(--crm-radius);
+}
+.crm-kb-add-btn:hover {
+  color: var(--col-color, var(--crm-accent));
+  background: color-mix(in srgb, var(--col-color, #6366f1) 6%, transparent);
+}
+
+/* ── Card compacto ── */
+.crm-kb-card {
+  background: var(--crm-surface2);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s, border-color 0.12s;
+  position: relative;
+  user-select: none;
+}
+.crm-kb-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  border-color: color-mix(in srgb, var(--crm-accent) 60%, var(--crm-border));
+}
+.crm-kb-card-dragging {
+  opacity: 0.3;
+  transform: scale(0.97);
+}
+
+/* Barra de cor no topo */
+.crm-kb-card-accent { height: 2px; width: 100%; }
+
+/* Corpo do card */
+.crm-kb-card-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px 7px;
+  min-width: 0;
+}
+.crm-kb-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 10px !important;
+  flex-shrink: 0;
+}
+.crm-kb-card-info {
+  flex: 1;
+  min-width: 0;        /* permite text-overflow */
+}
+.crm-kb-card-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--crm-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.crm-kb-card:hover .crm-kb-card-name { color: var(--crm-accent); }
+
+/* Nicho tag */
+.crm-kb-nicho-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--crm-accent);
+  background: rgba(99,102,241,0.12);
+  padding: 1px 5px;
+  border-radius: 99px;
+  margin-top: 2px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drag handle */
+.crm-kb-drag-handle {
+  font-size: 13px;
+  color: var(--crm-text-faint);
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: grab;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.crm-kb-card:hover .crm-kb-drag-handle { opacity: 0.45; }
+
+/* Ações — ocultas, aparecem no hover */
+.crm-kb-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.crm-kb-card:hover .crm-kb-card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+.crm-kb-action-icon {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--crm-text-faint);
+  transition: all 0.12s;
+}
+.crm-kb-action-icon:hover {
+  background: var(--crm-surface);
+  border-color: var(--crm-border);
+  color: var(--crm-accent);
+}
+.crm-kb-action-del-icon:hover {
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.3);
+  color: #ef4444;
+}
 
 /* ===== AVATAR ===== */
 .crm-avatar {
@@ -528,10 +716,12 @@
   .crm-grid-2 { grid-template-columns: 1fr; }
   .crm-form-row { grid-template-columns: 1fr; }
   .crm-kanban { grid-template-columns: 1fr; }
+  .crm-kb-board { grid-template-columns: repeat(2, 1fr); }
   .crm-page-header { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
   .crm-grid-4, .crm-grid-3, .crm-grid-2 { grid-template-columns: 1fr; }
   .crm-login-box { padding: 28px 20px; }
+  .crm-kb-board { grid-template-columns: 1fr; }
 }
