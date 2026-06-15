@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
-import { format, addMonths, subMonths } from 'date-fns'
+import { format, addMonths, subMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const fmt      = v => v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'
@@ -275,7 +275,7 @@ export default function ContasFixas() {
     if (toCreate.length) {
       const { data: created } = await supabase.from('bill_entries').insert(toCreate).select()
       if (created?.length) {
-        const prevMonthRef = format(subMonths(new Date(currentMonth + '-01'), 1), 'yyyy-MM')
+        const prevMonthRef = format(subMonths(parseISO(currentMonth + '-01'), 1), 'yyyy-MM')
         const billIds = created.map(e => e.bill_id)
         const { data: prevEntries } = await supabase
           .from('bill_entries')
