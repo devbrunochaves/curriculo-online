@@ -84,7 +84,7 @@ export default function NovaCompra() {
   const selectedCard = useMemo(() => cards.find(c => c.id === cardId), [cards, cardId])
   const baseMonthRef = useMemo(() => getMonthRef(date, selectedCard?.closing_day), [date, selectedCard])
   const baseMonthLabel = useMemo(() => {
-    try { return format(new Date(baseMonthRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR }) }
+    try { return format(parseISO(baseMonthRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR }) }
     catch { return '' }
   }, [baseMonthRef])
 
@@ -95,8 +95,8 @@ export default function NovaCompra() {
     const n = Math.max(1, installments)
     const each = parseFloat((totalNum / n).toFixed(2))
     return Array.from({ length: n }, (_, i) => {
-      const mRef  = format(addMonths(new Date(baseMonthRef + '-01'), i), 'yyyy-MM')
-      const mLabel = format(addMonths(new Date(baseMonthRef + '-01'), i), "MMM/yy", { locale: ptBR })
+      const mRef  = format(addMonths(parseISO(baseMonthRef + '-01'), i), 'yyyy-MM')
+      const mLabel = format(addMonths(parseISO(baseMonthRef + '-01'), i), "MMM/yy", { locale: ptBR })
       const amount = i === n - 1 ? parseFloat((totalNum - each * (n - 1)).toFixed(2)) : each
       return { index: i + 1, mRef, mLabel, amount }
     })

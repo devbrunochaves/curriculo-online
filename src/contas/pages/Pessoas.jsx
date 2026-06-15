@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { format, subMonths, addMonths } from 'date-fns'
+import { format, subMonths, addMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
@@ -40,7 +40,7 @@ export default function Pessoas() {
       if (toCreate.length) {
         const { data: created } = await supabase.from('bill_entries').insert(toCreate).select()
         if (created?.length) {
-          const prevMonthRef = format(subMonths(new Date(monthRef + '-01'), 1), 'yyyy-MM')
+          const prevMonthRef = format(subMonths(parseISO(monthRef + '-01'), 1), 'yyyy-MM')
           const billIds = created.map(e => e.bill_id)
           const { data: prevEntries } = await supabase
             .from('bill_entries')

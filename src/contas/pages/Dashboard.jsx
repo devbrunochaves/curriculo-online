@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { format, addMonths, subMonths } from 'date-fns'
+import { format, addMonths, subMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -148,7 +148,7 @@ export default function Dashboard() {
       if (toCreate.length) {
         const { data: created } = await supabase.from('bill_entries').insert(toCreate).select()
         if (created?.length) {
-          const prevMonthRef = format(subMonths(new Date(monthRef + '-01'), 1), 'yyyy-MM')
+          const prevMonthRef = format(subMonths(parseISO(monthRef + '-01'), 1), 'yyyy-MM')
           const billIds = created.map(e => e.bill_id)
           const { data: prevEntries } = await supabase
             .from('bill_entries')
@@ -179,7 +179,7 @@ export default function Dashboard() {
         .eq('month_ref', monthRef)
       const noSplitEntries = (allCurrentEntries || []).filter(e => !e.splits?.length)
       if (noSplitEntries.length) {
-        const prevMonthRef = format(subMonths(new Date(monthRef + '-01'), 1), 'yyyy-MM')
+        const prevMonthRef = format(subMonths(parseISO(monthRef + '-01'), 1), 'yyyy-MM')
         const { data: prevEntries } = await supabase
           .from('bill_entries')
           .select('bill_id, splits:bill_entry_splits(person_id, amount)')
@@ -276,7 +276,7 @@ export default function Dashboard() {
   const catData = Object.values(catMap).sort((a, b) => b.value - a.value).slice(0, 6)
 
   const historyData = months.map(m => ({
-    month: format(new Date(m + '-01'), 'MMM', { locale: ptBR }),
+    month: format(parseISO(m + '-01'), 'MMM', { locale: ptBR }),
     total: history.filter(h => h.month_ref === m).reduce((s, h) => s + Number(h.total_amount), 0)
   }))
 

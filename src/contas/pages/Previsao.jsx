@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import { format, addMonths, startOfMonth } from 'date-fns'
+import { format, addMonths, startOfMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
@@ -129,7 +129,7 @@ export default function Previsao() {
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 16, textTransform: 'capitalize', color: '#0f172a' }}>
                     {m.isCurrent && <span style={{ fontSize: 11, background: '#6366f1', color: '#fff', padding: '2px 8px', borderRadius: 99, marginRight: 8, fontWeight: 600 }}>MÊS ATUAL</span>}
-                    {format(new Date(m.mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })}
+                    {format(parseISO(m.mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })}
                   </div>
                   <div className="c-text-sm c-text-muted">{m.exps.length} lançamentos</div>
                 </div>
