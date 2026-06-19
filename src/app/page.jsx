@@ -1,15 +1,35 @@
-import StudioSite from '../views/StudioSite'
+'use client'
+import { AppProvider } from '../context/AppContext'
+import Navbar      from '../components/Navbar'
+import Hero        from '../components/Hero'
+import About       from '../components/About'
+import Skills      from '../components/Skills'
+import Experience  from '../components/Experience'
+import Education   from '../components/Education'
+import Contact     from '../components/Contact'
+import Footer      from '../components/Footer'
+import { useApp }  from '../context/AppContext'
 
-export const metadata = {
-  title: 'Bruno Chaves — Design Studio',
-  description: 'Estúdio de design especializado em identidade visual, branding e design digital para marcas que querem se destacar.',
-  openGraph: {
-    title: 'Bruno Chaves — Design Studio',
-    description: 'Estúdio de design especializado em identidade visual, branding e design digital.',
-    url: 'https://brunochavess.com.br',
-  },
+function Portfolio() {
+  const { c } = useApp()
+  return (
+    <div style={{ background: c.bg1, color: c.primary, minHeight: '100vh', transition: 'background 0.3s, color 0.3s' }}>
+      <Navbar />
+      <Hero />
+      <About />
+      <Skills />
+      <Experience />
+      <Education />
+      <Contact />
+      <Footer />
+    </div>
+  )
 }
 
 export default function HomePage() {
-  return <StudioSite />
+  return (
+    <AppProvider>
+      <Portfolio />
+    </AppProvider>
+  )
 }
