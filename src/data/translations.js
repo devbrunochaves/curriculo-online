@@ -12,7 +12,7 @@ const pt = {
 
   hero: {
     available: 'Disponível para oportunidades',
-    roles: ['Designer Gráfico', 'Desenvolvedor Front-end', 'UI Designer', 'Especialista em Branding'],
+    roles: ['Designer Gráfico', 'Desenvolvedor Fullstack', 'UI Designer', 'Especialista em Branding'],
     tagline: '+20 anos transformando ideias em experiências visuais impactantes. Do pixel ao código — design, desenvolvimento web e performance em um só profissional.',
     emailBtn: '✉ Enviar e-mail',
     stats: [
@@ -187,7 +187,7 @@ const en = {
 
   hero: {
     available: 'Available for opportunities',
-    roles: ['Graphic Designer', 'Front-end Developer', 'UI Designer', 'Branding Specialist'],
+    roles: ['Graphic Designer', 'Fullstack Developer', 'UI Designer', 'Branding Specialist'],
     tagline: '+20 years transforming ideas into impactful visual experiences. From pixel to code — design, web development and performance in one professional.',
     emailBtn: '✉ Send e-mail',
     stats: [
@@ -362,7 +362,7 @@ const es = {
 
   hero: {
     available: 'Disponible para oportunidades',
-    roles: ['Diseñador Gráfico', 'Desarrollador Front-end', 'UI Designer', 'Especialista en Branding'],
+    roles: ['Diseñador Gráfico', 'Desarrollador Fullstack', 'UI Designer', 'Especialista en Branding'],
     tagline: '+20 años transformando ideas en experiencias visuales impactantes. Del píxel al código — diseño, desarrollo web y performance en un solo profesional.',
     emailBtn: '✉ Enviar correo',
     stats: [
