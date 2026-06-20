@@ -1,4 +1,4 @@
-import Valores from '@/views/Valores'
+import Valores from '../../views/Valores'
 
 export const metadata = {
   title: 'Valores de Referência',
