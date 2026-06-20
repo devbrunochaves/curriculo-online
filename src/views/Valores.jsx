@@ -13,16 +13,17 @@ const CSS = `
 @keyframes vl-mq  { from { transform:translateX(0) } to { transform:translateX(-50%) } }
 
 .vl {
-  --gold:     #d4a017;
-  --golddim:  rgba(212,160,23,.10);
-  --goldbdr:  rgba(212,160,23,.24);
-  --bg:       #080808;
-  --bg2:      #0d0d0d;
-  --bg3:      #111111;
-  --txt:      rgba(255,255,255,.88);
-  --muted:    rgba(255,255,255,.42);
-  --border:   rgba(255,255,255,.07);
-  --card:     rgba(255,255,255,.035);
+  --gold:     #01aeff;
+  --golddim:  #e8f4ff;
+  --goldbdr:  rgba(1,174,255,.22);
+  --bg:       #f8f8f6;
+  --bg2:      #ffffff;
+  --bg3:      #f0f0ee;
+  --txt:      #0a0a0a;
+  --muted:    #888888;
+  --border:   #e8e8e8;
+  --card:     #ffffff;
+  --black:    #0a0a0a;
   --sans:     'Inter', sans-serif;
   --serif:    'Playfair Display', serif;
   font-family: var(--sans);
@@ -49,25 +50,25 @@ const CSS = `
   transition:all .4s;
 }
 .vl nav.solid {
-  background:rgba(8,8,8,.93);
-  backdrop-filter:blur(20px);
+  background:rgba(248,248,246,.94);
+  backdrop-filter:blur(18px);
   border-color:var(--border);
 }
-.vl .vl-logo { font-family:var(--sans); font-weight:900; font-size:18px; letter-spacing:-.5px; color:#fff; text-decoration:none }
+.vl .vl-logo { font-family:var(--sans); font-weight:900; font-size:18px; letter-spacing:-.5px; color:var(--txt); text-decoration:none }
 .vl .vl-logo span { color:var(--gold) }
 .vl .vl-nav-links { display:flex; align-items:center; gap:36px; list-style:none; margin:0; padding:0 }
-.vl .vl-nav-links a { font-size:13px; font-weight:500; color:rgba(255,255,255,.52); text-decoration:none; transition:color .2s; letter-spacing:.2px }
-.vl .vl-nav-links a:hover, .vl .vl-nav-links a.cur { color:#fff }
-.vl .vl-nav-links a.cur { font-weight:700; color:var(--gold) }
+.vl .vl-nav-links a { font-size:13px; font-weight:500; color:var(--txt); opacity:.6; text-decoration:none; transition:opacity .2s; letter-spacing:.2px }
+.vl .vl-nav-links a:hover { opacity:1 }
+.vl .vl-nav-links a.cur { font-weight:700; color:var(--gold); opacity:1 }
 .vl .vl-nav-cta {
   display:flex; align-items:center; gap:8px;
-  background:transparent; color:rgba(255,255,255,.7);
-  border:1.5px solid rgba(255,255,255,.18);
+  background:transparent; color:var(--txt);
+  border:1.5px solid rgba(10,10,10,.25);
   padding:9px 20px; font-size:13px; font-weight:700;
   cursor:pointer; text-decoration:none; transition:all .2s; letter-spacing:.2px;
 }
-.vl .vl-nav-cta:hover { border-color:var(--gold); color:var(--gold) }
-.vl .vl-hamburger { display:none; background:none; border:none; font-size:22px; cursor:pointer; color:#fff; padding:4px 8px }
+.vl .vl-nav-cta:hover { border-color:var(--txt); background:rgba(10,10,10,.04); transform:translateY(-1px) }
+.vl .vl-hamburger { display:none; background:none; border:none; font-size:22px; cursor:pointer; color:var(--txt); padding:4px 8px }
 
 /* ── MOBILE MENU ── */
 .vl .vl-mm {
@@ -79,16 +80,17 @@ const CSS = `
 .vl .vl-mm.open { opacity:1; transform:translateY(0); pointer-events:all }
 .vl .vl-mm a {
   display:block; font-size:26px; font-weight:800; letter-spacing:-1px;
-  color:#fff; text-decoration:none; padding:16px 0;
+  color:var(--txt); text-decoration:none; padding:16px 0;
   border-bottom:1px solid var(--border); width:80%; text-align:center; transition:color .2s;
 }
 .vl .vl-mm a:last-child { border-bottom:none }
 .vl .vl-mm a:hover { color:var(--gold) }
 .vl .vl-mm-btn {
-  margin-top:28px; background:var(--gold); color:#080808;
+  margin-top:28px; background:var(--gold); color:#fff;
   padding:15px 40px; font-size:15px; font-weight:800;
   border:none; cursor:pointer; text-decoration:none; letter-spacing:.3px;
 }
+.vl .vl-mm-btn:hover { background:#0089cc }
 
 /* ── HERO ── */
 .vl .vl-hero {
@@ -97,14 +99,14 @@ const CSS = `
 }
 .vl .vl-hero::before {
   content:''; position:absolute; inset:0;
-  background:radial-gradient(ellipse 80% 55% at 50% 0%, rgba(212,160,23,.07) 0%, transparent 58%);
+  background:radial-gradient(ellipse 80% 55% at 50% 0%, rgba(1,174,255,.06) 0%, transparent 58%);
   pointer-events:none;
 }
 .vl .vl-hero-lines {
   position:absolute; right:0; top:50%; transform:translateY(-50%);
   display:flex; flex-direction:column; gap:6px; padding-right:20px;
 }
-.vl .vl-hl { height:1.5px; background:var(--gold); opacity:.16 }
+.vl .vl-hl { height:1.5px; background:var(--gold); opacity:.25 }
 .vl .vl-hl:nth-child(1){width:40px} .vl .vl-hl:nth-child(2){width:24px}
 .vl .vl-hl:nth-child(3){width:60px} .vl .vl-hl:nth-child(4){width:16px}
 .vl .vl-hl:nth-child(5){width:48px}
@@ -121,9 +123,9 @@ const CSS = `
 .vl .vl-eyebrow::before { content:''; width:28px; height:1.5px; background:var(--gold) }
 .vl .vl-hero h1 {
   font-size:clamp(44px,6vw,80px); font-weight:900; line-height:1.0;
-  letter-spacing:-2.5px; color:#fff; margin-bottom:26px;
+  letter-spacing:-2.5px; color:var(--txt); margin-bottom:26px;
 }
-.vl .vl-hero h1 em { font-style:italic; font-family:var(--serif); font-weight:800; color:var(--gold) }
+.vl .vl-hero h1 em { font-style:italic; font-family:var(--serif); font-weight:800; color:var(--txt) }
 .vl .vl-hero-sub {
   font-size:17px; color:var(--muted); line-height:1.75;
   margin-bottom:44px; max-width:580px; font-weight:400;
@@ -131,21 +133,20 @@ const CSS = `
 .vl .vl-badge {
   display:inline-flex; align-items:center; gap:14px;
   background:var(--golddim); border:1px solid var(--goldbdr);
-  padding:14px 28px; font-size:13px; font-weight:500; color:rgba(255,255,255,.7);
+  padding:14px 28px; font-size:13px; font-weight:500; color:var(--txt);
 }
-.vl .vl-badge-icon { font-size:16px; flex-shrink:0 }
+.vl .vl-badge-icon { font-size:16px; flex-shrink:0; color:var(--gold) }
 .vl .vl-badge strong { color:var(--gold); font-weight:800 }
 
 /* ── MARQUEE ── */
 .vl .vl-mq-wrap {
-  background:var(--bg2); padding:14px 0; overflow:hidden;
-  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  background:var(--black); padding:16px 0; overflow:hidden;
 }
-.vl .vl-mq-track { display:flex; width:max-content; animation:vl-mq 34s linear infinite }
+.vl .vl-mq-track { display:flex; width:max-content; animation:vl-mq 28s linear infinite }
 .vl .vl-mq-item {
-  padding:0 44px; white-space:nowrap;
-  font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase;
-  color:rgba(255,255,255,.22); display:flex; align-items:center; gap:16px;
+  padding:0 40px; white-space:nowrap;
+  font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
+  color:rgba(255,255,255,.4); display:flex; align-items:center; gap:16px;
 }
 .vl .vl-mq-dot { color:var(--gold); font-size:7px }
 
@@ -155,7 +156,7 @@ const CSS = `
 .vl .vl-sec-hd { margin-bottom:56px }
 .vl .vl-title {
   font-size:clamp(26px,3.5vw,46px); font-weight:900;
-  line-height:1.1; letter-spacing:-1.5px; color:#fff;
+  line-height:1.1; letter-spacing:-1.5px; color:var(--txt);
 }
 .vl .vl-title em { font-style:italic; font-family:var(--serif) }
 .vl .vl-sub { font-size:15px; color:var(--muted); line-height:1.75; max-width:520px; margin-top:14px }
@@ -175,9 +176,9 @@ const CSS = `
   transition:transform .38s cubic-bezier(.22,1,.36,1);
 }
 .vl .vl-card:hover {
-  border-color:var(--goldbdr); background:rgba(255,255,255,.055);
+  border-color:rgba(1,174,255,.3); background:var(--golddim);
   transform:translateY(-5px);
-  box-shadow:0 24px 64px rgba(0,0,0,.65), 0 0 0 1px var(--goldbdr);
+  box-shadow:0 20px 56px rgba(1,174,255,.12), 0 4px 20px rgba(0,0,0,.06);
 }
 .vl .vl-card:hover::after { transform:scaleX(1) }
 .vl .vl-ctag {
@@ -186,7 +187,7 @@ const CSS = `
   color:var(--gold); margin-bottom:22px;
 }
 .vl .vl-cname {
-  font-size:19px; font-weight:800; color:#fff;
+  font-size:19px; font-weight:800; color:var(--txt);
   margin-bottom:20px; line-height:1.2; letter-spacing:-.3px;
 }
 .vl .vl-cprice-label {
@@ -194,14 +195,14 @@ const CSS = `
   color:var(--muted); margin-bottom:6px;
 }
 .vl .vl-cprice {
-  font-size:clamp(26px,2.8vw,36px); font-weight:900; color:#fff;
+  font-size:clamp(26px,2.8vw,36px); font-weight:900; color:var(--txt);
   letter-spacing:-1px; line-height:1.1; margin-bottom:22px;
   display:flex; align-items:baseline; gap:6px;
 }
 .vl .vl-cprice-cur { font-size:.48em; color:var(--gold); font-weight:800; letter-spacing:.5px }
 .vl .vl-cprice-suffix { font-size:.42em; color:var(--muted); font-weight:600; letter-spacing:.3px }
 .vl .vl-cprice-alt {
-  font-size:20px; font-weight:700; color:rgba(255,255,255,.38);
+  font-size:18px; font-weight:700; color:var(--muted);
   font-style:italic; font-family:var(--serif); margin-bottom:22px; line-height:1.2;
 }
 .vl .vl-cdesc {
@@ -214,11 +215,11 @@ const CSS = `
 .vl .vl-rate {
   background:var(--card); border:1px solid var(--border);
   padding:26px 32px; display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:12px; transition:border-color .3s, background .3s;
+  margin-bottom:12px; transition:border-color .3s, background .3s, box-shadow .3s;
 }
 .vl .vl-rate:last-of-type { margin-bottom:0 }
-.vl .vl-rate:hover { border-color:var(--goldbdr); background:rgba(255,255,255,.05) }
-.vl .vl-rate-lbl { font-size:15px; font-weight:800; color:#fff; letter-spacing:-.2px }
+.vl .vl-rate:hover { border-color:rgba(1,174,255,.3); background:var(--golddim); box-shadow:0 8px 24px rgba(1,174,255,.1) }
+.vl .vl-rate-lbl { font-size:15px; font-weight:800; color:var(--txt); letter-spacing:-.2px }
 .vl .vl-rate-val { font-size:22px; font-weight:900; color:var(--gold); letter-spacing:-.5px }
 .vl .vl-tech-hd {
   font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
@@ -227,10 +228,10 @@ const CSS = `
 .vl .vl-techs { display:flex; flex-wrap:wrap; gap:8px }
 .vl .vl-tech {
   padding:7px 14px; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
-  color:rgba(255,255,255,.5); background:rgba(255,255,255,.04); border:1px solid var(--border);
+  color:var(--muted); background:var(--bg3); border:1.5px solid var(--border);
   transition:all .22s; cursor:default;
 }
-.vl .vl-tech:hover { border-color:var(--goldbdr); color:var(--gold); background:var(--golddim) }
+.vl .vl-tech:hover { border-color:var(--gold); color:var(--gold); background:var(--golddim) }
 
 /* ── FAQ ── */
 .vl .vl-faq-layout { display:grid; grid-template-columns:1fr 1fr; gap:100px; align-items:start }
@@ -240,15 +241,15 @@ const CSS = `
   width:100%; background:none; border:none;
   display:flex; align-items:center; justify-content:space-between;
   padding:22px 0; font-family:var(--sans); font-size:15px; font-weight:700;
-  color:#fff; cursor:pointer; text-align:left; gap:20px; transition:color .2s;
+  color:var(--txt); cursor:pointer; text-align:left; gap:20px; transition:color .2s;
 }
 .vl .vl-faq-q:hover { color:var(--gold) }
 .vl .vl-faq-ico {
-  width:26px; height:26px; border:1.5px solid rgba(255,255,255,.12);
+  width:26px; height:26px; border:1.5px solid var(--border);
   display:flex; align-items:center; justify-content:center;
-  font-size:16px; flex-shrink:0; transition:all .25s; color:rgba(255,255,255,.35);
+  font-size:16px; flex-shrink:0; transition:all .25s; color:var(--muted);
 }
-.vl .vl-faq-item.open .vl-faq-ico { background:var(--gold); border-color:var(--gold); color:#080808; transform:rotate(45deg) }
+.vl .vl-faq-item.open .vl-faq-ico { background:var(--gold); border-color:var(--gold); color:#fff; transform:rotate(45deg) }
 .vl .vl-faq-a {
   max-height:0; overflow:hidden; font-size:14px; color:var(--muted);
   line-height:1.75; transition:max-height .42s cubic-bezier(.22,1,.36,1), padding .42s;
@@ -257,12 +258,12 @@ const CSS = `
 
 /* ── BOTÕES ── */
 .vl .vl-btn-gold {
-  background:var(--gold); color:#080808; border:none;
+  background:var(--gold); color:#fff; border:none;
   padding:15px 36px; font-size:14px; font-weight:800;
   cursor:pointer; text-decoration:none; display:inline-block;
   letter-spacing:.3px; transition:all .25s;
 }
-.vl .vl-btn-gold:hover { background:#e6b41c; transform:translateY(-2px); box-shadow:0 12px 32px rgba(212,160,23,.32) }
+.vl .vl-btn-gold:hover { background:#0089cc; transform:translateY(-2px); box-shadow:0 12px 32px rgba(1,174,255,.3) }
 .vl .vl-btn-wa {
   background:transparent; color:rgba(255,255,255,.7);
   border:1.5px solid rgba(255,255,255,.18);
@@ -283,12 +284,12 @@ const CSS = `
 
 /* ── CTA ── */
 .vl .vl-cta-sec {
-  padding:120px 60px; text-align:center;
-  border-top:1px solid var(--border); position:relative; overflow:hidden;
+  padding:120px 60px; text-align:center; background:var(--black);
+  border-top:1px solid rgba(255,255,255,.06); position:relative; overflow:hidden;
 }
 .vl .vl-cta-sec::before {
   content:''; position:absolute; inset:0;
-  background:radial-gradient(ellipse 70% 80% at 50% 120%, rgba(212,160,23,.07) 0%, transparent 55%);
+  background:radial-gradient(ellipse 70% 80% at 50% 120%, rgba(1,174,255,.08) 0%, transparent 55%);
   pointer-events:none;
 }
 .vl .vl-cta-inner { position:relative; z-index:1; max-width:680px; margin:0 auto }
@@ -318,7 +319,7 @@ const CSS = `
   display:flex; align-items:center; justify-content:center;
   text-decoration:none; transition:all .2s;
 }
-.vl .vl-ft-soc:hover { border-color:var(--gold); background:rgba(212,160,23,.1) }
+.vl .vl-ft-soc:hover { border-color:var(--gold); background:rgba(1,174,255,.1) }
 .vl .vl-ft-soc svg { width:16px; height:16px; fill:rgba(255,255,255,.35); transition:fill .2s }
 .vl .vl-ft-soc:hover svg { fill:var(--gold) }
 
@@ -604,7 +605,7 @@ export default function Valores() {
             <div className="rvr">
               <div style={{ borderLeft: '2px solid var(--goldbdr)', paddingLeft: 32 }}>
                 <div className="vl-eyebrow" style={{ marginBottom: 18 }}>Por que contratar</div>
-                <h3 style={{ fontSize: 'clamp(20px,2.5vw,30px)', fontWeight: 900, color: '#fff', letterSpacing: '-.8px', lineHeight: 1.15, marginBottom: 20 }}>
+                <h3 style={{ fontSize: 'clamp(20px,2.5vw,30px)', fontWeight: 900, color: 'var(--txt)', letterSpacing: '-.8px', lineHeight: 1.15, marginBottom: 20 }}>
                   Código limpo.<br/>
                   <span style={{ fontStyle:'italic', fontFamily:'var(--serif)', color:'var(--gold)' }}>Performance real.</span>
                 </h3>
@@ -686,7 +687,7 @@ export default function Valores() {
         <div className="vl-wrap">
           <div className="vl-ft-top">
             <div className="vl-ft-brand">
-              <a href="/" className="vl-logo" style={{ fontSize: 20 }}>BRUNO<span>.</span>CHAVES</a>
+              <a href="/" className="vl-logo" style={{ fontSize: 20, color: '#fff' }}>BRUNO<span>.</span>CHAVES</a>
               <p>Design que transforma marcas em experiências memoráveis. Identidade visual, sites e criativos para empresas que querem crescer.</p>
             </div>
             <div className="vl-ft-col">
