@@ -41,61 +41,10 @@ const CSS = `
 .vl .d1 { transition-delay:.10s } .vl .d2 { transition-delay:.20s }
 .vl .d3 { transition-delay:.32s } .vl .d4 { transition-delay:.44s }
 
-/* ── NAV ── */
-.vl nav {
-  position:fixed; top:0; left:0; right:0; z-index:200;
-  height:68px; display:flex; align-items:center; justify-content:space-between;
-  padding:0 60px;
-  background:transparent; border-bottom:1px solid transparent;
-  transition:all .4s;
-}
-.vl nav.solid {
-  background:rgba(248,248,246,.94);
-  backdrop-filter:blur(18px);
-  border-color:var(--border);
-}
-.vl .vl-logo { font-family:var(--sans); font-weight:900; font-size:18px; letter-spacing:-.5px; color:var(--txt); text-decoration:none }
-.vl .vl-logo span { color:var(--gold) }
-.vl .vl-nav-links { display:flex; align-items:center; gap:36px; list-style:none; margin:0; padding:0 }
-.vl .vl-nav-links a { font-size:13px; font-weight:500; color:var(--txt); opacity:.6; text-decoration:none; transition:opacity .2s; letter-spacing:.2px }
-.vl .vl-nav-links a:hover { opacity:1 }
-.vl .vl-nav-links a.cur { font-weight:700; color:var(--gold); opacity:1 }
-.vl .vl-nav-cta {
-  display:flex; align-items:center; gap:8px;
-  background:transparent; color:var(--txt);
-  border:1.5px solid rgba(10,10,10,.25);
-  padding:9px 20px; font-size:13px; font-weight:700;
-  cursor:pointer; text-decoration:none; transition:all .2s; letter-spacing:.2px;
-}
-.vl .vl-nav-cta:hover { border-color:var(--txt); background:rgba(10,10,10,.04); transform:translateY(-1px) }
-.vl .vl-hamburger { display:none; background:none; border:none; font-size:22px; cursor:pointer; color:var(--txt); padding:4px 8px }
-
-/* ── MOBILE MENU ── */
-.vl .vl-mm {
-  display:none; position:fixed; inset:0; z-index:199;
-  background:var(--bg); flex-direction:column; align-items:center; justify-content:center;
-  opacity:0; transform:translateY(-12px);
-  transition:opacity .3s ease, transform .3s ease; pointer-events:none;
-}
-.vl .vl-mm.open { opacity:1; transform:translateY(0); pointer-events:all }
-.vl .vl-mm a {
-  display:block; font-size:26px; font-weight:800; letter-spacing:-1px;
-  color:var(--txt); text-decoration:none; padding:16px 0;
-  border-bottom:1px solid var(--border); width:80%; text-align:center; transition:color .2s;
-}
-.vl .vl-mm a:last-child { border-bottom:none }
-.vl .vl-mm a:hover { color:var(--gold) }
-.vl .vl-mm-btn {
-  margin-top:28px; background:var(--gold); color:#fff;
-  padding:15px 40px; font-size:15px; font-weight:800;
-  border:none; cursor:pointer; text-decoration:none; letter-spacing:.3px;
-}
-.vl .vl-mm-btn:hover { background:#0089cc }
-
 /* ── HERO ── */
 .vl .vl-hero {
   min-height:100vh; display:flex; align-items:center;
-  padding:120px 60px 80px; position:relative; overflow:hidden;
+  padding:80px 60px; position:relative; overflow:hidden;
 }
 .vl .vl-hero::before {
   content:''; position:absolute; inset:0;
@@ -210,29 +159,6 @@ const CSS = `
   border-top:1px solid var(--border); padding-top:18px;
 }
 
-/* ── FRONT-END ── */
-.vl .vl-fe-layout { display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:start }
-.vl .vl-rate {
-  background:var(--card); border:1px solid var(--border);
-  padding:26px 32px; display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:12px; transition:border-color .3s, background .3s, box-shadow .3s;
-}
-.vl .vl-rate:last-of-type { margin-bottom:0 }
-.vl .vl-rate:hover { border-color:rgba(1,174,255,.3); background:var(--golddim); box-shadow:0 8px 24px rgba(1,174,255,.1) }
-.vl .vl-rate-lbl { font-size:15px; font-weight:800; color:var(--txt); letter-spacing:-.2px }
-.vl .vl-rate-val { font-size:22px; font-weight:900; color:var(--gold); letter-spacing:-.5px }
-.vl .vl-tech-hd {
-  font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase;
-  color:var(--muted); margin:36px 0 14px;
-}
-.vl .vl-techs { display:flex; flex-wrap:wrap; gap:8px }
-.vl .vl-tech {
-  padding:7px 14px; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase;
-  color:var(--muted); background:var(--bg3); border:1.5px solid var(--border);
-  transition:all .22s; cursor:default;
-}
-.vl .vl-tech:hover { border-color:var(--gold); color:var(--gold); background:var(--golddim) }
-
 /* ── FAQ ── */
 .vl .vl-faq-layout { display:grid; grid-template-columns:1fr 1fr; gap:100px; align-items:start }
 .vl .vl-faq-list { display:flex; flex-direction:column }
@@ -335,22 +261,16 @@ const CSS = `
 
 /* ── RESPONSIVO ── */
 @media(max-width:1024px) {
-  .vl nav { padding:0 32px }
   .vl section { padding:80px 32px }
-  .vl .vl-hero { padding:100px 32px 80px }
+  .vl .vl-hero { padding:80px 32px }
   .vl .vl-g3 { grid-template-columns:repeat(2,1fr) }
-  .vl .vl-fe-layout { grid-template-columns:1fr; gap:48px }
   .vl .vl-faq-layout { grid-template-columns:1fr; gap:48px }
   .vl .vl-ft-top { grid-template-columns:1fr 1fr; gap:40px }
   .vl .vl-cta-sec { padding:80px 32px }
   .vl .vl-legal { padding:24px 32px }
 }
 @media(max-width:640px) {
-  .vl nav { padding:0 20px }
-  .vl .vl-nav-links, .vl .vl-nav-cta { display:none }
-  .vl .vl-hamburger { display:block }
-  .vl .vl-mm { display:flex }
-  .vl .vl-hero { padding:90px 20px 60px }
+  .vl .vl-hero { padding:60px 20px }
   .vl .vl-hero h1 { letter-spacing:-1.5px }
   .vl section { padding:60px 20px }
   .vl .vl-g3, .vl .vl-g2 { grid-template-columns:1fr }
@@ -378,8 +298,8 @@ const BRANDING = [
 ]
 
 const WEB = [
-  { tag: 'Web Design', name: 'Landing Page — Design',        price: '900', suffix: null, desc: 'Criação completa do layout no Figma, focada em conversão e experiência do usuário.' },
-  { tag: 'Web Design', name: 'Landing Page — Implementação', price: '900', suffix: null, desc: 'Desenvolvimento da landing page responsiva com HTML, CSS, JavaScript, React ou Next.js.' },
+  { tag: 'Web Design', name: 'Landing Page — Design',        price: '800', suffix: null, desc: 'Criação completa do layout no Figma, focada em conversão e experiência do usuário.' },
+  { tag: 'Web Design', name: 'Landing Page — Implementação', price: '1.000', suffix: null, desc: 'Desenvolvimento da landing page responsiva com HTML, CSS, JavaScript, React ou Next.js.' },
   { tag: 'Web Design', name: 'Site Institucional',           price: null,  suffix: null, desc: 'Projetos personalizados conforme quantidade de páginas e funcionalidades.' },
 ]
 
@@ -388,8 +308,6 @@ const FAQS = [
   { q: 'Você trabalha por demanda recorrente?',   a: 'Sim. Atendo empresas, agências e profissionais que necessitam de suporte contínuo em design e desenvolvimento.' },
   { q: 'Você também desenvolve o projeto?',       a: 'Sim. Além da criação visual, também atuo na implementação front-end de sites, landing pages e interfaces com React, Next.js e outras tecnologias modernas.' },
 ]
-
-const TECHS = ['React','Next.js','JavaScript','TypeScript','HTML','CSS','Tailwind CSS','Supabase']
 
 /* ─── Componentes ──────────────────────────────────────────────── */
 function PriceCard({ card, delayClass = '' }) {
@@ -422,9 +340,7 @@ const WA_SVG = (
 
 /* ─── Página principal ─────────────────────────────────────────── */
 export default function Valores() {
-  const [solid,   setSolid]   = useState(false)
   const [openFaq, setOpenFaq] = useState(-1)
-  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const el = document.createElement('style')
@@ -432,12 +348,6 @@ export default function Valores() {
     el.textContent = CSS
     document.head.appendChild(el)
     return () => document.getElementById('vl-page-css')?.remove()
-  }, [])
-
-  useEffect(() => {
-    const h = () => setSolid(window.scrollY > 60)
-    window.addEventListener('scroll', h, { passive: true })
-    return () => window.removeEventListener('scroll', h)
   }, [])
 
   useEffect(() => {
@@ -455,36 +365,6 @@ export default function Valores() {
 
   return (
     <div className="vl">
-
-      {/* ── NAV ───────────────────────────────────────────────── */}
-      <nav className={solid ? 'solid' : ''}>
-        <a href="/" className="vl-logo">BRUNO<span>.</span>CHAVES</a>
-        <ul className="vl-nav-links">
-          <li><a href="/#projetos">Projetos</a></li>
-          <li><a href="/#servicos">Serviços</a></li>
-          <li><a href="/#sobre">Sobre</a></li>
-          <li><a href="/valores" className="cur">Valores</a></li>
-          <li><a href="/blog">Blog</a></li>
-        </ul>
-        <a href={ORC} className="vl-nav-cta" target="_blank" rel="noreferrer">
-          Solicitar Orçamento
-        </a>
-        <button className="vl-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
-          {menuOpen ? '✕' : '☰'}
-        </button>
-      </nav>
-
-      {/* ── MOBILE MENU ───────────────────────────────────────── */}
-      <div className={`vl-mm${menuOpen ? ' open' : ''}`}>
-        <a href="/"          onClick={() => setMenuOpen(false)}>Início</a>
-        <a href="/#projetos" onClick={() => setMenuOpen(false)}>Projetos</a>
-        <a href="/#servicos" onClick={() => setMenuOpen(false)}>Serviços</a>
-        <a href="/#sobre"    onClick={() => setMenuOpen(false)}>Sobre</a>
-        <a href="/blog"      onClick={() => setMenuOpen(false)}>Blog</a>
-        <a href={ORC} className="vl-mm-btn" target="_blank" rel="noreferrer" onClick={() => setMenuOpen(false)}>
-          Solicitar Orçamento
-        </a>
-      </div>
 
       {/* ── HERO ──────────────────────────────────────────────── */}
       <section className="vl-hero" id="inicio">
@@ -564,62 +444,6 @@ export default function Valores() {
             {WEB.map((card, i) => (
               <PriceCard key={i} card={card} delayClass={i > 0 ? ` d${i}` : ''} />
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SEÇÃO 4 — FRONT-END ───────────────────────────────── */}
-      <section id="front-end" style={{ background: 'var(--bg2)' }}>
-        <div className="vl-wrap">
-          <div className="vl-sec-hd rv">
-            <div className="vl-eyebrow">Desenvolvimento</div>
-            <h2 className="vl-title">Desenvolvimento<br/><em>Front-End</em></h2>
-            <p className="vl-sub">Transformação de layouts em interfaces modernas, responsivas e com foco em performance.</p>
-          </div>
-          <div className="vl-fe-layout">
-            {/* Esquerda: taxas horárias */}
-            <div className="rvl">
-              <div className="vl-rate">
-                <div>
-                  <div className="vl-rate-lbl">Hora Técnica</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>Projetos pontuais e manutenções</div>
-                </div>
-                <div className="vl-rate-val">R$ 80/h</div>
-              </div>
-              <div className="vl-rate">
-                <div>
-                  <div className="vl-rate-lbl">Diária Técnica</div>
-                  <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>Dedicação de um dia completo</div>
-                </div>
-                <div className="vl-rate-val">R$ 500/dia</div>
-              </div>
-              <div className="vl-tech-hd">Tecnologias</div>
-              <div className="vl-techs">
-                {TECHS.map((t, i) => (
-                  <div key={i} className="vl-tech">{t}</div>
-                ))}
-              </div>
-            </div>
-
-            {/* Direita: texto de posicionamento */}
-            <div className="rvr">
-              <div style={{ borderLeft: '2px solid var(--goldbdr)', paddingLeft: 32 }}>
-                <div className="vl-eyebrow" style={{ marginBottom: 18 }}>Por que contratar</div>
-                <h3 style={{ fontSize: 'clamp(20px,2.5vw,30px)', fontWeight: 900, color: 'var(--txt)', letterSpacing: '-.8px', lineHeight: 1.15, marginBottom: 20 }}>
-                  Código limpo.<br/>
-                  <span style={{ fontStyle:'italic', fontFamily:'var(--serif)', color:'var(--gold)' }}>Performance real.</span>
-                </h3>
-                <p style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.8, marginBottom: 20 }}>
-                  Cada interface é desenvolvida com atenção a acessibilidade, SEO técnico e experiência do usuário — não apenas estética.
-                </p>
-                <p style={{ fontSize: 15, color: 'var(--muted)', lineHeight: 1.8, marginBottom: 32 }}>
-                  Atendo projetos únicos (horas técnicas) ou de imersão completa (diária), com total alinhamento às suas necessidades e prazos.
-                </p>
-                <a href={ORC} className="vl-btn-gold" target="_blank" rel="noreferrer">
-                  Solicitar proposta →
-                </a>
-              </div>
-            </div>
           </div>
         </div>
       </section>
