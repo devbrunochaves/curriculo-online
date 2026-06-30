@@ -14,7 +14,7 @@ const pt = {
     available: 'Disponível para oportunidades',
     roles: ['Designer Gráfico', 'Desenvolvedor Fullstack', 'UI Designer', 'Especialista em Branding'],
     tagline: '+20 anos transformando ideias em experiências visuais impactantes. Do pixel ao código — design, desenvolvimento web e performance em um só profissional.',
-    emailBtn: '✉ Enviar e-mail',
+    emailBtn: '💬 Fale comigo',
     stats: [
       { val: '+20', lbl: 'Anos de experiência' },
       { val: '+8',  lbl: 'Empresas atendidas'  },
@@ -163,10 +163,10 @@ const pt = {
     text:     'Estou disponível para oportunidades CLT, PJ e freelas. Manda uma mensagem!',
     button:   '✉ Enviar mensagem',
     contacts: [
-      { icon: '✉',  label: 'E-mail',   val: 'brunochavesuk@icloud.com',    href: 'mailto:brunochavesuk@icloud.com'       },
+      { icon: '💬', label: 'WhatsApp', val: '+55 27 99734-1557',           href: 'https://wa.me/5527997341557'           },
       { icon: '💼', label: 'LinkedIn', val: 'linkedin.com/in/brunochavess', href: 'https://linkedin.com/in/brunochavess' },
       { icon: '🎨', label: 'Behance',  val: 'behance.net/brunochavesdsg',  href: 'https://behance.net/brunochavesdsg'   },
-      { icon: '📞', label: 'Telefone', val: '(27) 9 9734-1557',            href: 'tel:+5527997341557'                   },
+      { icon: '📞', label: 'Telefone', val: '(27) 9 9734-1557',            href: 'https://wa.me/5527997341557'           },
     ],
   },
 
@@ -189,7 +189,7 @@ const en = {
     available: 'Available for opportunities',
     roles: ['Graphic Designer', 'Fullstack Developer', 'UI Designer', 'Branding Specialist'],
     tagline: '+20 years transforming ideas into impactful visual experiences. From pixel to code — design, web development and performance in one professional.',
-    emailBtn: '✉ Send e-mail',
+    emailBtn: '💬 Talk to me',
     stats: [
       { val: '+20', lbl: 'Years of experience'    },
       { val: '+8',  lbl: 'Companies served'       },
@@ -338,10 +338,10 @@ const en = {
     text:     'Available for full-time, freelance and contract opportunities. Send a message!',
     button:   '✉ Send message',
     contacts: [
-      { icon: '✉',  label: 'E-mail',   val: 'brunochavesuk@icloud.com',    href: 'mailto:brunochavesuk@icloud.com'       },
+      { icon: '💬', label: 'WhatsApp', val: '+55 27 99734-1557',           href: 'https://wa.me/5527997341557'           },
       { icon: '💼', label: 'LinkedIn', val: 'linkedin.com/in/brunochavess', href: 'https://linkedin.com/in/brunochavess' },
       { icon: '🎨', label: 'Behance',  val: 'behance.net/brunochavesdsg',  href: 'https://behance.net/brunochavesdsg'   },
-      { icon: '📞', label: 'Phone',    val: '(27) 9 9734-1557',            href: 'tel:+5527997341557'                   },
+      { icon: '📞', label: 'Phone',    val: '(27) 9 9734-1557',            href: 'https://wa.me/5527997341557'           },
     ],
   },
 
@@ -364,7 +364,7 @@ const es = {
     available: 'Disponible para oportunidades',
     roles: ['Diseñador Gráfico', 'Desarrollador Fullstack', 'UI Designer', 'Especialista en Branding'],
     tagline: '+20 años transformando ideas en experiencias visuales impactantes. Del píxel al código — diseño, desarrollo web y performance en un solo profesional.',
-    emailBtn: '✉ Enviar correo',
+    emailBtn: '💬 Hable conmigo',
     stats: [
       { val: '+20', lbl: 'Años de experiencia' },
       { val: '+8',  lbl: 'Empresas atendidas'  },
@@ -513,10 +513,10 @@ const es = {
     text:     'Disponible para oportunidades de tiempo completo, freelance y contrato. ¡Envía un mensaje!',
     button:   '✉ Enviar mensaje',
     contacts: [
-      { icon: '✉',  label: 'E-mail',   val: 'brunochavesuk@icloud.com',    href: 'mailto:brunochavesuk@icloud.com'       },
+      { icon: '💬', label: 'WhatsApp', val: '+55 27 99734-1557',           href: 'https://wa.me/5527997341557'           },
       { icon: '💼', label: 'LinkedIn', val: 'linkedin.com/in/brunochavess', href: 'https://linkedin.com/in/brunochavess' },
       { icon: '🎨', label: 'Behance',  val: 'behance.net/brunochavesdsg',  href: 'https://behance.net/brunochavesdsg'   },
-      { icon: '📞', label: 'Teléfono', val: '(27) 9 9734-1557',            href: 'tel:+5527997341557'                   },
+      { icon: '📞', label: 'Teléfono', val: '(27) 9 9734-1557',            href: 'https://wa.me/5527997341557'           },
     ],
   },
 

@@ -2,6 +2,8 @@
 import Reveal from './Reveal'
 import { useApp } from '../context/AppContext'
 
+const WHATSAPP_URL = 'https://wa.me/5527997341557'
+
 export default function Contact() {
   const { c, t } = useApp()
   const ct = t.contact
@@ -50,7 +52,7 @@ export default function Contact() {
         </div>
 
         <Reveal delay={280}>
-          <a href="mailto:brunochavesuk@icloud.com" className="btn-primary" style={{ fontSize: 15, padding: '14px 32px' }}>
+          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ fontSize: 15, padding: '14px 32px' }}>
             {ct.button}
           </a>
         </Reveal>
