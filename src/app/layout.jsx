@@ -3,7 +3,7 @@ import './globals.css'
 export const metadata = {
   metadataBase: new URL('https://brunochavess.com.br'),
   title: {
-    default: 'Bruno Chaves — Design Studio',
+    default: 'Bruno Chaves — Designer & Desenvolvedor Web',
     template: '%s — Bruno Chaves',
   },
   description: 'Estúdio de design especializado em identidade visual, branding e design digital para marcas que querem se destacar.',
