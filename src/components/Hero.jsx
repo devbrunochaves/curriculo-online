@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../context/AppContext'
 
+const WHATSAPP_URL = 'https://wa.me/5527997341557'
+
 /* ── Componente isolado para a foto ── */
 function ProfilePhoto() {
   const [imgError, setImgError] = useState(false)
@@ -195,7 +197,7 @@ export default function Hero() {
             className="fade-up"
             style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 44, animationDelay: '0.4s' }}
           >
-            <a href="mailto:brunochavesuk@icloud.com" className="btn-primary">
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
               {h.emailBtn}
             </a>
             <a href="https://linkedin.com/in/brunochavess" target="_blank" rel="noopener noreferrer" className="btn-ghost">

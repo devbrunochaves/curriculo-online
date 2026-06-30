@@ -9,6 +9,8 @@ const FLAGS = [
   { code: 'es', src: '/flag-es.svg', label: 'Español'   },
 ]
 
+const WHATSAPP_URL = 'https://wa.me/5527997341557'
+
 export default function Navbar() {
   const { c, t, isDark, toggleDark, lang, setLang } = useApp()
   const router = useRouter()
@@ -80,7 +82,7 @@ export default function Navbar() {
           ))}
 
           {/* Contact CTA */}
-          <a href="#contact" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13 }}>
+          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ padding: '8px 18px', fontSize: 13 }}>
             {nav.contact}
           </a>
 
@@ -146,7 +148,9 @@ export default function Navbar() {
             </a>
           ))}
           <a
-            href="#contact"
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={() => setOpen(false)}
             style={{
               display: 'block', padding: '12px 0', color: c.primary,
