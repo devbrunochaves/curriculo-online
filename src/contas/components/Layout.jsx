@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 
 const navItems = [
   { to: '/contas/meudia',        icon: '☀️', label: 'Meu Dia',         end: true },
-  { to: '/contas/metas',         icon: '🎯', label: 'Metas'            },
+  { to: '/contas/metas',         icon: '🐷', label: 'Cofrinhos'        },
   { to: '/contas/agenda',        icon: '📅', label: 'Agenda Familiar'  },
   { to: '/contas/saude',         icon: '❤️', label: 'Saúde'            },
   { to: '/contas/veiculos',      icon: '🚗', label: 'Veículos'         },
