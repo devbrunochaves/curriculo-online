@@ -221,6 +221,16 @@ export default function Lancamentos() {
     total: expenses.filter(e => e.card_id === c.id).reduce((s, e) => s + Number(e.total_amount), 0),
   })).filter(c => c.total > 0)
 
+  const allReconciled  = filtered.length > 0 && filtered.every(e => e.reconciled)
+  const someReconciled = filtered.some(e => e.reconciled)
+
+  async function toggleAll() {
+    const next = !allReconciled
+    const ids = filtered.map(e => e.id)
+    setExpenses(prev => prev.map(e => ids.includes(e.id) ? { ...e, reconciled: next } : e))
+    await supabase.from('expenses').update({ reconciled: next }).in('id', ids)
+  }
+
   const cartaoSelecionado = filterCard ? cards.find(c => c.id === filterCard) : null
   const totalCartaoSelecionado = filterCard
     ? expenses.filter(e => e.card_id === filterCard).reduce((s, e) => s + Number(e.total_amount), 0)
@@ -405,7 +415,22 @@ export default function Lancamentos() {
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 36 }}></th>
+                  <th style={{ width: 36, textAlign: 'center' }}>
+                    <button
+                      onClick={toggleAll}
+                      title={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'}
+                      style={{
+                        width: 22, height: 22, borderRadius: 6,
+                        border: `2px solid ${allReconciled || someReconciled ? '#10b981' : '#d1d5db'}`,
+                        background: allReconciled ? '#10b981' : 'transparent',
+                        color: '#fff', fontWeight: 900, fontSize: 13, cursor: 'pointer',
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.15s', flexShrink: 0,
+                      }}
+                    >
+                      {allReconciled ? '✓' : someReconciled ? '−' : ''}
+                    </button>
+                  </th>
                   <th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th>Pessoas</th>
                   <th style={{ textAlign: 'right' }}>Total</th><th></th>
                 </tr>
