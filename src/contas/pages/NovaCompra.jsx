@@ -29,10 +29,10 @@ function getMonthRef(dateStr, closingDay) {
   return format(d, 'yyyy-MM')
 }
 
-export default function NovaCompra() {
+export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const editId = searchParams.get('edit')
+  const editId = editIdProp !== undefined ? editIdProp : searchParams.get('edit')
 
   const [cards, setCards]     = useState([])
   const [people, setPeople]   = useState([])
@@ -212,7 +212,8 @@ export default function NovaCompra() {
       setSaving(false); setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
-        if (editId) navigate('/contas/lancamentos')
+        if (onSuccess) { onSuccess() }
+        else if (editId) navigate('/contas/lancamentos')
         else navigate('/contas/dashboard')
       }, 1400)
     } catch (err) {
@@ -437,7 +438,7 @@ export default function NovaCompra() {
           <button type="submit" className="c-btn c-btn-primary" disabled={saving || !isValid}>
             {saving ? 'Salvando...' : isInstallment ? `Registrar ${installments}x parcelas` : editId ? 'Salvar Alterações' : 'Registrar Compra'}
           </button>
-          <button type="button" className="c-btn c-btn-secondary" onClick={() => navigate(-1)}>Cancelar</button>
+          <button type="button" className="c-btn c-btn-secondary" onClick={() => onCancel ? onCancel() : navigate(-1)}>Cancelar</button>
         </div>
       </form>
     </div>

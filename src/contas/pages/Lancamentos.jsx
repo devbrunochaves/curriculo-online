@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { format, subMonths, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
+import NovaCompra from './NovaCompra'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
@@ -171,7 +172,9 @@ export default function Lancamentos() {
   const [filterFixed, setFilterFixed]   = useState('')
   const [search, setSearch]             = useState('')
   const [deleting, setDeleting]         = useState(null)
-  const [selected, setSelected]         = useState(null)  // expense aberta no modal
+  const [selected, setSelected]         = useState(null)  // expense aberta no modal de detalhes
+  const [showForm, setShowForm]         = useState(false)
+  const [editingId, setEditingId]       = useState(null)
 
   const monthRef = format(currentDate, 'yyyy-MM')
 
@@ -261,7 +264,7 @@ export default function Lancamentos() {
             <span style={{ textTransform: 'capitalize' }}>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
             <button onClick={() => setCurrentDate(d => addMonths(d, 1))}>›</button>
           </div>
-          <button className="c-btn c-btn-primary c-btn-sm" onClick={() => navigate('/contas/nova')}>+ Nova</button>
+          <button className="c-btn c-btn-primary c-btn-sm" onClick={() => { setEditingId(null); setShowForm(true) }}>+ Nova</button>
         </div>
       </div>
 
@@ -498,7 +501,7 @@ export default function Lancamentos() {
                     <td style={{ textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>{fmt(e.total_amount)}</td>
                     <td onClick={ev => ev.stopPropagation()}>
                       <div className="c-flex c-gap-2">
-                        <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => navigate(`/contas/nova?edit=${e.id}`)}>✏️</button>
+                        <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => { setEditingId(e.id); setShowForm(true) }}>✏️</button>
                         <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(e.id)} disabled={deleting === e.id}>🗑️</button>
                       </div>
                     </td>
@@ -510,12 +513,52 @@ export default function Lancamentos() {
         </div>
       )}
 
+      {/* Modal Nova / Editar Compra */}
+      {showForm && (
+        <div
+          onClick={() => setShowForm(false)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 400,
+            background: 'rgba(0,0,0,.45)',
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+            padding: '24px 16px',
+            overflowY: 'auto',
+          }}
+        >
+          <div
+            onClick={ev => ev.stopPropagation()}
+            style={{
+              background: 'var(--c-bg)', borderRadius: 16,
+              width: '100%', maxWidth: 700,
+              boxShadow: '0 20px 60px rgba(0,0,0,.3)',
+              padding: '8px 24px 24px',
+              position: 'relative',
+            }}
+          >
+            <button
+              onClick={() => setShowForm(false)}
+              style={{
+                position: 'absolute', top: 12, right: 16,
+                background: 'none', border: 'none',
+                color: 'var(--c-text-muted)', fontSize: 22,
+                cursor: 'pointer', lineHeight: 1, padding: 4,
+              }}
+            >✕</button>
+            <NovaCompra
+              editId={editingId}
+              onSuccess={() => { setShowForm(false); load() }}
+              onCancel={() => setShowForm(false)}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Modal de detalhes */}
       {selected && (
         <ExpenseModal
           expense={selected}
           onClose={() => setSelected(null)}
-          onEdit={id => navigate(`/contas/nova?edit=${id}`)}
+          onEdit={id => { setSelected(null); setEditingId(id); setShowForm(true) }}
           onDelete={handleDelete}
           deleting={deleting}
         />
