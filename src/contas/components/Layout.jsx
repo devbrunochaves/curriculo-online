@@ -14,6 +14,7 @@ const navItems = [
   { to: '/contas/dashboard',     icon: '📊', label: 'Dashboard'        },
   { to: '/contas/lancamentos',   icon: '📋', label: 'Lançamentos'      },
   { to: '/contas/acertos',       icon: '🤝', label: 'Acertos'          },
+  { to: '/contas/entradas',      icon: '📈', label: 'Entradas'         },
   { to: '/contas/fixas',         icon: '🏠', label: 'Contas Fixas'     },
   { to: '/contas/previsao',      icon: '📆', label: 'Previsão'         },
   { to: '/contas/pessoas',       icon: '👥', label: 'Pessoas'          },
