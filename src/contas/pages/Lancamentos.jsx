@@ -442,7 +442,7 @@ export default function Lancamentos() {
                     onClick={() => setSelected(e)}
                     style={{
                       cursor: 'pointer',
-                      background: e.reconciled ? 'rgba(16,185,129,0.07)' : undefined,
+                      background: e.reconciled ? ((e.card?.color ?? '#10b981') + '18') : undefined,
                       transition: 'background 0.2s',
                     }}
                     className="c-table-row-hover"
@@ -455,8 +455,8 @@ export default function Lancamentos() {
                           width: 22,
                           height: 22,
                           borderRadius: 6,
-                          border: `2px solid ${e.reconciled ? '#10b981' : '#d1d5db'}`,
-                          background: e.reconciled ? '#10b981' : 'transparent',
+                          border: `2px solid ${e.reconciled ? (e.card?.color ?? '#10b981') : '#d1d5db'}`,
+                          background: e.reconciled ? (e.card?.color ?? '#10b981') : 'transparent',
                           color: '#fff',
                           fontWeight: 900,
                           fontSize: 13,
