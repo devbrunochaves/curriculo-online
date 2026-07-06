@@ -396,10 +396,19 @@ export default function LogIA() {
             <h2 className="sec-title reveal">Parceiros que movem a inovação</h2>
           </div>
           <div className="sponsor-grid">
-            {['viasoft','nexa','freteai','loggi','porto-pr','rotazero','supply','cargotech'].map((s, i) => (
+            {[
+              { file: 'viasoft.jpg',          label: 'VIASOFT'      },
+              { file: 'nexa.jpg',             label: 'NEXA LOGTECH' },
+              { file: 'freteai.jpg',          label: 'FRETEAI'      },
+              { file: 'loggi.jpg',            label: 'LOGGI'        },
+              { file: 'porto-do-parana.jpg',  label: 'PORTO PR'     },
+              { file: 'rotazero.jpg',         label: 'ROTAZERO'     },
+              { file: 'supplylog.jpg',        label: 'SUPPLY+'      },
+              { file: 'cargotech.jpg',        label: 'CARGOTECH'    },
+            ].map((s, i) => (
               <div key={i} className="sponsor reveal">
-                <img src={`/logia/img/patrocinadores/${s}.png`} alt={s} onError={imgErr} />
-                <span>{s.toUpperCase()}</span>
+                <img src={`/logia/img/${s.file}`} alt={s.label} onError={imgErr} />
+                <span>{s.label}</span>
               </div>
             ))}
           </div>
@@ -422,7 +431,7 @@ export default function LogIA() {
               <div className="realizacao">
                 <small>Realização</small>
                 <div className="nexa">
-                  <img className="nexa-img" src="/logia/img/nexa-logo.png" alt="NEXA Logtech" onError={imgErr} />
+                  <img className="nexa-img" src="/logia/img/LOGO-NEXA.png" alt="NEXA Logtech" onError={imgErr} />
                   <span>NE<span className="x">X</span>A <small>LOGTECH</small></span>
                 </div>
               </div>
