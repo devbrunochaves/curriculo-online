@@ -1,0 +1,623 @@
+/* ── Reset ─────────────────────────────────────────────────────────── */
+.logia * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Base ──────────────────────────────────────────────────────────── */
+.logia {
+  --blue:  #3759ac;
+  --red:   #e3302d;
+  --lime:  #dbfa34;
+  --white: #ffffff;
+  --gray:  #4c4f5b;
+  --bg:    #080f2b;
+  --bg2:   #0b1538;
+  --bg3:   #0f1c47;
+  --title: "Orbitron", sans-serif;
+  --body:  "Raleway", sans-serif;
+
+  font-family: var(--body);
+  background:  var(--bg);
+  color:       var(--white);
+  overflow-x:  hidden;
+  line-height: 1.6;
+  min-height:  100vh;
+}
+
+.logia a   { text-decoration: none; color: inherit; }
+.logia img { max-width: 100%; display: block; }
+
+.logia .container {
+  max-width: 1200px;
+  margin:    0 auto;
+  padding:   0 24px;
+}
+
+.logia section { position: relative; overflow: hidden; }
+
+/* ── Reusable ──────────────────────────────────────────────────────── */
+.logia .kicker {
+  font-family:    var(--title);
+  font-weight:    700;
+  letter-spacing: 0.25em;
+  font-size:      13px;
+  text-transform: uppercase;
+  color:          var(--lime);
+  margin-bottom:  10px;
+}
+
+.logia .sec-title {
+  font-family:    var(--title);
+  font-weight:    900;
+  font-size:      clamp(28px, 4vw, 46px);
+  text-transform: uppercase;
+  line-height:    1.05;
+  margin-bottom:  18px;
+}
+
+.logia .sec-sub {
+  color:       #c3cbe6;
+  max-width:   640px;
+  font-weight: 300;
+  font-size:   17px;
+}
+
+.logia .center {
+  text-align:   center;
+  margin-left:  auto;
+  margin-right: auto;
+}
+.logia .center .sec-sub { margin-left: auto; margin-right: auto; }
+
+.logia .btn {
+  display:        inline-block;
+  font-family:    var(--title);
+  font-weight:    700;
+  font-size:      14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding:        15px 30px;
+  clip-path:      polygon(0 0, 100% 0, 100% 70%, 92% 100%, 0 100%);
+  transition:     0.25s;
+  cursor:         pointer;
+  border:         none;
+}
+.logia .btn-red    { background: var(--lime); color: var(--blue); }
+.logia .btn-red:hover { background: #7eff38; }
+.logia .btn-blue   { background: var(--blue); color: #fff; }
+.logia .btn-blue:hover { background: #4a6dc4; }
+.logia .btn-lime   { background: var(--lime); color: #0a1230; }
+.logia .btn-lime:hover { background: #e6ff4d; }
+.logia .btn-outline { border: 2px solid var(--blue); color: #fff; clip-path: none; }
+.logia .btn-outline:hover { background: var(--blue); }
+
+/* Chevrons */
+.logia .chevrons { display: inline-flex; gap: 4px; align-items: center; }
+.logia .chevrons span {
+  width: 0; height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 14px solid var(--blue);
+}
+.logia .chevrons span:nth-child(2) { border-left-color: var(--red); }
+.logia .chevrons span:nth-child(3) { border-left-color: var(--lime); }
+
+/* Dots grid */
+.logia .dots-grid {
+  background-image: radial-gradient(rgba(255,255,255,.18) 1.4px, transparent 1.4px);
+  background-size: 20px 20px;
+}
+
+/* Scroll reveal */
+.logia .reveal {
+  opacity:    0;
+  transform:  translateY(40px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+}
+.logia .reveal.visible { opacity: 1; transform: none; }
+.logia .reveal.d1 { transition-delay: .08s; }
+.logia .reveal.d2 { transition-delay: .16s; }
+.logia .reveal.d3 { transition-delay: .24s; }
+.logia .reveal.d4 { transition-delay: .32s; }
+@media (prefers-reduced-motion: reduce) {
+  .logia .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* Image helpers */
+.logia .about-img,
+.logia .speaker-photo img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; z-index: 2;
+}
+.logia .about-img { z-index: 2; }
+.logia .nexa-img { max-height: 46px; width: auto; }
+
+/* Back to top */
+.logia #toTop {
+  position:      fixed;
+  right:         24px;
+  bottom:        24px;
+  z-index:       1500;
+  width:         50px;
+  height:        50px;
+  border:        none;
+  cursor:        pointer;
+  background:    var(--red);
+  color:         #fff;
+  font-size:     20px;
+  opacity:       0;
+  pointer-events: none;
+  transition:    0.3s;
+  clip-path:     polygon(0 0,100% 0,100% 78%,80% 100%,0 100%);
+}
+.logia #toTop.show { opacity: 1; pointer-events: auto; }
+.logia #toTop:hover { background: #ff4438; }
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.logia header {
+  position:        fixed;
+  top: 0; left: 0; right: 0;
+  z-index:         1000;
+  background:      rgba(8,15,43,.85);
+  backdrop-filter: blur(10px);
+  border-bottom:   1px solid rgba(255,255,255,.07);
+  transition:      0.3s;
+}
+.logia header.scrolled {
+  background:  rgba(6,11,32,.95);
+  box-shadow:  0 6px 30px rgba(0,0,0,.4);
+}
+.logia header.scrolled .nav { height: 60px; }
+
+.logia .nav {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  height:          74px;
+}
+
+.logia .logo {
+  font-family:    var(--title);
+  font-weight:    900;
+  font-size:      26px;
+  letter-spacing: 0.02em;
+}
+.logia .logo .b   { color: var(--blue); }
+.logia .logo .dot { color: var(--lime); }
+.logia .logo .r   { color: var(--red); }
+.logia .logo .yr  { font-size: 12px; vertical-align: super; color: #fff; margin-left: 2px; }
+
+.logia .nav-menu { display: flex; gap: 26px; list-style: none; }
+.logia .nav-menu a { font-weight: 600; font-size: 14px; color: #d5dbef; transition: .2s; }
+.logia .nav-menu a:hover { color: var(--lime); }
+
+.logia .nav-cta { font-size: 12px; padding: 12px 22px; }
+
+.logia .burger {
+  display:         none;
+  flex-direction:  column;
+  gap:             5px;
+  cursor:          pointer;
+  background:      none;
+  border:          none;
+}
+.logia .burger span { width: 26px; height: 2px; background: #fff; display: block; }
+
+.logia .nav-menu.open {
+  display:         flex;
+  position:        absolute;
+  top:             74px;
+  left: 0; right: 0;
+  flex-direction:  column;
+  background:      #0a1436;
+  padding:         20px 24px;
+  gap:             16px;
+  border-bottom:   1px solid rgba(255,255,255,.1);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.logia .hero {
+  min-height: 100vh;
+  display:    flex;
+  align-items: center;
+  padding:    120px 0 60px;
+  background:
+    radial-gradient(1200px 600px at 80% 20%, rgba(55,89,172,.35), transparent 60%),
+    radial-gradient(900px 500px at 10% 90%,  rgba(227,48,45,.18),  transparent 60%),
+    linear-gradient(160deg, #070d24 0%, #0a1436 55%, #0c1a44 100%);
+}
+.logia .hero .container {
+  display:               grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap:                   40px;
+  align-items:           center;
+}
+.logia .hero-icons { display: flex; gap: 16px; margin-bottom: 22px; }
+.logia .hero-icons img { width: 300px; }
+
+.logia .hero-tag {
+  font-weight: 300;
+  font-style:  italic;
+  font-size:   clamp(18px, 2.4vw, 26px);
+  color:       #d7ddf0;
+  margin:      14px 0 30px;
+}
+.logia .hero-info { display: flex; flex-direction: column; gap: 14px; margin-bottom: 30px; }
+.logia .hero-info .row { display: flex; align-items: center; gap: 14px; font-weight: 500; font-size: 16px; }
+.logia .hero-info .tag-shape {
+  font-family:    var(--title);
+  font-weight:    700;
+  font-size:      14px;
+  padding:        8px 30px;
+  color:          #fff;
+  white-space:    nowrap;
+  clip-path:      polygon(0 0,100% 0,90% 100%,0 100%);
+}
+.logia .ts-red  { background: var(--red); }
+.logia .ts-blue { background: var(--blue); }
+.logia .ts-lime { background: var(--red); color: #0a1230; }
+
+/* Countdown */
+.logia .countdown-card {
+  background:  rgba(11,21,56,.6);
+  border:      1px solid rgba(55,89,172,.4);
+  padding:     28px;
+  position:    relative;
+  clip-path:   polygon(0 0,100% 0,100% 88%,94% 100%,0 100%);
+}
+.logia .countdown-card::before {
+  content:    "";
+  position:   absolute;
+  top: 0; left: 0;
+  width:      60px;
+  height:     5px;
+  background: var(--lime);
+}
+.logia .cd-title {
+  font-family:    var(--title);
+  font-weight:    700;
+  font-size:      13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--lime);
+  margin-bottom:  18px;
+}
+.logia .countdown {
+  display:               grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:                   10px;
+  text-align:            center;
+}
+.logia .cd-num {
+  font-family: var(--title);
+  font-weight: 900;
+  font-size:   clamp(30px, 5vw, 46px);
+  color:       #fff;
+  line-height: 1;
+}
+.logia .cd-lbl {
+  font-size:      11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color:          #9aa6cc;
+  margin-top:     6px;
+}
+
+.logia .hero-decor-chev { position: absolute; top: 100px; right: 24px; }
+.logia .hero-dots {
+  position: absolute; bottom: 40px; right: 5%;
+  width: 200px; height: 110px; opacity: .6;
+}
+
+/* ── About ─────────────────────────────────────────────────────────── */
+.logia .about { padding: 100px 0; background: var(--bg2); }
+.logia .about .container {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   60px;
+  align-items:           center;
+}
+.logia .about-visual {
+  aspect-ratio: 4/3;
+  border:       1px solid rgba(55,89,172,.35);
+  background:
+    radial-gradient(400px 300px at 70% 30%, rgba(55,89,172,.4), transparent),
+    linear-gradient(135deg, #0c1740, #122057);
+  position:   relative;
+  clip-path:  polygon(0 0,100% 0,100% 85%,88% 100%,0 100%);
+  display:    flex;
+  align-items: center;
+  justify-content: center;
+}
+.logia .about-visual .big-logo {
+  font-family: var(--title);
+  font-weight: 900;
+  font-size:   clamp(40px, 6vw, 72px);
+}
+.logia .about-visual .big-logo .l  { color: var(--blue); }
+.logia .about-visual .big-logo .p  { color: var(--lime); }
+.logia .about-visual .big-logo .ia { color: var(--red); }
+
+.logia .about ul { list-style: none; margin: 22px 0; }
+.logia .about li { padding: 8px 0 8px 28px; position: relative; color: #c9d0e8; }
+.logia .about li::before {
+  content:    "";
+  position:   absolute;
+  left: 0; top: 15px;
+  width:      10px;
+  height:     10px;
+  background: var(--lime);
+}
+
+/* ── Speakers ──────────────────────────────────────────────────────── */
+.logia .speakers { padding: 100px 0; background: var(--bg); }
+.logia .speaker-grid {
+  display:               grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:                   22px;
+  margin-top:            50px;
+}
+.logia .speaker {
+  background:  var(--bg3);
+  border:      1px solid rgba(255,255,255,.06);
+  overflow:    hidden;
+  transition:  0.28s;
+  position:    relative;
+}
+.logia .speaker::after {
+  content:    "";
+  position:   absolute;
+  top: 0; left: 0;
+  width:      100%;
+  height:     4px;
+  background: linear-gradient(90deg, var(--blue), var(--red), var(--lime));
+}
+.logia .speaker:hover { transform: translateY(-6px); border-color: rgba(55,89,172,.6); }
+
+.logia .speaker-photo {
+  aspect-ratio:    1;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-family:     var(--title);
+  font-weight:     900;
+  font-size:       52px;
+  color:           rgba(255,255,255,.9);
+  background:      linear-gradient(140deg,#122057,#0c1740);
+  position:        relative;
+}
+.logia .speaker:nth-child(4n+1) .speaker-photo { background: linear-gradient(140deg,#1a2f6e,#0c1740); }
+.logia .speaker:nth-child(4n+2) .speaker-photo { background: linear-gradient(140deg,#5a1512,#0c1740); }
+.logia .speaker:nth-child(4n+3) .speaker-photo { background: linear-gradient(140deg,#3d4708,#0c1740); }
+.logia .speaker:nth-child(4n+4) .speaker-photo { background: linear-gradient(140deg,#122057,#241a4a); }
+
+.logia .speaker-body { padding: 18px; }
+.logia .speaker-body h3 { font-family: var(--title); font-weight: 700; font-size: 17px; margin-bottom: 6px; }
+.logia .speaker-body .role { color: var(--lime); font-weight: 600; font-size: 13px; }
+.logia .speaker-body .org  { color: #9aa6cc; font-size: 13px; margin-top: 2px; }
+.logia .speakers-note { text-align: center; margin-top: 40px; color: #9aa6cc; font-size: 14px; }
+
+/* ── Evento foto ───────────────────────────────────────────────────── */
+.logia .evento { height: 800px; }
+.logia .evento img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── Tracks ────────────────────────────────────────────────────────── */
+.logia .tracks { padding: 100px 0; background: var(--bg2); position: relative; }
+.logia .track-grid {
+  display:               grid;
+  grid-template-columns: repeat(3,1fr);
+  gap:                   24px;
+  margin-top:            50px;
+}
+.logia .track {
+  padding:    38px 28px;
+  background: linear-gradient(160deg,rgba(55,89,172,.12),rgba(11,21,56,.4));
+  border:     1px solid rgba(255,255,255,.08);
+  position:   relative;
+  min-height: 280px;
+  transition: 0.3s;
+  clip-path:  polygon(0 0,100% 0,100% 90%,92% 100%,0 100%);
+}
+.logia .track:hover { transform: translateY(-6px); }
+.logia .track .num { font-family: var(--title); font-weight: 900; font-size: 60px; line-height: 1; opacity: .15; }
+.logia .track:nth-child(1) { border-top: 5px solid var(--blue); }
+.logia .track:nth-child(2) { border-top: 5px solid var(--red); }
+.logia .track:nth-child(3) { border-top: 5px solid var(--lime); }
+.logia .track h3 { font-family: var(--title); font-weight: 700; font-size: 24px; margin: 14px 0 12px; text-transform: uppercase; }
+.logia .track:nth-child(1) h3 { color: var(--blue); }
+.logia .track:nth-child(2) h3 { color: var(--red); }
+.logia .track:nth-child(3) h3 { color: var(--lime); }
+.logia .track p { color: #c3cbe6; font-weight: 300; }
+
+/* ── Numbers ───────────────────────────────────────────────────────── */
+.logia .numbers { padding: 90px 0; background: linear-gradient(120deg,#0a1436,#122057); }
+.logia .num-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 30px; text-align: center; }
+.logia .num-item .n { font-family: var(--title); font-weight: 900; font-size: clamp(38px,5vw,60px); color: var(--lime); }
+.logia .num-item:nth-child(2) .n { color: var(--white); }
+.logia .num-item:nth-child(3) .n { color: var(--red); }
+.logia .num-item .lbl { color: #c3cbe6; font-weight: 500; margin-top: 6px; text-transform: uppercase; letter-spacing: .05em; font-size: 13px; }
+
+/* ── Experience ────────────────────────────────────────────────────── */
+.logia .experience { padding: 100px 0; background: var(--bg); }
+.logia .exp-head { max-width: 720px; }
+.logia .exp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; margin: 50px 0 40px; }
+.logia .exp-card {
+  background:  var(--bg3);
+  padding:     28px 24px;
+  border-left: 4px solid var(--blue);
+  transition:  0.25s;
+}
+.logia .exp-card:nth-child(3n+2) { border-left-color: var(--red); }
+.logia .exp-card:nth-child(3n)   { border-left-color: var(--lime); }
+.logia .exp-card:hover { background: #132254; }
+.logia .exp-card h4 { font-family: var(--title); font-weight: 700; font-size: 16px; margin-bottom: 10px; }
+.logia .exp-card p  { color: #b7c0dc; font-weight: 300; font-size: 15px; }
+.logia .exp-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* ── Schedule ──────────────────────────────────────────────────────── */
+.logia .schedule { padding: 100px 0; background: var(--bg2); }
+.logia .days { display: flex; gap: 12px; justify-content: center; margin: 40px 0 34px; flex-wrap: wrap; }
+.logia .day-btn {
+  font-family:    var(--title);
+  font-weight:    700;
+  font-size:      14px;
+  padding:        12px 26px;
+  border:         1px solid rgba(255,255,255,.15);
+  background:     transparent;
+  color:          #c3cbe6;
+  cursor:         pointer;
+  transition:     0.2s;
+}
+.logia .day-btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+.logia .sched-list { max-width: 820px; margin: 0 auto; }
+.logia .sched-row {
+  display:               grid;
+  grid-template-columns: 130px 1fr auto;
+  gap:                   20px;
+  align-items:           center;
+  padding:               20px 24px;
+  border:                1px solid rgba(255,255,255,.07);
+  background:            var(--bg3);
+  margin-bottom:         12px;
+  transition:            0.2s;
+}
+.logia .sched-row:hover { border-color: rgba(55,89,172,.5); }
+.logia .sched-time { font-family: var(--title); font-weight: 700; color: var(--lime); font-size: 15px; }
+.logia .sched-info h4 { font-weight: 600; font-size: 17px; margin-bottom: 2px; }
+.logia .sched-info span { color: #9aa6cc; font-size: 13px; }
+
+.logia .sched-tag { font-size: 11px; font-family: var(--title); font-weight: 700; text-transform: uppercase; padding: 5px 12px; letter-spacing: .05em; }
+.logia .tag-b { background: rgba(55,89,172,.25); color: #8fb0ff; }
+.logia .tag-r { background: rgba(227,48,45,.22);  color: #ff8a84; }
+.logia .tag-l { background: rgba(219,250,52,.2);  color: var(--lime); }
+
+.logia .sched-day { display: none; }
+.logia .sched-day.active { display: block; }
+
+/* ── Sponsors ──────────────────────────────────────────────────────── */
+.logia .sponsors { padding: 100px 0; background: var(--bg); }
+.logia .sponsor-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin: 50px 0 40px; }
+.logia .sponsor {
+  aspect-ratio: 16/9;
+  display:      flex;
+  align-items:  center;
+  justify-content: center;
+  background:   rgba(255,255,255,.03);
+  border:       1px solid rgba(255,255,255,.08);
+  font-family:  var(--title);
+  font-weight:  700;
+  color:        #7f8bb0;
+  font-size:    15px;
+  letter-spacing: .05em;
+  transition:   0.25s;
+}
+.logia .sponsor:hover { background: rgba(255,255,255,.07); color: #fff; }
+.logia .sponsor img { max-width: 72%; max-height: 62%; object-fit: contain; }
+
+/* ── News ──────────────────────────────────────────────────────────── */
+.logia .news { padding: 100px 0; background: var(--bg2); }
+.logia .news-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 50px; }
+.logia .news-card { background: var(--bg3); border: 1px solid rgba(255,255,255,.07); overflow: hidden; transition: 0.25s; }
+.logia .news-card:hover { transform: translateY(-5px); }
+
+.logia .news-thumb {
+  aspect-ratio: 16/9;
+  background:   linear-gradient(140deg,#122057,#0c1740);
+  position:     relative;
+  overflow:     hidden;
+}
+.logia .news-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.logia .news-cat {
+  position:       absolute;
+  top: 14px; left: 14px;
+  font-family:    var(--title);
+  font-weight:    700;
+  font-size:      11px;
+  padding:        5px 12px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.logia .cat-b { background: var(--blue); }
+.logia .cat-r { background: var(--red); }
+.logia .cat-l { background: var(--lime); color: #0a1230; }
+
+.logia .news-body { padding: 22px; }
+.logia .news-body h4 { font-weight: 700; font-size: 17px; margin-bottom: 10px; line-height: 1.3; }
+.logia .news-body p  { color: #a6afd0; font-weight: 300; font-size: 14px; margin-bottom: 14px; }
+.logia .news-body .date { color: #7f8bb0; font-size: 12px; }
+.logia .read { color: var(--lime); font-weight: 600; font-size: 13px; }
+
+/* ── CTA Banner ────────────────────────────────────────────────────── */
+.logia .cta-banner { padding: 80px 0; background: linear-gradient(110deg, var(--blue), #243f8a); }
+.logia .cta-banner .container { text-align: center; }
+.logia .cta-banner h2 { font-family: var(--title); font-weight: 900; font-size: clamp(26px,4vw,42px); text-transform: uppercase; margin-bottom: 24px; }
+
+/* ── Footer ────────────────────────────────────────────────────────── */
+.logia footer { background: #050a1e; padding: 70px 0 30px; border-top: 1px solid rgba(255,255,255,.07); }
+.logia .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 50px; }
+
+.logia .foot-logo { font-family: var(--title); font-weight: 900; font-size: 28px; margin-bottom: 16px; }
+.logia .foot-logo .l  { color: var(--blue); }
+.logia .foot-logo .p  { color: var(--lime); }
+.logia .foot-logo .ia { color: var(--red); }
+
+.logia footer p { color: #8b95ba; font-weight: 300; font-size: 14px; }
+
+.logia .foot-col h5 { font-family: var(--title); font-weight: 700; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 16px; color: var(--lime); }
+.logia .foot-col a { display: block; color: #a6afd0; font-size: 14px; padding: 5px 0; transition: .2s; }
+.logia .foot-col a:hover { color: #fff; }
+
+.logia .realizacao { margin-top: 20px; }
+.logia .realizacao small { display: block; color: #8b95ba; font-size: 12px; text-transform: uppercase; letter-spacing: .15em; margin-bottom: 8px; }
+
+.logia .nexa { font-family: var(--title); font-weight: 900; font-size: 24px; }
+.logia .nexa .x { color: var(--red); }
+.logia .nexa small { display: inline; letter-spacing: .35em; font-size: 9px; color: #8b95ba; margin-left: 2px; }
+
+.logia .socials { display: flex; gap: 12px; margin-top: 16px; }
+.logia .socials a {
+  width:           38px;
+  height:          38px;
+  border:          1px solid rgba(255,255,255,.15);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  transition:      0.2s;
+}
+.logia .socials a:hover { background: var(--blue); border-color: var(--blue); }
+
+.logia .foot-bottom {
+  border-top:      1px solid rgba(255,255,255,.07);
+  padding-top:     24px;
+  display:         flex;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             10px;
+}
+.logia .foot-bottom p { font-size: 13px; }
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .logia .nav-menu:not(.open),
+  .logia .nav-cta { display: none; }
+  .logia .burger { display: flex; }
+  .logia .hero .container,
+  .logia .about .container { grid-template-columns: 1fr; }
+  .logia .speaker-grid { grid-template-columns: repeat(2,1fr); }
+  .logia .track-grid,
+  .logia .exp-grid,
+  .logia .news-grid { grid-template-columns: 1fr; }
+  .logia .num-grid { grid-template-columns: repeat(2,1fr); gap: 36px; }
+  .logia .sponsor-grid { grid-template-columns: repeat(2,1fr); }
+  .logia .foot-grid { grid-template-columns: 1fr 1fr; }
+  .logia .hero-decor-chev { display: none; }
+  .logia .sched-row { grid-template-columns: 90px 1fr; gap: 12px; }
+  .logia .sched-tag { grid-column: 2; }
+}
+
+@media (max-width: 520px) {
+  .logia .speaker-grid { grid-template-columns: 1fr; }
+  .logia .num-grid { grid-template-columns: 1fr; }
+  .logia .foot-grid { grid-template-columns: 1fr; }
+  .logia .countdown { gap: 6px; }
+}
