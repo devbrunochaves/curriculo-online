@@ -408,7 +408,6 @@ export default function LogIA() {
             ].map((s, i) => (
               <div key={i} className="sponsor reveal">
                 <img src={`/logia/img/${s.file}`} alt={s.label} onError={imgErr} />
-                <span>{s.label}</span>
               </div>
             ))}
           </div>
