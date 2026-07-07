@@ -431,7 +431,6 @@ export default function LogIA() {
                 <small>Realização</small>
                 <div className="nexa">
                   <img className="nexa-img" src="/logia/img/LOGO-NEXA.png" alt="NEXA Logtech" onError={imgErr} />
-                  <span>NE<span className="x">X</span>A <small>LOGTECH</small></span>
                 </div>
               </div>
               <div className="socials">
