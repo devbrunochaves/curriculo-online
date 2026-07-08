@@ -16,7 +16,7 @@ export default function ListaCompras() {
       .from('shopping_items')
       .select('*')
       .order('is_done', { ascending: true })
-      .order('created_at', { ascending: false })
+      .order('name', { ascending: true })
     setItems(data || [])
     setLoading(false)
   }, [])
@@ -48,7 +48,13 @@ export default function ListaCompras() {
       .from('shopping_items')
       .update({ is_done: !item.is_done })
       .eq('id', item.id)
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_done: !i.is_done } : i))
+    setItems(prev => {
+      const updated = prev.map(i => i.id === item.id ? { ...i, is_done: !i.is_done } : i)
+      return [...updated].sort((a, b) => {
+        if (a.is_done !== b.is_done) return a.is_done ? 1 : -1
+        return a.name.localeCompare(b.name, 'pt-BR')
+      })
+    })
   }
 
   async function deleteItem(id) {
