@@ -198,21 +198,22 @@ export default function Layout({ session, children }) {
             onMouseEnter={handleGroupEnter}
             onMouseLeave={handleGroupLeave}
           >
-            {/* Trigger — alinhado com .c-sidebar-nav a (padding: 10px 20px, border-left) */}
-            <button
-              onClick={() => isMobile && setContasOpen(o => !o)}
+            {/* Trigger — div evita estilos padrão de <button> que conflitam no mobile */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setContasOpen(o => !o)}
+              onKeyDown={e => e.key === 'Enter' && setContasOpen(o => !o)}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,
                 padding: '10px 20px',
-                background: isContasActive ? 'var(--c-sidebar-active-bg, rgba(99,102,241,.15))' : 'transparent',
-                color: isContasActive ? '#fff' : 'var(--c-sidebar-text, #94a3b8)',
+                background: isContasActive ? 'rgba(99,102,241,.15)' : 'transparent',
+                color: isContasActive ? '#fff' : '#94a3b8',
                 fontWeight: 500, fontSize: '13.5px', textAlign: 'left',
-                borderTop: 'none', borderRight: 'none', borderBottom: 'none',
-                borderLeft: isContasActive
-                  ? '3px solid var(--c-sidebar-active, #6366f1)'
-                  : '3px solid transparent',
+                borderLeft: isContasActive ? '3px solid #6366f1' : '3px solid transparent',
                 cursor: 'pointer',
                 transition: 'all 0.15s',
+                userSelect: 'none',
               }}
               onMouseEnter={e => {
                 if (!isContasActive) {
@@ -222,7 +223,7 @@ export default function Layout({ session, children }) {
               }}
               onMouseLeave={e => {
                 if (!isContasActive) {
-                  e.currentTarget.style.color = ''
+                  e.currentTarget.style.color = '#94a3b8'
                   e.currentTarget.style.background = 'transparent'
                 }
               }}
@@ -240,7 +241,7 @@ export default function Layout({ session, children }) {
                   : <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.17 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" />
                 }
               </svg>
-            </button>
+            </div>
 
             {/* Accordion mobile — sempre montado para transição suave */}
             <div style={{
