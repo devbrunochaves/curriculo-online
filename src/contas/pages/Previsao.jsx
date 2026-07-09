@@ -6,80 +6,105 @@ import { ptBR } from 'date-fns/locale'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
+const AVATAR_COLORS = ['#6366f1','#ec4899','#f97316','#8b5cf6','#10b981','#3b82f6','#f59e0b','#06b6d4']
+
 export default function Previsao() {
-  const [months, setMonths]     = useState(6)
-  const [data, setData]         = useState([])
-  const [cards, setCards]       = useState([])
-  const [income, setIncome]     = useState([])
-  const [loading, setLoading]   = useState(true)
-  // currentRef é definido no cliente após montagem — nunca no servidor
+  const [months, setMonths]   = useState(6)
+  const [data, setData]       = useState([])
+  const [loading, setLoading] = useState(true)
+  const [openKeys, setOpenKeys] = useState(new Set())
   const [currentRef, setCurrentRef] = useState('')
 
-  useEffect(() => {
-    setCurrentRef(format(new Date(), 'yyyy-MM'))
-  }, [])
+  useEffect(() => { setCurrentRef(format(new Date(), 'yyyy-MM')) }, [])
 
   const load = useCallback(async () => {
-    // Usa window para forçar execução exclusivamente no browser
     const today = new Date(typeof window !== 'undefined' ? Date.now() : undefined)
     const start = startOfMonth(today)
     setCurrentRef(format(today, 'yyyy-MM'))
     setLoading(true)
+
     const monthRefs = Array.from({ length: months + 1 }, (_, i) =>
       format(addMonths(start, i), 'yyyy-MM')
     )
 
-    const [{ data: expenses }, { data: cardsData }, { data: incomeData }] = await Promise.all([
+    const [{ data: expenses }, { data: billEntries }, { data: incomeData }] = await Promise.all([
       supabase
         .from('expenses')
-        .select('*, card:cards(*), category:categories(*), splits:expense_splits(*, person:people(*))')
+        .select('*, card:cards(*), splits:expense_splits(*, person:people(*))')
         .in('month_ref', monthRefs)
         .order('month_ref'),
-      supabase.from('cards').select('*').eq('is_active', true),
+      supabase
+        .from('bill_entries')
+        .select('*, amount, bill:recurring_bills(name, person_id), splits:bill_entry_splits(*, person:people(*))')
+        .in('month_ref', monthRefs),
       supabase.from('income').select('*').in('month_ref', monthRefs),
     ])
 
-    // Agrupar por mês
     const grouped = monthRefs.map(mRef => {
-      const exps    = (expenses || []).filter(e => e.month_ref === mRef)
-      const inc     = (incomeData || []).filter(r => r.month_ref === mRef)
-      const total   = exps.reduce((s, e) => s + Number(e.total_amount), 0)
-      const entrada = inc.reduce((s, r) => s + Number(r.amount), 0)
+      const exps  = (expenses    || []).filter(e => e.month_ref === mRef)
+      const bills = (billEntries || []).filter(b => b.month_ref === mRef)
+      const inc   = (incomeData  || []).filter(r => r.month_ref === mRef)
 
-      // Por cartão
-      const byCard = {}
-      exps.forEach(e => {
-        if (!e.card) return
-        if (!byCard[e.card.id]) byCard[e.card.id] = { ...e.card, total: 0, items: [] }
-        byCard[e.card.id].total += Number(e.total_amount)
-        byCard[e.card.id].items.push(e)
-      })
+      const totalExp   = exps.reduce((s, e)  => s + Number(e.total_amount), 0)
+      const totalBills = bills.reduce((s, b) => s + Number(b.amount), 0)
+      const total      = totalExp + totalBills
+      const entrada    = inc.reduce((s, r)   => s + Number(r.amount), 0)
 
-      // Por pessoa
+      // byPerson: { [id]: { ...person, total, fixasTotal, byCard: { [cardId]: {...card, total} } } }
       const byPerson = {}
+
+      // 1. Despesas por cartão, via expense_splits
       exps.forEach(e => {
         e.splits?.forEach(s => {
-          if (!byPerson[s.person.id]) byPerson[s.person.id] = { ...s.person, total: 0 }
-          byPerson[s.person.id].total += Number(s.amount)
+          const pid = s.person.id
+          if (!byPerson[pid]) byPerson[pid] = { ...s.person, total: 0, fixasTotal: 0, byCard: {} }
+          byPerson[pid].total += Number(s.amount)
+          if (e.card) {
+            const cid = e.card.id
+            if (!byPerson[pid].byCard[cid]) byPerson[pid].byCard[cid] = { ...e.card, total: 0 }
+            byPerson[pid].byCard[cid].total += Number(s.amount)
+          }
         })
       })
 
-      const isCurrent  = mRef === format(today, 'yyyy-MM')
+      // 2. Contas fixas via bill_entry_splits (ou person_id do template)
+      bills.forEach(b => {
+        const amt = Number(b.amount)
+        if (b.splits?.length > 0) {
+          b.splits.forEach(s => {
+            const pid = s.person.id
+            if (!byPerson[pid]) byPerson[pid] = { ...s.person, total: 0, fixasTotal: 0, byCard: {} }
+            byPerson[pid].total      += Number(s.amount)
+            byPerson[pid].fixasTotal += Number(s.amount)
+          })
+        } else if (b.bill?.person_id) {
+          const pid = b.bill.person_id
+          if (!byPerson[pid]) byPerson[pid] = { id: pid, name: '—', color: null, total: 0, fixasTotal: 0, byCard: {} }
+          byPerson[pid].total      += amt
+          byPerson[pid].fixasTotal += amt
+        }
+      })
 
       return {
-        mRef, total, entrada, exps, byCard: Object.values(byCard).sort((a, b) => b.total - a.total),
+        mRef, total, entrada, expsCount: exps.length,
+        isCurrent: mRef === format(today, 'yyyy-MM'),
         byPerson: Object.values(byPerson).sort((a, b) => b.total - a.total),
-        isCurrent
       }
     })
 
     setData(grouped)
-    setCards(cardsData || [])
-    setIncome(incomeData || [])
     setLoading(false)
   }, [months])
 
   useEffect(() => { load() }, [load])
+
+  function toggleKey(key) {
+    setOpenKeys(prev => {
+      const next = new Set(prev)
+      next.has(key) ? next.delete(key) : next.add(key)
+      return next
+    })
+  }
 
   if (loading) return (
     <div className="c-loading-screen" style={{ height: '60vh' }}>
@@ -91,6 +116,7 @@ export default function Previsao() {
 
   return (
     <div>
+      {/* ── Header ── */}
       <div className="c-flex c-items-center c-justify-between c-mb-4">
         <div className="c-page-header" style={{ margin: 0 }}>
           <h2>📆 Previsão</h2>
@@ -99,126 +125,214 @@ export default function Previsao() {
         <div className="c-flex c-items-center c-gap-2">
           <span className="c-text-muted c-text-sm">Mostrar</span>
           {[3, 6, 9].map(n => (
-            <button key={n} className={`c-btn c-btn-sm ${months === n ? 'c-btn-primary' : 'c-btn-secondary'}`} onClick={() => setMonths(n)}>
+            <button
+              key={n}
+              className={`c-btn c-btn-sm ${months === n ? 'c-btn-primary' : 'c-btn-secondary'}`}
+              onClick={() => setMonths(n)}
+            >
               {n} meses
             </button>
           ))}
         </div>
       </div>
 
-      {/* Legenda */}
-      <div className="c-flex c-gap-3 c-mb-4">
-        <div className="c-flex c-items-center c-gap-2 c-text-sm c-text-muted">
-          <div style={{ width: 12, height: 12, borderRadius: 2, background: '#dbeafe' }} /> Mês atual
-        </div>
-        <div className="c-flex c-items-center c-gap-2 c-text-sm c-text-muted">
-          <div style={{ width: 12, height: 12, borderRadius: 2, background: '#f0fdf4' }} /> Próximos meses
-        </div>
-      </div>
-
+      {/* ── Month cards ── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {data.map(m => {
-          const bg     = m.isCurrent ? '#eff6ff' : '#f0fdf4'
-          const border = m.isCurrent ? '#bfdbfe' : '#bbf7d0'
-          const saldo  = m.entrada - m.total
+          const saldo = m.entrada - m.total
 
           return (
-            <div key={m.mRef} style={{ border: `2px solid ${border}`, borderRadius: 12, background: bg, overflow: 'hidden' }}>
-              {/* Header do mês */}
-              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div
+              key={m.mRef}
+              style={{
+                border: m.isCurrent ? '2px solid #6366f1' : '1px solid var(--c-border)',
+                borderRadius: 14,
+                background: 'var(--c-surface)',
+                overflow: 'hidden',
+                boxShadow: m.isCurrent ? '0 0 0 4px rgba(99,102,241,.07)' : 'none',
+              }}
+            >
+              {/* Month header */}
+              <div style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid var(--c-border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 16, textTransform: 'capitalize', color: '#0f172a' }}>
-                    {m.isCurrent && <span style={{ fontSize: 11, background: '#6366f1', color: '#fff', padding: '2px 8px', borderRadius: 99, marginRight: 8, fontWeight: 600 }}>MÊS ATUAL</span>}
-                    {format(parseISO(m.mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    {m.isCurrent && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, letterSpacing: '.7px',
+                        textTransform: 'uppercase', color: '#6366f1',
+                        background: 'rgba(99,102,241,.1)', border: '1px solid rgba(99,102,241,.25)',
+                        padding: '2px 8px', borderRadius: 99,
+                      }}>
+                        MÊS ATUAL
+                      </span>
+                    )}
+                    <span style={{ fontSize: 16, fontWeight: 700, textTransform: 'capitalize' }}>
+                      {format(parseISO(m.mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })}
+                    </span>
                   </div>
-                  <div className="c-text-sm c-text-muted">{m.exps.length} lançamentos</div>
+                  <div className="c-text-sm c-text-muted" style={{ marginTop: 3 }}>
+                    {m.expsCount} lançamento{m.expsCount !== 1 ? 's' : ''}
+                  </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: m.total > 0 ? '#ef4444' : '#94a3b8' }}>{fmt(m.total)}</div>
+                  <div style={{
+                    fontSize: 20, fontWeight: 800, letterSpacing: '-.5px',
+                    color: m.total > 0 ? '#ef4444' : 'var(--c-text-muted)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>
+                    {fmt(m.total)}
+                  </div>
                   {m.entrada > 0 && (
-                    <div style={{ fontSize: 12, color: saldo >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>
-                      Entradas: {fmt(m.entrada)} · Saldo: {fmt(saldo)}
+                    <div style={{ fontSize: 12, fontWeight: 600, marginTop: 2, color: saldo >= 0 ? '#10b981' : '#ef4444' }}>
+                      saldo: {fmt(saldo)}
                     </div>
                   )}
                 </div>
               </div>
 
-              {m.total > 0 && (
-                <div style={{ padding: '14px 20px' }}>
-                  <div className="c-grid-2" style={{ gap: 20 }}>
-                    {/* Por cartão */}
-                    <div>
-                      <div className="c-section-title">Por Cartão</div>
-                      {m.byCard.map(c => (
-                        <div key={c.id} style={{ marginBottom: 10 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span className="c-dot" style={{ background: c.color }} />
-                              <span style={{ fontSize: 13, fontWeight: 500 }}>{c.name}</span>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                              <span style={{ fontWeight: 700, fontSize: 13 }}>{fmt(c.total)}</span>
-                              {c.limit_amount && (
-                                <span className="c-text-muted c-text-sm"> / {fmt(c.limit_amount)}</span>
-                              )}
-                            </div>
-                          </div>
-                          {c.limit_amount && (
-                            <div className="c-progress-bar">
-                              <div className="c-progress-fill" style={{
-                                width: `${Math.min((c.total / c.limit_amount) * 100, 100)}%`,
-                                background: (c.total / c.limit_amount) >= 1 ? '#ef4444'
-                                  : (c.total / c.limit_amount) >= 0.8 ? '#f59e0b' : c.color
-                              }} />
-                            </div>
+              {/* Person accordions */}
+              {m.byPerson.length === 0 ? (
+                <div style={{ padding: 20, textAlign: 'center', color: 'var(--c-text-muted)', fontSize: 13 }}>
+                  Nenhum lançamento para este mês
+                </div>
+              ) : (
+                m.byPerson.map((p, idx) => {
+                  const key       = `${m.mRef}-${p.id}`
+                  const isOpen    = openKeys.has(key)
+                  const cardList  = Object.values(p.byCard).sort((a, b) => b.total - a.total)
+                  const hasFixas  = p.fixasTotal > 0
+                  const hasCards  = cardList.length > 0
+                  const color     = p.color || AVATAR_COLORS[idx % AVATAR_COLORS.length]
+                  const isLast    = idx === m.byPerson.length - 1
+
+                  const subtitle = [
+                    hasCards && `${cardList.length} cartão${cardList.length !== 1 ? 'ões' : ''}`,
+                    hasFixas && 'contas fixas',
+                  ].filter(Boolean).join(' · ') || 'sem detalhes'
+
+                  return (
+                    <div key={p.id} style={{ borderBottom: isLast ? 'none' : '1px solid var(--c-border)' }}>
+                      {/* Accordion trigger */}
+                      <button
+                        onClick={() => toggleKey(key)}
+                        style={{
+                          width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', gap: 14,
+                          padding: '13px 20px', color: 'var(--c-text)', textAlign: 'left',
+                          transition: 'background .15s',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,.05)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                      >
+                        {/* Avatar */}
+                        <div style={{
+                          width: 36, height: 36, borderRadius: '50%', background: color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 800, fontSize: 14, color: '#fff', flexShrink: 0,
+                        }}>
+                          {p.name?.[0]?.toUpperCase()}
+                        </div>
+
+                        {/* Info */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 15, fontWeight: 600 }}>{p.name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 1 }}>{subtitle}</div>
+                        </div>
+
+                        {/* Amount */}
+                        <span style={{
+                          fontSize: 16, fontWeight: 700, color: '#ef4444',
+                          fontVariantNumeric: 'tabular-nums', marginRight: 6,
+                        }}>
+                          {fmt(p.total)}
+                        </span>
+
+                        {/* Chevron */}
+                        <svg
+                          width="18" height="18" viewBox="0 0 20 20" fill="currentColor"
+                          style={{
+                            color: 'var(--c-text-muted)', flexShrink: 0,
+                            transition: 'transform .22s cubic-bezier(.4,0,.2,1)',
+                            transform: isOpen ? 'rotate(180deg)' : 'none',
+                          }}
+                        >
+                          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" />
+                        </svg>
+                      </button>
+
+                      {/* Accordion body */}
+                      {isOpen && (
+                        <div style={{ padding: '2px 20px 14px 70px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                          {hasFixas && (
+                            <>
+                              <div style={{
+                                fontSize: 10, fontWeight: 700, letterSpacing: '.7px',
+                                textTransform: 'uppercase', color: 'var(--c-text-muted)',
+                                marginTop: 8, marginBottom: 4,
+                              }}>
+                                Contas Fixas
+                              </div>
+                              <DetailRow icon="🏠" label="Contas fixas do mês" amount={fmt(p.fixasTotal)} muted />
+                            </>
+                          )}
+
+                          {hasCards && (
+                            <>
+                              <div style={{
+                                fontSize: 10, fontWeight: 700, letterSpacing: '.7px',
+                                textTransform: 'uppercase', color: 'var(--c-text-muted)',
+                                marginTop: hasFixas ? 8 : 6, marginBottom: 4,
+                              }}>
+                                Cartões
+                              </div>
+                              {cardList.map(c => (
+                                <DetailRow
+                                  key={c.id}
+                                  icon="💳"
+                                  label={c.name}
+                                  dot={c.color}
+                                  amount={fmt(c.total)}
+                                />
+                              ))}
+                            </>
                           )}
                         </div>
-                      ))}
+                      )}
                     </div>
-
-                    {/* Por pessoa */}
-                    <div>
-                      <div className="c-section-title">Por Pessoa</div>
-                      {m.byPerson.length === 0
-                        ? <div className="c-text-muted c-text-sm">Sem divisão registrada</div>
-                        : m.byPerson.map(p => (
-                          <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span className="c-dot" style={{ background: p.color }} />
-                              <span style={{ fontSize: 13 }}>{p.name}</span>
-                            </div>
-                            <span style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{fmt(p.total)}</span>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  </div>
-
-                  {/* Parcelas futuras destacadas */}
-                  {m.exps.some(e => /\d+\/\d+/.test(e.description)) && (
-                    <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)' }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Parcelas neste mês</div>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {m.exps.filter(e => /\d+\/\d+/.test(e.description)).map(e => (
-                          <div key={e.id} style={{ padding: '3px 10px', borderRadius: 6, background: '#e0e7ff', color: '#4338ca', fontSize: 12, fontWeight: 600 }}>
-                            {e.description} · {fmt(e.total_amount)}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {m.total === 0 && (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
-                  Nenhum lançamento para este mês ainda
-                </div>
+                  )
+                })
               )}
             </div>
           )
         })}
       </div>
+    </div>
+  )
+}
+
+function DetailRow({ icon, label, dot, amount, muted }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '9px 12px', borderRadius: 9,
+      background: 'var(--c-bg)', border: '1px solid var(--c-border)',
+    }}>
+      <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>
+        {dot && <span className="c-dot" style={{ background: dot, flexShrink: 0 }} />}
+        <span style={{ fontSize: 13, fontWeight: 500 }}>{label}</span>
+      </div>
+      <span style={{
+        fontSize: 13, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+        color: muted ? 'var(--c-text-muted)' : 'var(--c-text)',
+        flexShrink: 0,
+      }}>
+        {amount}
+      </span>
     </div>
   )
 }
