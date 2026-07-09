@@ -210,7 +210,7 @@ export default function Previsao() {
                   const isLast    = idx === m.byPerson.length - 1
 
                   const subtitle = [
-                    hasCards && `${cardList.length} cartão${cardList.length !== 1 ? 'ões' : ''}`,
+                    hasCards && `${cardList.length} ${cardList.length !== 1 ? 'cartões' : 'cartão'}`,
                     hasFixas && 'contas fixas',
                   ].filter(Boolean).join(' · ') || 'sem detalhes'
 
