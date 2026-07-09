@@ -245,7 +245,7 @@ export default function Previsao() {
 
                         {/* Amount */}
                         <span style={{
-                          fontSize: 16, fontWeight: 700, color: '#ef4444',
+                          fontSize: 16, fontWeight: 700, color: '#10b981',
                           fontVariantNumeric: 'tabular-nums', marginRight: 6,
                         }}>
                           {fmt(p.total)}
