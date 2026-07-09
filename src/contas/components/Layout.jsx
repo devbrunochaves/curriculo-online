@@ -29,20 +29,45 @@ const bottomNavItems = [
 
 const allNavItems = [...topNavItems, ...contasGroup, ...bottomNavItems]
 
+// Item do flyout com hover via estado local
+function FlyoutLink({ item, onClick }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <NavLink
+      to={item.to}
+      onClick={onClick}
+      style={({ isActive }) => ({
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '8px 12px', borderRadius: 8,
+        fontSize: 13, fontWeight: 500, textDecoration: 'none',
+        color: isActive ? '#a5b4fc' : hovered ? '#c7d2fe' : '#94a3b8',
+        background: isActive ? 'rgba(99,102,241,.18)' : hovered ? 'rgba(99,102,241,.1)' : 'transparent',
+        transition: 'background .13s, color .13s',
+        position: 'relative',
+      })}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span style={{ fontSize: 15, width: 20, textAlign: 'center', flexShrink: 0 }}>{item.icon}</span>
+      {item.label}
+    </NavLink>
+  )
+}
+
 export default function Layout({ session, children }) {
   const navigate  = useNavigate()
   const location  = useLocation()
-  const [open, setOpen]               = useState(false)
-  const [contasOpen, setContasOpen]   = useState(false)
+  const [open, setOpen]                   = useState(false)
+  const [contasOpen, setContasOpen]       = useState(false)
   const [flyoutVisible, setFlyoutVisible] = useState(false)
-  const [flyoutTop, setFlyoutTop]     = useState(0)
-  const [isMobile, setIsMobile]       = useState(false)
+  const [flyoutTop, setFlyoutTop]         = useState(0)
+  const [isMobile, setIsMobile]           = useState(false)
 
   const sidebarRef  = useRef(null)
   const groupRef    = useRef(null)
   const flyoutTimer = useRef(null)
 
-  // Detecta mobile
+  // Detecta breakpoint mobile
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
     setIsMobile(mq.matches)
@@ -51,16 +76,16 @@ export default function Layout({ session, children }) {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  // Fecha o menu ao navegar
+  // Fecha drawer ao navegar
   useEffect(() => { setOpen(false) }, [location.pathname])
 
-  // Impede scroll do body quando menu está aberto no mobile
+  // Trava scroll do body quando drawer está aberto
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [open])
 
-  // Abre accordion automaticamente se estiver em uma página do grupo Contas
+  // Abre accordion se estiver em rota do grupo
   const isContasActive = contasGroup.some(item => location.pathname.startsWith(item.to))
   useEffect(() => {
     if (isContasActive) setContasOpen(true)
@@ -71,26 +96,21 @@ export default function Layout({ session, children }) {
     navigate('/contas/login')
   }
 
-  // ── Flyout desktop ──
+  // Flyout desktop
   function handleGroupEnter() {
     if (isMobile) return
     clearTimeout(flyoutTimer.current)
-    if (groupRef.current && sidebarRef.current) {
-      const groupRect   = groupRef.current.getBoundingClientRect()
-      setFlyoutTop(groupRect.top)
+    if (groupRef.current) {
+      const rect = groupRef.current.getBoundingClientRect()
+      setFlyoutTop(rect.top)
     }
     setFlyoutVisible(true)
   }
-
   function handleGroupLeave() {
     if (isMobile) return
     flyoutTimer.current = setTimeout(() => setFlyoutVisible(false), 120)
   }
-
-  function handleFlyoutEnter() {
-    clearTimeout(flyoutTimer.current)
-  }
-
+  function handleFlyoutEnter() { clearTimeout(flyoutTimer.current) }
   function handleFlyoutLeave() {
     flyoutTimer.current = setTimeout(() => setFlyoutVisible(false), 120)
   }
@@ -108,8 +128,7 @@ export default function Layout({ session, children }) {
   const isAcertos     = location.pathname.startsWith('/contas/acertos')
   const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude || isAcertos
 
-  // Sidebar width para posicionar o flyout
-  const sidebarWidth = sidebarRef.current?.getBoundingClientRect().right ?? 240
+  const sidebarRight = sidebarRef.current?.getBoundingClientRect().right ?? 244
 
   return (
     <div className="c-app-shell">
@@ -132,7 +151,7 @@ export default function Layout({ session, children }) {
         {hideFab && <div style={{ width: 40 }} />}
       </div>
 
-      {/* ── Overlay backdrop ── */}
+      {/* ── Backdrop mobile ── */}
       {open && <div className="c-sidebar-backdrop" onClick={() => setOpen(false)} />}
 
       {/* ── Sidebar ── */}
@@ -142,7 +161,7 @@ export default function Layout({ session, children }) {
           <span>Controle Financeiro</span>
         </div>
 
-        {/* ── Botão Nova Compra ── */}
+        {/* Botão Nova Compra */}
         <div style={{ padding: '0 16px 12px' }}>
           <button
             onClick={() => navigate('/contas/nova')}
@@ -152,8 +171,7 @@ export default function Layout({ session, children }) {
               color: '#fff', fontWeight: 700, fontSize: 14,
               border: 'none', cursor: 'pointer', display: 'flex',
               alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: '0 2px 8px rgba(99,102,241,.35)',
-              transition: 'opacity .2s',
+              boxShadow: '0 2px 8px rgba(99,102,241,.35)', transition: 'opacity .2s',
             }}
             onMouseEnter={e => e.currentTarget.style.opacity = '.88'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -163,40 +181,37 @@ export default function Layout({ session, children }) {
         </div>
 
         <nav className="c-sidebar-nav">
-          {/* ── Itens superiores ── */}
+          {/* Itens normais superiores */}
           {topNavItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => isActive ? 'active' : ''}
-            >
+            <NavLink key={item.to} to={item.to} end={item.end}
+              className={({ isActive }) => isActive ? 'active' : ''}>
               <span className="c-nav-icon">{item.icon}</span>
               {item.label}
             </NavLink>
           ))}
 
-          {/* ── Grupo CONTAS ── */}
-          <div style={{ margin: '6px 0 2px', height: 1, background: 'rgba(255,255,255,.06)' }} />
+          {/* Divisor */}
+          <div style={{ margin: '6px 4px', height: 1, background: 'rgba(255,255,255,.07)' }} />
 
+          {/* Grupo Contas */}
           <div
             ref={groupRef}
             onMouseEnter={handleGroupEnter}
             onMouseLeave={handleGroupLeave}
           >
-            {/* Trigger */}
             <button
               onClick={() => isMobile && setContasOpen(o => !o)}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 12px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                padding: '9px 12px', borderRadius: 8, border: 'none',
+                cursor: isMobile ? 'pointer' : 'default',
                 background: isContasActive ? 'rgba(99,102,241,.15)' : 'transparent',
-                color: isContasActive ? '#a5b4fc' : 'var(--c-nav-text, #94a3b8)',
+                color: isContasActive ? '#a5b4fc' : '#94a3b8',
                 fontWeight: 600, fontSize: 13, textAlign: 'left',
                 transition: 'background .14s, color .14s',
                 position: 'relative',
               }}
-              onMouseEnter={e => { if (!isContasActive) e.currentTarget.style.background = 'rgba(99,102,241,.08)' }}
+              onMouseEnter={e => { if (!isContasActive && !isMobile) e.currentTarget.style.background = 'rgba(99,102,241,.08)' }}
               onMouseLeave={e => { if (!isContasActive) e.currentTarget.style.background = 'transparent' }}
             >
               {isContasActive && (
@@ -207,30 +222,26 @@ export default function Layout({ session, children }) {
               )}
               <span className="c-nav-icon">💳</span>
               <span style={{ flex: 1 }}>Contas</span>
-              {/* Chevron — só visível no mobile */}
-              <svg
-                width="14" height="14" viewBox="0 0 20 20" fill="currentColor"
+              {/* Seta: para baixo no mobile, para a direita no desktop */}
+              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"
                 style={{
-                  display: isMobile ? 'block' : 'none',
-                  color: '#64748b', flexShrink: 0,
+                  color: isContasActive ? '#818cf8' : '#64748b', flexShrink: 0,
                   transition: 'transform .2s',
-                  transform: contasOpen ? 'rotate(180deg)' : 'none',
-                }}
-              >
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" />
+                  transform: isMobile && contasOpen ? 'rotate(180deg)' : 'none',
+                }}>
+                {isMobile
+                  ? <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" />
+                  : <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.17 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" />
+                }
               </svg>
             </button>
 
-            {/* Accordion (mobile) */}
+            {/* Accordion mobile */}
             {isMobile && contasOpen && (
-              <div style={{ paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 1, marginBottom: 4 }}>
+              <div style={{ paddingLeft: 12, paddingBottom: 4, display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {contasGroup.map(item => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={({ isActive }) => isActive ? 'active' : ''}
-                    style={{ fontSize: 13 }}
-                  >
+                  <NavLink key={item.to} to={item.to}
+                    className={({ isActive }) => isActive ? 'active' : ''}>
                     <span className="c-nav-icon">{item.icon}</span>
                     {item.label}
                   </NavLink>
@@ -239,15 +250,13 @@ export default function Layout({ session, children }) {
             )}
           </div>
 
-          <div style={{ margin: '2px 0 6px', height: 1, background: 'rgba(255,255,255,.06)' }} />
+          {/* Divisor */}
+          <div style={{ margin: '6px 4px', height: 1, background: 'rgba(255,255,255,.07)' }} />
 
-          {/* ── Itens inferiores ── */}
+          {/* Itens inferiores */}
           {bottomNavItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => isActive ? 'active' : ''}
-            >
+            <NavLink key={item.to} to={item.to}
+              className={({ isActive }) => isActive ? 'active' : ''}>
               <span className="c-nav-icon">{item.icon}</span>
               {item.label}
             </NavLink>
@@ -260,22 +269,23 @@ export default function Layout({ session, children }) {
         </div>
       </aside>
 
-      {/* ── Flyout desktop (fora do sidebar para evitar clipping) ── */}
+      {/* ── Flyout desktop — posicionado com fixed para não ser cortado pelo sidebar ── */}
       {!isMobile && flyoutVisible && (
         <div
           onMouseEnter={handleFlyoutEnter}
           onMouseLeave={handleFlyoutLeave}
           style={{
             position: 'fixed',
-            left: sidebarWidth + 4,
+            left: sidebarRight + 6,
             top: flyoutTop,
             zIndex: 500,
-            background: 'var(--c-surface, #161d2e)',
-            border: '1px solid var(--c-border, #1e2a40)',
+            /* Cores fixas dark para o flyout sempre combinar com o sidebar */
+            background: '#1a1f2e',
+            border: '1px solid #2a3047',
             borderRadius: 12,
             padding: '6px',
-            minWidth: 200,
-            boxShadow: '0 8px 32px rgba(0,0,0,.4)',
+            minWidth: 210,
+            boxShadow: '0 8px 32px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3)',
             display: 'flex',
             flexDirection: 'column',
             gap: 1,
@@ -283,22 +293,13 @@ export default function Layout({ session, children }) {
         >
           <div style={{
             fontSize: 9, fontWeight: 700, letterSpacing: '.9px',
-            textTransform: 'uppercase', color: '#475569',
+            textTransform: 'uppercase', color: '#374151',
             padding: '4px 10px 6px',
           }}>
             Contas
           </div>
           {contasGroup.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setFlyoutVisible(false)}
-              className={({ isActive }) => isActive ? 'active' : ''}
-              style={{ borderRadius: 8, fontSize: 13 }}
-            >
-              <span className="c-nav-icon">{item.icon}</span>
-              {item.label}
-            </NavLink>
+            <FlyoutLink key={item.to} item={item} onClick={() => setFlyoutVisible(false)} />
           ))}
         </div>
       )}
