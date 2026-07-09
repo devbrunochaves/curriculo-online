@@ -101,8 +101,10 @@ export default function Layout({ session, children }) {
     if (isMobile) return
     clearTimeout(flyoutTimer.current)
     if (groupRef.current) {
-      const rect = groupRef.current.getBoundingClientRect()
-      setFlyoutTop(rect.top)
+      const rect              = groupRef.current.getBoundingClientRect()
+      const estimatedHeight   = contasGroup.length * 37 + 44 // itens + header + padding
+      const maxTop            = window.innerHeight - estimatedHeight - 8
+      setFlyoutTop(Math.max(8, Math.min(rect.top, maxTop)))
     }
     setFlyoutVisible(true)
   }
@@ -285,6 +287,8 @@ export default function Layout({ session, children }) {
             borderRadius: 12,
             padding: '6px',
             minWidth: 210,
+            maxHeight: 'calc(100vh - 16px)',
+            overflowY: 'auto',
             boxShadow: '0 8px 32px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.3)',
             display: 'flex',
             flexDirection: 'column',
