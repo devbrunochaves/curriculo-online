@@ -192,43 +192,47 @@ export default function Layout({ session, children }) {
             </NavLink>
           ))}
 
-          {/* Divisor */}
-          <div style={{ margin: '6px 4px', height: 1, background: 'rgba(255,255,255,.07)' }} />
-
           {/* Grupo Contas */}
           <div
             ref={groupRef}
             onMouseEnter={handleGroupEnter}
             onMouseLeave={handleGroupLeave}
           >
+            {/* Trigger — alinhado com .c-sidebar-nav a (padding: 10px 20px, border-left) */}
             <button
               onClick={() => isMobile && setContasOpen(o => !o)}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 12px', borderRadius: 8, border: 'none',
-                cursor: isMobile ? 'pointer' : 'default',
-                background: isContasActive ? 'rgba(99,102,241,.15)' : 'transparent',
-                color: isContasActive ? '#a5b4fc' : '#94a3b8',
-                fontWeight: 600, fontSize: 13, textAlign: 'left',
-                transition: 'background .14s, color .14s',
-                position: 'relative',
+                padding: '10px 20px',
+                background: isContasActive ? 'var(--c-sidebar-active-bg, rgba(99,102,241,.15))' : 'transparent',
+                color: isContasActive ? '#fff' : 'var(--c-sidebar-text, #94a3b8)',
+                fontWeight: 500, fontSize: '13.5px', textAlign: 'left',
+                borderTop: 'none', borderRight: 'none', borderBottom: 'none',
+                borderLeft: isContasActive
+                  ? '3px solid var(--c-sidebar-active, #6366f1)'
+                  : '3px solid transparent',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
               }}
-              onMouseEnter={e => { if (!isContasActive && !isMobile) e.currentTarget.style.background = 'rgba(99,102,241,.08)' }}
-              onMouseLeave={e => { if (!isContasActive) e.currentTarget.style.background = 'transparent' }}
+              onMouseEnter={e => {
+                if (!isContasActive) {
+                  e.currentTarget.style.color = '#fff'
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+                }
+              }}
+              onMouseLeave={e => {
+                if (!isContasActive) {
+                  e.currentTarget.style.color = ''
+                  e.currentTarget.style.background = 'transparent'
+                }
+              }}
             >
-              {isContasActive && (
-                <span style={{
-                  position: 'absolute', left: 0, top: 6, bottom: 6,
-                  width: 3, background: '#6366f1', borderRadius: '0 3px 3px 0',
-                }} />
-              )}
               <span className="c-nav-icon">💳</span>
               <span style={{ flex: 1 }}>Contas</span>
-              {/* Seta: para baixo no mobile, para a direita no desktop */}
               <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"
                 style={{
-                  color: isContasActive ? '#818cf8' : '#64748b', flexShrink: 0,
-                  transition: 'transform .2s',
+                  opacity: .45, flexShrink: 0, marginRight: 4,
+                  transition: 'transform .3s cubic-bezier(.4,0,.2,1)',
                   transform: isMobile && contasOpen ? 'rotate(180deg)' : 'none',
                 }}>
                 {isMobile
@@ -238,22 +242,26 @@ export default function Layout({ session, children }) {
               </svg>
             </button>
 
-            {/* Accordion mobile */}
-            {isMobile && contasOpen && (
-              <div style={{ paddingLeft: 12, paddingBottom: 4, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {/* Accordion mobile — sempre montado para transição suave */}
+            <div style={{
+              overflow: 'hidden',
+              maxHeight: isMobile && contasOpen ? '400px' : '0',
+              opacity: isMobile && contasOpen ? 1 : 0,
+              transition: 'max-height .35s cubic-bezier(.4,0,.2,1), opacity .25s ease',
+            }}>
+              <div style={{ paddingBottom: 4 }}>
                 {contasGroup.map(item => (
                   <NavLink key={item.to} to={item.to}
-                    className={({ isActive }) => isActive ? 'active' : ''}>
+                    className={({ isActive }) => isActive ? 'active' : ''}
+                    style={{ paddingLeft: 44 }}
+                  >
                     <span className="c-nav-icon">{item.icon}</span>
                     {item.label}
                   </NavLink>
                 ))}
               </div>
-            )}
+            </div>
           </div>
-
-          {/* Divisor */}
-          <div style={{ margin: '6px 4px', height: 1, background: 'rgba(255,255,255,.07)' }} />
 
           {/* Itens inferiores */}
           {bottomNavItems.map(item => (
