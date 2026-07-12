@@ -1331,6 +1331,283 @@ function HistoricoTab({ pessoa }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   COMPOSIÇÃO CORPORAL TAB
+══════════════════════════════════════════════════════════════════════════ */
+function Stat({ label, value, color }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: color || 'var(--c-text)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+    </div>
+  )
+}
+
+function MiniChart({ data, color = '#6366f1', height = 56 }) {
+  if (!data || data.length < 2) return (
+    <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text-muted)', fontSize: 11 }}>
+      poucos dados
+    </div>
+  )
+  const min = Math.min(...data)
+  const max = Math.max(...data)
+  const range = max - min || 1
+  const W = 200, H = height, pad = 6
+  const pts = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * (W - pad * 2)
+    const y = pad + ((max - v) / range) * (H - pad * 2)
+    return `${x.toFixed(1)},${y.toFixed(1)}`
+  }).join(' ')
+  const lastV = data[data.length - 1]
+  const lx = W - pad
+  const ly = pad + ((max - lastV) / range) * (H - pad * 2)
+
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', overflow: 'visible' }}>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity=".85" />
+      <circle cx={lx} cy={ly} r="3.5" fill={color} />
+    </svg>
+  )
+}
+
+function MetricCard({ label, value, unit, data, color, refRange }) {
+  return (
+    <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 14, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.6px', color: 'var(--c-text-muted)' }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+        <span style={{ fontSize: 24, fontWeight: 800, color: color || 'var(--c-text)', fontVariantNumeric: 'tabular-nums' }}>{value ?? '—'}</span>
+        {unit && <span style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>{unit}</span>}
+      </div>
+      {refRange && <div style={{ fontSize: 11, color: refRange.color, fontWeight: 600 }}>{refRange.label}</div>}
+      <MiniChart data={data} color={color || '#6366f1'} />
+    </div>
+  )
+}
+
+function ComposicaoTab({ pessoa }) {
+  const [medicoes, setMedicoes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const emptyForm = {
+    data: '', hora: '', peso: '', imc: '', gordura_corporal: '',
+    massa_muscular: '', massa_muscular_esqueletica: '', massa_gorda: '',
+    agua_corporal: '', massa_proteica: '', minerais: '',
+    gordura_visceral: '', idade_corporal: '', taxa_metabolica_basal: '', observacoes: '',
+  }
+  const [form, setForm] = useState(emptyForm)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('saude_medicoes')
+      .select('*')
+      .eq('pessoa_id', pessoa.id)
+      .order('data', { ascending: false })
+    setMedicoes(data || [])
+    setLoading(false)
+  }, [pessoa.id])
+
+  useEffect(() => { load() }, [load])
+
+  function openNew() {
+    setForm({ ...emptyForm, data: format(new Date(), 'yyyy-MM-dd') })
+    setShowForm(true)
+  }
+
+  async function handleSave() {
+    if (!form.data) return alert('Data é obrigatória.')
+    setSaving(true)
+    try {
+      const num = (v) => v !== '' ? Number(v) : null
+      const payload = {
+        pessoa_id: pessoa.id,
+        data: form.data,
+        hora: form.hora || null,
+        peso: num(form.peso), imc: num(form.imc),
+        gordura_corporal: num(form.gordura_corporal),
+        massa_muscular: num(form.massa_muscular),
+        massa_muscular_esqueletica: num(form.massa_muscular_esqueletica),
+        massa_gorda: num(form.massa_gorda),
+        agua_corporal: num(form.agua_corporal),
+        massa_proteica: num(form.massa_proteica),
+        minerais: num(form.minerais),
+        gordura_visceral: num(form.gordura_visceral),
+        idade_corporal: num(form.idade_corporal),
+        taxa_metabolica_basal: num(form.taxa_metabolica_basal),
+        observacoes: form.observacoes || null,
+      }
+      const { error } = await supabase.from('saude_medicoes').insert(payload)
+      if (error) throw error
+      setShowForm(false)
+      await load()
+    } catch (err) { alert(err.message) } finally { setSaving(false) }
+  }
+
+  async function handleDelete(id) {
+    if (!confirm('Excluir esta medição?')) return
+    await supabase.from('saude_medicoes').delete().eq('id', id)
+    setMedicoes(prev => prev.filter(m => m.id !== id))
+  }
+
+  const chartData = [...medicoes].reverse()
+  const getVals = f => chartData.filter(m => m[f] != null).map(m => Number(m[f]))
+  const latest = medicoes[0]
+
+  function imcRef(v) {
+    if (v == null) return null
+    if (v < 18.5) return { label: '⬇ Abaixo do peso', color: '#3b82f6' }
+    if (v < 25)   return { label: '✓ Peso normal', color: '#10b981' }
+    if (v < 30)   return { label: '⬆ Sobrepeso', color: '#f59e0b' }
+    return { label: '⬆ Obesidade', color: '#ef4444' }
+  }
+
+  function gorduraRef(v) {
+    if (v == null) return null
+    if (v < 10)  return { label: '⬇ Abaixo', color: '#3b82f6' }
+    if (v < 25)  return { label: '✓ Normal', color: '#10b981' }
+    if (v < 32)  return { label: '⬆ Acima', color: '#f59e0b' }
+    return { label: '⬆ Muito acima', color: '#ef4444' }
+  }
+
+  const F = ({ label, field, placeholder, step = '0.1', type = 'number' }) => (
+    <div className="c-form-group">
+      <label className="c-form-label">{label}</label>
+      <input className="c-form-input" type={type} step={step} value={form[field]}
+        onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} />
+    </div>
+  )
+
+  if (loading) return <Loading />
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div>
+          <h3 style={{ margin: 0, fontWeight: 700 }}>⚖️ Composição Corporal</h3>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--c-text-muted)' }}>
+            {medicoes.length} {medicoes.length === 1 ? 'medição registrada' : 'medições registradas'}
+          </p>
+        </div>
+        <button className="c-btn c-btn-primary" onClick={openNew}>+ Medição</button>
+      </div>
+
+      {medicoes.length === 0 ? (
+        <EmptyState icon="⚖️" title="Nenhuma medição" desc="Adicione uma medição para acompanhar a evolução da composição corporal." />
+      ) : (
+        <>
+          {latest && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(99,102,241,.1), rgba(168,85,247,.07))',
+              border: '1.5px solid rgba(99,102,241,.25)',
+              borderRadius: 16, padding: '16px 20px', marginBottom: 20,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.5px', color: '#6366f1', marginBottom: 10 }}>
+                Última Medição — {fmtDate(latest.data)}
+              </div>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                {latest.peso != null && <Stat label="Peso" value={`${latest.peso} kg`} />}
+                {latest.imc != null && <Stat label="IMC" value={latest.imc} />}
+                {latest.gordura_corporal != null && <Stat label="Gordura" value={`${latest.gordura_corporal}%`} color="#f97316" />}
+                {latest.massa_muscular != null && <Stat label="Músculo" value={`${latest.massa_muscular} kg`} color="#10b981" />}
+                {latest.agua_corporal != null && <Stat label="Água" value={`${latest.agua_corporal} kg`} color="#3b82f6" />}
+                {latest.gordura_visceral != null && <Stat label="Gordura visceral" value={latest.gordura_visceral} />}
+                {latest.idade_corporal != null && <Stat label="Idade corporal" value={`${latest.idade_corporal} anos`} />}
+                {latest.taxa_metabolica_basal != null && <Stat label="TMB" value={`${latest.taxa_metabolica_basal} kcal`} />}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 12, marginBottom: 28 }}>
+            <MetricCard label="Peso" value={latest?.peso} unit="kg" data={getVals('peso')} color="#6366f1" />
+            <MetricCard label="IMC" value={latest?.imc} data={getVals('imc')} color="#a855f7" refRange={imcRef(latest?.imc)} />
+            <MetricCard label="Gordura Corporal" value={latest?.gordura_corporal} unit="%" data={getVals('gordura_corporal')} color="#f97316" refRange={gorduraRef(latest?.gordura_corporal)} />
+            <MetricCard label="Massa Muscular" value={latest?.massa_muscular} unit="kg" data={getVals('massa_muscular')} color="#10b981" />
+            <MetricCard label="Musc. Esq." value={latest?.massa_muscular_esqueletica} unit="kg" data={getVals('massa_muscular_esqueletica')} color="#14b8a6" />
+            <MetricCard label="Massa Gorda" value={latest?.massa_gorda} unit="kg" data={getVals('massa_gorda')} color="#ef4444" />
+            <MetricCard label="Água Corporal" value={latest?.agua_corporal} unit="kg" data={getVals('agua_corporal')} color="#3b82f6" />
+            <MetricCard label="TMB" value={latest?.taxa_metabolica_basal} unit="kcal" data={getVals('taxa_metabolica_basal')} color="#f59e0b" />
+          </div>
+
+          <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 14 }}>Histórico de Medições</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {medicoes.map(m => (
+              <div key={m.id} style={{
+                background: 'var(--c-surface)', border: '1px solid var(--c-border)',
+                borderRadius: 12, padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: 12,
+              }}>
+                <div style={{ minWidth: 90, flexShrink: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{fmtDate(m.data)}</div>
+                  {m.hora && <div style={{ fontSize: 11, color: 'var(--c-text-muted)' }}>{m.hora.slice(0, 5)}</div>}
+                </div>
+                <div style={{ flex: 1, display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13 }}>
+                  {m.peso != null && <span><b>{m.peso}</b> <span style={{ color: 'var(--c-text-muted)' }}>kg</span></span>}
+                  {m.imc != null && <span>IMC <b>{m.imc}</b></span>}
+                  {m.gordura_corporal != null && <span style={{ color: '#f97316' }}>Gord. <b>{m.gordura_corporal}%</b></span>}
+                  {m.massa_muscular != null && <span style={{ color: '#10b981' }}>Musc. <b>{m.massa_muscular} kg</b></span>}
+                  {m.agua_corporal != null && <span style={{ color: '#3b82f6' }}>Água <b>{m.agua_corporal} kg</b></span>}
+                  {m.gordura_visceral != null && <span>Visc. <b>{m.gordura_visceral}</b></span>}
+                </div>
+                {m.observacoes && <div style={{ fontSize: 12, color: 'var(--c-text-muted)', maxWidth: 160, flexShrink: 0 }}>{m.observacoes}</div>}
+                <button
+                  onClick={() => handleDelete(m.id)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: 16, padding: '4px', borderRadius: 6, flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
+                >✕</button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {showForm && (
+        <ModalShell title="Nova Medição" onClose={() => setShowForm(false)} onSave={handleSave} saving={saving}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <div className="c-form-group">
+              <label className="c-form-label">Data *</label>
+              <input type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))} style={dateInputStyle} />
+            </div>
+            <div className="c-form-group">
+              <label className="c-form-label">Hora</label>
+              <input type="time" value={form.hora} onChange={e => setForm(f => ({ ...f, hora: e.target.value }))} style={dateInputStyle} />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <F label="Peso (kg)" field="peso" placeholder="110.8" />
+            <F label="IMC" field="imc" placeholder="27.7" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <F label="Gordura Corporal (%)" field="gordura_corporal" placeholder="22.8" />
+            <F label="Massa Muscular (kg)" field="massa_muscular" placeholder="49.2" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <F label="Musc. Esquelética (kg)" field="massa_muscular_esqueletica" placeholder="46.5" />
+            <F label="Massa Gorda (kg)" field="massa_gorda" placeholder="25.3" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <F label="Água Corporal (kg)" field="agua_corporal" placeholder="62.6" />
+            <F label="Massa Proteica (kg)" field="massa_proteica" placeholder="16.8" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <F label="Minerais (kg)" field="minerais" placeholder="4.2" />
+            <F label="Gordura Visceral" field="gordura_visceral" placeholder="10" step="1" />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
+            <F label="Idade Corporal (anos)" field="idade_corporal" placeholder="35" step="1" />
+            <F label="TMB (kcal)" field="taxa_metabolica_basal" placeholder="2050" step="1" />
+          </div>
+          <div className="c-form-group">
+            <label className="c-form-label">Observações</label>
+            <textarea className="c-form-textarea" value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} placeholder="Ex: em jejum, pós-viagem..." />
+          </div>
+        </ModalShell>
+      )}
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    PESSOA DETAIL
 ══════════════════════════════════════════════════════════════════════════ */
 function PessoaDetail({ pessoa, onBack, onUpdated }) {
@@ -1347,6 +1624,7 @@ function PessoaDetail({ pessoa, onBack, onUpdated }) {
 
   const tabs = [
     ['resumo', '📊 Resumo'],
+    ['composicao', '⚖️ Composição'],
     ['consultas', '🏥 Consultas'],
     ['exames', '🧪 Exames'],
     ['medicamentos', '💊 Medicamentos'],
@@ -1418,6 +1696,7 @@ function PessoaDetail({ pessoa, onBack, onUpdated }) {
       </div>
 
       {tab === 'resumo' && <ResumoTab pessoa={pessoa} onEdit={() => setShowEditForm(true)} />}
+      {tab === 'composicao' && <ComposicaoTab pessoa={pessoa} />}
       {tab === 'consultas' && <ConsultasTab pessoa={pessoa} />}
       {tab === 'exames' && <ExamesTab pessoa={pessoa} />}
       {tab === 'medicamentos' && <MedicamentosTab pessoa={pessoa} />}
