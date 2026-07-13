@@ -285,6 +285,7 @@ function initApp() {
   ]
 
   let _suggMatches=[]
+  let _listModalSk=''
 
   let S={
     equip:{equipamentos:[],manutencao:[],concluidos:[],naoConformes:[],compras:[]},
@@ -475,10 +476,10 @@ function initApp() {
     const hasData=m||c||nc||cp
     return `
     <div class="kpi-grid">
-      <div class="kpi red kpi-link" onclick="renderEquip('manutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">clique para ver →</div></div>
-      <div class="kpi green kpi-link" onclick="renderEquip('concluidos')" title="Ver Concluídos"><div class="kpi-label">Concluídos</div><div class="kpi-value">${c}</div><div class="kpi-sub">clique para ver →</div></div>
-      <div class="kpi orange kpi-link" onclick="renderEquip('naoConformes')" title="Ver Não Conformes"><div class="kpi-label">Não Conformes</div><div class="kpi-value">${nc}</div><div class="kpi-sub">clique para ver →</div></div>
-      <div class="kpi navy kpi-link" onclick="renderEquip('compras')" title="Ver Compras"><div class="kpi-label">Compras</div><div class="kpi-value">${cp}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi red kpi-link" onclick="openListModal('Em Manutenção','equip.manutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi green kpi-link" onclick="openListModal('Concluídos','equip.concluidos')" title="Ver Concluídos"><div class="kpi-label">Concluídos</div><div class="kpi-value">${c}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi orange kpi-link" onclick="openListModal('Não Conformes','equip.naoConformes')" title="Ver Não Conformes"><div class="kpi-label">Não Conformes</div><div class="kpi-value">${nc}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi navy kpi-link" onclick="openListModal('Compras','equip.compras')" title="Ver Compras"><div class="kpi-label">Compras</div><div class="kpi-value">${cp}</div><div class="kpi-sub">clique para ver →</div></div>
       <div class="kpi navy"><div class="kpi-label">Valor Total</div><div class="kpi-value" style="font-size:17px">${tv.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
     </div>
     <div class="charts-grid">
@@ -530,10 +531,10 @@ function initApp() {
     const hasData=m||p
     return `
     <div class="kpi-grid">
-      <div class="kpi red kpi-link" onclick="renderLiq('emManutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">clique para ver →</div></div>
-      <div class="kpi green kpi-link" onclick="renderLiq('prontos')" title="Ver Prontos"><div class="kpi-label">Prontos</div><div class="kpi-value">${p}</div><div class="kpi-sub">clique para ver →</div></div>
-      <div class="kpi navy kpi-link" onclick="renderLiq('emManutencao')" title="Ver Tec Ramos"><div class="kpi-label">Tec Ramos</div><div class="kpi-value">${tr}</div><div class="kpi-sub">em manutenção</div></div>
-      <div class="kpi orange kpi-link" onclick="renderLiq('emManutencao')" title="Ver StarTec"><div class="kpi-label">StarTec</div><div class="kpi-value">${st}</div><div class="kpi-sub">em manutenção</div></div>
+      <div class="kpi red kpi-link" onclick="openListModal('Em Manutenção','liq.emManutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi green kpi-link" onclick="openListModal('Prontos','liq.prontos')" title="Ver Prontos"><div class="kpi-label">Prontos</div><div class="kpi-value">${p}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi navy kpi-link" onclick="openListModal('Tec Ramos — Em Manutenção','liq.emManutencao','fornecedor','Tec Ramos')" title="Ver Tec Ramos"><div class="kpi-label">Tec Ramos</div><div class="kpi-value">${tr}</div><div class="kpi-sub">em manutenção</div></div>
+      <div class="kpi orange kpi-link" onclick="openListModal('StarTec — Em Manutenção','liq.emManutencao','fornecedor','StarTec')" title="Ver StarTec"><div class="kpi-label">StarTec</div><div class="kpi-value">${st}</div><div class="kpi-sub">em manutenção</div></div>
       <div class="kpi navy"><div class="kpi-label">Valor Total</div><div class="kpi-value" style="font-size:17px">${tv.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
     </div>
     <div class="charts-grid">
@@ -608,7 +609,7 @@ function initApp() {
       <div class="kpi navy kpi-link" onclick="renderLoc('iso')" title="Ver por região"><div class="kpi-label">Liquidificadores</div><div class="kpi-value">${tl}</div><div class="kpi-sub">clique para ver →</div></div>
       <div class="kpi green kpi-link" onclick="renderLoc('iso')" title="Ver por região"><div class="kpi-label">Processadores</div><div class="kpi-value">${tp}</div><div class="kpi-sub">clique para ver →</div></div>
       <div class="kpi orange kpi-link" onclick="renderLoc('iso')" title="Ver por região"><div class="kpi-label">Caldeiras</div><div class="kpi-value">${tc}</div><div class="kpi-sub">clique para ver →</div></div>
-      <div class="kpi red kpi-link" onclick="renderLoc('manut')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${em}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi red kpi-link" onclick="openListModal('Em Manutenção','loc.emManutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${em}</div><div class="kpi-sub">clique para ver →</div></div>
     </div>
     <div class="charts-grid">
       <div class="chart-card"><h4>Distribuição por Tipo</h4><div class="chart-wrap">${hasData?'<canvas id="ch-loc-tp"></canvas>':noData()}</div></div>
@@ -762,9 +763,72 @@ function initApp() {
     const d=getD(sk),rec=idx!==null?d[idx]:{}
     document.getElementById('m-title').textContent=idx!==null?'Editar Registro':'Novo Registro'
     document.getElementById('m-body').innerHTML=buildForm(tk,rec)
+    // restaura footer e largura normais (caso venha do list modal)
+    const footer=document.querySelector('.mfooter')
+    if(footer)footer.innerHTML=`<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveRec()">💾 Salvar</button>`
+    document.querySelector('.modal').style.width=''
     document.getElementById('overlay').classList.add('open')
   }
-  function closeModal(){document.getElementById('overlay').classList.remove('open');editIdx=null;mCtx=null}
+  function closeModal(){
+    document.getElementById('overlay').classList.remove('open')
+    document.querySelector('.modal').style.width=''
+    editIdx=null;mCtx=null
+  }
+
+  // ─── Modal de listagem rápida (ao clicar nos cards KPI) ────────────────────
+  function openListModal(title,sk,filterKey,filterVal){
+    _listModalSk=sk
+    const tkMap={
+      'equip.manutencao':'equip-manutencao','equip.concluidos':'equip-concluidos',
+      'equip.naoConformes':'equip-naoConformes','equip.compras':'equip-compras',
+      'liq.emManutencao':'liq-emManutencao','liq.prontos':'liq-prontos',
+      'loc.emManutencao':'loc-manut'
+    }
+    const colMap={
+      'equip.manutencao':COLS_EQ_MAN,'equip.concluidos':COLS_EQ_CON,
+      'equip.naoConformes':COLS_EQ_NC,'equip.compras':COLS_EQ_CP,
+      'liq.emManutencao':COLS_LIQ_MAN,'liq.prontos':COLS_LIQ_PR,
+      'loc.emManutencao':COLS_LOC_MAN
+    }
+    const tk=tkMap[sk]||''
+    let data=getD(sk)
+    if(filterKey&&filterVal)data=data.filter(r=>r[filterKey]===filterVal)
+    const cols=(colMap[sk]||[]).filter(c=>!c.is).slice(0,6)
+    editIdx=null;mCtx=null
+    document.getElementById('m-title').textContent=`${title} — ${data.length} registro(s)`
+    let html=''
+    if(!data.length){
+      html=`<div style="text-align:center;padding:48px;color:#999;font-size:13px;flex-direction:column;display:flex;align-items:center;gap:10px"><span style="font-size:32px">📭</span>Nenhum registro encontrado.</div>`
+    }else{
+      html=`<div style="overflow-x:auto;max-height:460px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr>${cols.map(c=>`<th style="padding:9px 12px;background:#F4F5F7;text-align:left;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:#666;white-space:nowrap;border-bottom:2px solid #E2E2E2;position:sticky;top:0">${c.l}</th>`).join('')}
+          <th style="padding:9px 12px;background:#F4F5F7;border-bottom:2px solid #E2E2E2;position:sticky;top:0;width:70px"></th></tr></thead>
+          <tbody>${data.map((row,i)=>{
+            const realIdx=getD(sk).indexOf(row)>=0?getD(sk).indexOf(row):i
+            return`<tr onclick="openM('${tk}','${sk}',${realIdx})" style="cursor:pointer" onmouseover="this.style.background='#EEF3FB'" onmouseout="this.style.background=''">
+              ${cols.map(c=>`<td style="padding:9px 12px;border-bottom:1px solid #F0F0F0;white-space:nowrap;max-width:170px;overflow:hidden;text-overflow:ellipsis" title="${row[c.k]||''}">${c.b?badge(row[c.k]):c.m?fmtMoney(row[c.k]):c.d?fmtDate(row[c.k]):fmt(row[c.k])}</td>`).join('')}
+              <td style="padding:9px 12px;border-bottom:1px solid #F0F0F0;text-align:center"><span style="color:#1F4E79;font-size:11px;font-weight:700;white-space:nowrap">Editar ✏️</span></td>
+            </tr>`}).join('')}
+          </tbody>
+        </table>
+      </div>`
+    }
+    document.getElementById('m-body').innerHTML=html
+    const footer=document.querySelector('.mfooter')
+    if(footer)footer.innerHTML=`
+      <button class="btn btn-secondary" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-primary" onclick="goToListTab()" style="background:#1F4E79 !important">Ver aba completa →</button>`
+    document.querySelector('.modal').style.width='880px'
+    document.getElementById('overlay').classList.add('open')
+  }
+  function goToListTab(){
+    const p=_listModalSk.split('.')
+    closeModal()
+    if(p[0]==='equip')renderEquip(p[1])
+    else if(p[0]==='liq')renderLiq(p[1])
+    else if(p[0]==='loc')renderLoc(p[1]==='emManutencao'?'manut':p[1])
+  }
   async function saveRec(){
     const btnSave=document.querySelector('.mfooter .btn-primary')
     if(btnSave){btnSave.disabled=true;btnSave.textContent='Salvando...'}
@@ -895,6 +959,7 @@ function initApp() {
     delRec, exportCSV, getD,
     openAddCtx, lookupEquip, maskCurrency, changeEquipStatus,
     showNSerieSugg, hideNSerieSugg, selectNSerieSugg,
+    openListModal, goToListTab,
   })
 
   const ov=document.getElementById('overlay');if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeModal()})
@@ -926,7 +991,8 @@ export default function AlimentaresPage() {
     return () => {
       ;['setMod','renderEquip','renderLiq','renderLoc','openM','closeModal',
         'saveRec','delRec','exportCSV','getD','openAddCtx','lookupEquip','_curMod',
-        'showNSerieSugg','hideNSerieSugg','selectNSerieSugg','maskCurrency','changeEquipStatus'
+        'showNSerieSugg','hideNSerieSugg','selectNSerieSugg','maskCurrency','changeEquipStatus',
+        'openListModal','goToListTab'
       ].forEach(k=>{ try{delete window[k]}catch(e){} })
       initialized.current = false
     }
