@@ -126,6 +126,12 @@ body { opacity: 1 !important; animation: none !important; }
 .gab-app .status-sel:focus{outline:none;border-color:var(--g-red)}
 .gab-app .no-data{display:flex;align-items:center;justify-content:center;height:100%;color:var(--g-sub);font-size:11px;flex-direction:column;gap:6px}
 .gab-app .no-data span{font-size:24px}
+.gab-app .sugg-list{position:absolute;top:calc(100% + 2px);left:0;right:0;background:#fff;border:1px solid var(--g-border);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.13);z-index:10001;max-height:220px;overflow-y:auto}
+.gab-app .sugg-item{padding:8px 12px;cursor:pointer;border-bottom:1px solid #f4f4f4;transition:background .1s}
+.gab-app .sugg-item:last-child{border-bottom:none}
+.gab-app .sugg-item:hover{background:#EEF3FB}
+.gab-app .sugg-item strong{display:block;font-size:12.5px;color:var(--g-navy);font-weight:700}
+.gab-app .sugg-item span{font-size:11px;color:var(--g-sub)}
 .gab-app .content::-webkit-scrollbar{width:5px}
 .gab-app .content::-webkit-scrollbar-track{background:var(--g-bg)}
 .gab-app .content::-webkit-scrollbar-thumb{background:var(--g-navy2);border-radius:99px}
@@ -277,6 +283,8 @@ function initApp() {
     {k:'voltagem',l:'Voltagem'},{k:'dataEnvio',l:'Data Envio',d:1},
     {k:'localizacaoAtual',l:'Localização Atual',b:1},{k:'obs',l:'Obs.'}
   ]
+
+  let _suggMatches=[]
 
   let S={
     equip:{equipamentos:[],manutencao:[],concluidos:[],naoConformes:[],compras:[]},
@@ -699,6 +707,38 @@ function initApp() {
     if(REGIOES[tab])openM('loc-'+tab,'loc.'+tab,null)
   }
 
+  // ─── Autocomplete de série ──────────────────────────────────────────────────
+  function showNSerieSugg(el){
+    const q=(el.value||'').trim().toLowerCase()
+    const box=document.getElementById('nserie-sugg')
+    if(!box)return
+    if(!q){box.innerHTML='';box.style.display='none';return}
+    _suggMatches=S.equip.equipamentos.filter(e=>
+      (e.nSerie||'').toLowerCase().includes(q)||
+      (e.nPatrimonio||'').toLowerCase().includes(q)||
+      (e.modelo||'').toLowerCase().includes(q)||
+      (e.equipamento||'').toLowerCase().includes(q)
+    ).slice(0,8)
+    if(!_suggMatches.length){box.style.display='none';return}
+    box.innerHTML=_suggMatches.map((e,i)=>`
+      <div class="sugg-item" onmousedown="event.preventDefault()" onclick="selectNSerieSugg(${i})">
+        <strong>${e.nSerie||'—'}</strong>
+        <span>${[e.equipamento,e.modelo,e.nPatrimonio?'Pat.: '+e.nPatrimonio:''].filter(Boolean).join(' · ')}</span>
+      </div>`).join('')
+    box.style.display='block'
+  }
+  function hideNSerieSugg(){
+    const box=document.getElementById('nserie-sugg')
+    if(box)box.style.display='none'
+  }
+  function selectNSerieSugg(i){
+    const e=_suggMatches[i];if(!e)return
+    const inp=document.getElementById('lookup-nserie')
+    if(inp)inp.value=e.nSerie||''
+    hideNSerieSugg()
+    lookupEquip()
+  }
+
   // ─── Lookup de série ────────────────────────────────────────────────────────
   function lookupEquip(){
     const inp=document.getElementById('lookup-nserie'),msg=document.getElementById('lookup-msg')
@@ -779,9 +819,12 @@ function initApp() {
     if(tk==='equip-manutencao')return`<div class="fg">
       <div class="frow full" style="margin-bottom:4px">
         <label>Nº Série / Patrimônio</label>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" name="nSerie" id="lookup-nserie" value="${r.nSerie||''}" placeholder="Digite o Nº de Série..." style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupEquip()}">
-          <button type="button" onclick="lookupEquip()" style="padding:7px 12px;background:#1F4E79;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:15px;flex-shrink:0">🔍</button>
+        <div style="display:flex;gap:6px;align-items:flex-start">
+          <div style="position:relative;flex:1">
+            <input type="text" name="nSerie" id="lookup-nserie" value="${r.nSerie||''}" placeholder="Digite o Nº de Série para buscar..." style="width:100%" oninput="showNSerieSugg(this)" onblur="hideNSerieSugg()" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupEquip();hideNSerieSugg()}">
+            <div id="nserie-sugg" class="sugg-list" style="display:none"></div>
+          </div>
+          <button type="button" onclick="lookupEquip()" style="padding:7px 12px;background:#1F4E79;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:15px;flex-shrink:0;margin-top:1px">🔍</button>
         </div>
         <div id="lookup-msg" style="font-size:11px;margin-top:4px;min-height:16px"></div>
       </div>
@@ -851,6 +894,7 @@ function initApp() {
     openM, closeModal, saveRec,
     delRec, exportCSV, getD,
     openAddCtx, lookupEquip, maskCurrency, changeEquipStatus,
+    showNSerieSugg, hideNSerieSugg, selectNSerieSugg,
   })
 
   const ov=document.getElementById('overlay');if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeModal()})
@@ -881,7 +925,8 @@ export default function AlimentaresPage() {
     if (window.Chart && !initialized.current) handleChartLoad()
     return () => {
       ;['setMod','renderEquip','renderLiq','renderLoc','openM','closeModal',
-        'saveRec','delRec','exportCSV','getD','openAddCtx','lookupEquip','_curMod'
+        'saveRec','delRec','exportCSV','getD','openAddCtx','lookupEquip','_curMod',
+        'showNSerieSugg','hideNSerieSugg','selectNSerieSugg','maskCurrency','changeEquipStatus'
       ].forEach(k=>{ try{delete window[k]}catch(e){} })
       initialized.current = false
     }
