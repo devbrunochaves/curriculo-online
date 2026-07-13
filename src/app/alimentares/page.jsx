@@ -125,7 +125,8 @@ body { opacity: 1 !important; animation: none !important; }
 const SHELL = `
 <aside class="sb">
   <div class="sb-logo">
-    <h2>🏭 Plataforma Gabriela</h2>
+    <img src="/alimentares/logo.png" alt="Logo Gabriela" style="height:48px;width:auto;margin-bottom:10px;display:block">
+    <h2>Plataforma Gabriela</h2>
     <p>Sistema de Controle de Equipamentos</p>
   </div>
   <div class="sb-section">
@@ -623,7 +624,7 @@ function initApp() {
       <div class="frow full" style="margin-bottom:4px">
         <label>Nº Série / Patrimônio</label>
         <div style="display:flex;gap:6px;align-items:center">
-          <input type="text" name="nSerie" id="lookup-nserie" value="${r.nSerie||''}" placeholder="Digite o Nº de Série..." style="flex:1">
+          <input type="text" name="nSerie" id="lookup-nserie" value="${r.nSerie||''}" placeholder="Digite o Nº de Série..." style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();lookupEquip()}">
           <button type="button" onclick="lookupEquip()" style="padding:7px 12px;background:#1F4E79;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:15px;flex-shrink:0">🔍</button>
         </div>
         <div id="lookup-msg" style="font-size:11px;margin-top:4px;min-height:16px"></div>
