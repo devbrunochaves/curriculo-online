@@ -77,6 +77,8 @@ body { opacity: 1 !important; animation: none !important; }
 .gab-app th{background:var(--g-bg);padding:8px 11px;text-align:left;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--g-sub);white-space:nowrap;border-bottom:1px solid var(--g-border);position:sticky;top:0}
 .gab-app td{padding:8px 11px;border-bottom:1px solid #F0F0F0;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .gab-app tr:hover td{background:#FAFAFA}
+.gab-app tr.row-click{cursor:pointer}
+.gab-app tr.row-click:hover td{background:#EEF3FB;transition:background .12s}
 .gab-app .empty{text-align:center;padding:36px;color:var(--g-sub)}
 .gab-app .badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase}
 .gab-app .b-red{background:var(--g-red-light);color:var(--g-red)}
@@ -112,6 +114,8 @@ body { opacity: 1 !important; animation: none !important; }
 .gab-app .welcome .w-icon{font-size:52px}
 .gab-app .welcome h2{font-size:18px;font-weight:700;color:var(--g-text)}
 .gab-app .acts{display:flex;gap:4px}
+.gab-app .status-sel{border:1px solid var(--g-border);border-radius:6px;font-size:11px;font-weight:600;padding:3px 6px;cursor:pointer;background:#fff;color:var(--g-text);max-width:150px}
+.gab-app .status-sel:focus{outline:none;border-color:var(--g-red)}
 .gab-app .no-data{display:flex;align-items:center;justify-content:center;height:100%;color:var(--g-sub);font-size:11px;flex-direction:column;gap:6px}
 .gab-app .no-data span{font-size:24px}
 .gab-app .content::-webkit-scrollbar{width:5px}
@@ -209,7 +213,7 @@ function initApp() {
     {k:'equipamento',l:'Equipamento'},{k:'nSerie',l:'Nº Série/Pat.'},
     {k:'dataEnvio',l:'Data Envio',d:1},{k:'nOrcamento',l:'Nº Orçamento'},
     {k:'valor',l:'Valor (R$)',m:1},{k:'tipoServico',l:'Tipo Serviço'},
-    {k:'tipoManutencao',l:'Tipo Manut.'},{k:'status',l:'Status',b:1},
+    {k:'tipoManutencao',l:'Tipo Manut.'},{k:'status',l:'Status',is:1},
     {k:'dataSaida',l:'Data Saída',d:1},{k:'nNF',l:'Nº NF'},{k:'obs',l:'Obs.'}
   ]
   const COLS_EQ_CON=[
@@ -298,6 +302,14 @@ function initApp() {
   function setD(k,v){const p=k.split('.');let o=S;for(let i=0;i<p.length-1;i++)o=o[p[i]];o[p[p.length-1]]=v}
   function noData(){return`<div class="no-data"><span>📭</span>Nenhum dado ainda</div>`}
 
+  function maskCurrency(el){
+    let raw=el.value.replace(/\D/g,'')
+    if(!raw){el.value='';const h=document.getElementById(el.id+'_raw');if(h)h.value='';return}
+    const num=parseInt(raw)/100
+    el.value='R$ '+num.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})
+    const h=document.getElementById(el.id+'_raw');if(h)h.value=num.toFixed(2)
+  }
+
   function setMod(m){
     curMod=m;window._curMod=m
     document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'))
@@ -325,9 +337,18 @@ function initApp() {
     if(!rows.length){html+=`<tr><td colspan="${cols.length+1}" class="empty">Nenhum registro encontrado.</td></tr>`}
     else rows.forEach((row,i)=>{
       const ri=q?data.indexOf(row):i
-      html+=`<tr>${cols.map(c=>`<td title="${row[c.k]||''}">${c.b?badge(row[c.k]):c.m?fmtMoney(row[c.k]):c.d?fmtDate(row[c.k]):fmt(row[c.k])}</td>`).join('')}
-      <td><div class="acts">
-        <button class="btn btn-secondary btn-sm btn-icon" onclick='openM("${tabKey}","${sk}",${ri})' title="Editar">✏️</button>
+      html+=`<tr class="row-click" onclick="openM('${tabKey}','${sk}',${ri})">${cols.map(c=>{
+        if(c.is){
+          const opts=[...STATUS_EQ.map(s=>`<option value="${s}"${row[c.k]===s?' selected':''}>${s}</option>`),
+            `<option disabled>──────────</option>`,
+            `<option value="Concluído">✅ Concluído</option>`,
+            `<option value="Não Conforme">⚠️ Não Conforme</option>`
+          ].join('')
+          return `<td onclick="event.stopPropagation()"><select class="status-sel" onchange="changeEquipStatus('${sk}',${ri},this.value)">${opts}</select></td>`
+        }
+        return `<td title="${row[c.k]||''}">${c.b?badge(row[c.k]):c.m?fmtMoney(row[c.k]):c.d?fmtDate(row[c.k]):fmt(row[c.k])}</td>`
+      }).join('')}
+      <td onclick="event.stopPropagation()"><div class="acts">
         <button class="btn btn-sm btn-icon" style="background:#FEE;color:#C00;border:1px solid #FCC" onclick="delRec('${sk}',${ri})" title="Excluir">🗑️</button>
       </div></td></tr>`
     })
@@ -551,6 +572,30 @@ function initApp() {
     },50)
   }
 
+  // ─── Mudança de status com movimentação ────────────────────────────────────
+  function changeEquipStatus(sk, idx, newStatus){
+    if(!newStatus)return
+    const d=getD(sk)
+    const rec={...d[idx],status:newStatus}
+    if(sk==='equip.manutencao'){
+      if(newStatus==='Concluído'){
+        if(!confirm(`Mover "${rec.equipamento||'equipamento'}" para Concluídos?`)){setMod(curMod);return}
+        if(!rec.dataConclusao)rec.dataConclusao=new Date().toISOString().split('T')[0]
+        S.equip.manutencao.splice(idx,1)
+        S.equip.concluidos.push(rec)
+        saveS();renderEquip('concluidos');return
+      }
+      if(newStatus==='Não Conforme'){
+        if(!confirm(`Mover "${rec.equipamento||'equipamento'}" para Não Conformes?`)){setMod(curMod);return}
+        if(!rec.dataRetorno)rec.dataRetorno=new Date().toISOString().split('T')[0]
+        S.equip.manutencao.splice(idx,1)
+        S.equip.naoConformes.push(rec)
+        saveS();renderEquip('naoConformes');return
+      }
+    }
+    d[idx]=rec;setD(sk,d);saveS();setMod(curMod)
+  }
+
   // ─── Context de adição ──────────────────────────────────────────────────────
   function openAddCtx(mod,tab){
     const map={
@@ -611,6 +656,13 @@ function initApp() {
     if(t==='ta')return`<div class="frow full"><label>${l}</label><textarea name="${n}">${v}</textarea></div>`
     if(t==='date')return`<div class="frow"><label>${l}</label><input type="date" name="${n}" value="${v}"></div>`
     if(t==='num')return`<div class="frow"><label>${l}</label><input type="number" step="0.01" name="${n}" value="${v}" placeholder="0,00"></div>`
+    if(t==='money'){
+      const displayVal=v?'R$ '+parseFloat(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}):''
+      return`<div class="frow"><label>${l}</label>
+        <input type="text" id="money_${n}" oninput="maskCurrency(this)" value="${displayVal}" placeholder="R$ 0,00" style="ime-mode:disabled">
+        <input type="hidden" name="${n}" id="money_${n}_raw" value="${v}">
+      </div>`
+    }
     return`<div class="frow"><label>${l}</label><input type="text" name="${n}" value="${v}" placeholder="${l}"></div>`
   }
 
@@ -631,7 +683,7 @@ function initApp() {
       </div>
       ${F('equipamento','Tipo de Equipamento','sel',EQUIP_BALANCA,r)}
       ${F('dataEnvio','Data Envio Fornecedor','date',[],r)}${F('nOrcamento','Nº Orçamento','text',[],r)}
-      ${F('valor','Valor Orçamento (R$)','num',[],r)}${F('tipoServico','Tipo de Serviço','sel',TIPOS_SERV,r)}
+      ${F('valor','Valor Orçamento (R$)','money',[],r)}${F('tipoServico','Tipo de Serviço','sel',TIPOS_SERV,r)}
       ${F('tipoManutencao','Tipo de Manutenção','text',[],r)}${F('status','Status','sel',STATUS_EQ,r)}
       ${F('dataSaida','Data Saída Fornecedor','date',[],r)}${F('nNF','Nº NF','text',[],r)}
       ${F('obs','Observações','ta',[],r)}
@@ -639,21 +691,21 @@ function initApp() {
     if(tk==='equip-concluidos')return wrap(
       F('equipamento','Equipamento','sel',EQUIP_BALANCA,r)+F('nSerie','Nº Série/Patrimônio','text',[],r)+
       F('dataEnvio','Data Envio','date',[],r)+F('nOrcamento','Nº Orçamento','text',[],r)+
-      F('valor','Valor (R$)','num',[],r)+F('tipoServico','Tipo de Serviço','sel',TIPOS_SERV,r)+
+      F('valor','Valor (R$)','money',[],r)+F('tipoServico','Tipo de Serviço','sel',TIPOS_SERV,r)+
       F('tipoManutencao','Tipo de Manutenção','text',[],r)+F('nNF','Nº NF','text',[],r)+
       F('dataSaida','Data Saída','date',[],r)+F('dataConclusao','Data de Conclusão','date',[],r)+
       F('unidadeDestino','Unidade Destino','text',[],r)+F('obs','Observações','ta',[],r))
     if(tk==='equip-naoConformes')return wrap(
       F('equipamento','Equipamento','sel',EQUIP_BALANCA,r)+F('nSerie','Nº Série/Patrimônio','text',[],r)+
       F('dataEnvio','Data Envio','date',[],r)+F('nOrcamento','Nº Orçamento','text',[],r)+
-      F('valor','Valor (R$)','num',[],r)+F('tipoServico','Tipo de Serviço','sel',TIPOS_SERV,r)+
+      F('valor','Valor (R$)','money',[],r)+F('tipoServico','Tipo de Serviço','sel',TIPOS_SERV,r)+
       F('motivo','Motivo da Não Conformidade','text',[],r)+F('nNF','Nº NF','text',[],r)+
       F('dataRetorno','Data Retorno','date',[],r)+F('destinoFinal','Destino Final','sel',DESTINO_FINAL,r)+
       F('obs','Observações','ta',[],r))
     if(tk==='equip-compras')return wrap(
       F('equipamento','Equipamento','sel',EQUIP_BALANCA,r)+F('nSerie','Nº Série/Patrimônio','text',[],r)+
       F('fornecedor','Fornecedor','text',[],r)+F('dataPedido','Data do Pedido','date',[],r)+
-      F('nPedido','Nº do Pedido','text',[],r)+F('valor','Valor (R$)','num',[],r)+
+      F('nPedido','Nº do Pedido','text',[],r)+F('valor','Valor (R$)','money',[],r)+
       F('statusPedido','Status do Pedido','sel',['Aguardando','Em Trânsito','Recebido','Cancelado'],r)+
       F('dataRecebimento','Data de Recebimento','date',[],r)+F('nfCompra','NF de Compra','text',[],r)+
       F('unidadeDestino','Unidade Destino','text',[],r)+F('obs','Observações','ta',[],r))
@@ -661,7 +713,7 @@ function initApp() {
       F('tipo','Tipo de Equipamento','sel',EQUIP_LIQ,r)+F('nSerie','Nº Série/Patrimônio','text',[],r)+
       F('voltagem','Voltagem','sel',VOLTAGENS,r)+F('modelo','Modelo','text',[],r)+
       F('fornecedor','Fornecedor','sel',FORNS_LIQ,r)+F('dataEnvio','Data de Envio','date',[],r)+
-      F('nOS','Nº de OS','text',[],r)+F('valor','Valor do Orçamento (R$)','num',[],r)+
+      F('nOS','Nº de OS','text',[],r)+F('valor','Valor do Orçamento (R$)','money',[],r)+
       F('tipoManutencao','Tipo de Manutenção','text',[],r)+F('status','Status','sel',STATUS_LIQ,r)+
       F('dataRetirada','Data de Retirada','date',[],r)+F('unidadeDestino','Unidade Destino','text',[],r)+
       F('nNF','Nº da NF','text',[],r)+F('obs','Observações','ta',[],r))
@@ -669,7 +721,7 @@ function initApp() {
       F('tipo','Tipo de Equipamento','sel',EQUIP_LIQ,r)+F('nSerie','Nº Série/Patrimônio','text',[],r)+
       F('voltagem','Voltagem','sel',VOLTAGENS,r)+F('modelo','Modelo','text',[],r)+
       F('fornecedor','Fornecedor','sel',FORNS_LIQ,r)+F('nOS','Nº de OS','text',[],r)+
-      F('valor','Valor do Orçamento (R$)','num',[],r)+F('tipoManutencao','Tipo de Manutenção','text',[],r)+
+      F('valor','Valor do Orçamento (R$)','money',[],r)+F('tipoManutencao','Tipo de Manutenção','text',[],r)+
       F('dataRetirada','Data de Retirada','date',[],r)+F('unidadeDestino','Unidade Destino','text',[],r)+
       F('nNF','Nº da NF','text',[],r)+F('dataConclusao','Data de Conclusão','date',[],r)+
       F('obs','Observações','ta',[],r))
@@ -694,7 +746,7 @@ function initApp() {
     setMod, renderEquip, renderLiq, renderLoc,
     openM, closeModal, saveRec,
     delRec, exportCSV, getD,
-    openAddCtx, lookupEquip,
+    openAddCtx, lookupEquip, maskCurrency, changeEquipStatus,
   })
 
   loadS()
