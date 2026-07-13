@@ -125,7 +125,7 @@ body { opacity: 1 !important; animation: none !important; }
 const SHELL = `
 <aside class="sb">
   <div class="sb-logo">
-    <img src="/alimentares/logo.png" alt="Logo Gabriela" style="height:48px;width:auto;margin-bottom:10px;display:block">
+    <img src="/alimentares/logo.png" alt="Logo Gabriela" style="width:100%;height:auto;margin-bottom:10px;display:block">
     <h2>Plataforma Gabriela</h2>
     <p>Sistema de Controle de Equipamentos</p>
   </div>
