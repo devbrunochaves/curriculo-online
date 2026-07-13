@@ -374,6 +374,13 @@ function initApp() {
     if(m==='loc')renderLoc('overview')
   }
 
+  function refreshTab(){
+    if(curMod==='equip')renderEquip(curTab||'overview')
+    else if(curMod==='liq')renderLiq(curTab||'overview')
+    else if(curMod==='loc')renderLoc(curTab||'overview')
+    else if(curMod)setMod(curMod)
+  }
+
   async function delRec(sk,idx){
     if(!confirm('Excluir este registro?'))return
     const d=getD(sk)
@@ -381,7 +388,7 @@ function initApp() {
     try{
       if(id)await supabase.from('gab_registros').delete().eq('id',id)
       d.splice(idx,1);setD(sk,d)
-      atualizarRodape();setMod(curMod)
+      atualizarRodape();refreshTab()
     }catch(e){alert('Erro ao excluir: '+(e.message||'Verifique sua conexão'))}
   }
   function exportCSV(data,fn){
@@ -668,7 +675,7 @@ function initApp() {
     try{
       if(id)await supabase.from('gab_registros').update({dados:rec}).eq('id',id)
       d[idx]={...rec,_id:id};setD(sk,d)
-      atualizarRodape();setMod(curMod)
+      atualizarRodape();refreshTab()
     }catch(e){alert('Erro: '+e.message)}
   }
 
@@ -738,7 +745,9 @@ function initApp() {
         if(error)throw error
         d.push({...rec,_id:ins.id})
       }
-      setD(mCtx.sk,d);atualizarRodape();closeModal();setMod(curMod)
+      setD(mCtx.sk,d);atualizarRodape()
+      if(btnSave){btnSave.disabled=false;btnSave.innerHTML='💾 Salvar'}
+      closeModal();refreshTab()
     }catch(e){
       if(btnSave){btnSave.disabled=false;btnSave.innerHTML='💾 Salvar'}
       alert('Erro ao salvar: '+(e.message||'Verifique sua conexão'))
