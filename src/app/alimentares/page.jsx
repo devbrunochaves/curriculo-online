@@ -846,7 +846,13 @@ function initApp() {
 
   const ov=document.getElementById('overlay');if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeModal()})
   loadS().then(()=>{
-    // Dados carregados — nada a fazer aqui, o loadS já atualiza o rodapé
+    const content=document.getElementById('content')
+    if(content)content.innerHTML=`
+      <div class="welcome">
+        <div class="w-icon">📊</div>
+        <h2>Bem-vindo à Plataforma de Controle</h2>
+        <p>Selecione um módulo no menu lateral para começar</p>
+      </div>`
   })
 }
 
