@@ -1,6 +1,12 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import Script from 'next/script'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+)
 
 // ─── CSS isolado sob .gab-app (evita conflitos com globals.css / Tailwind) ───
 const CSS = `
@@ -57,6 +63,8 @@ body { opacity: 1 !important; animation: none !important; }
 .gab-app .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
 .gab-app .kpi{background:var(--g-surface);border:1px solid var(--g-border);border-radius:8px;padding:14px 16px;border-top:3px solid var(--g-border);transition:none;transform:none}
 .gab-app .kpi:hover{transform:none;box-shadow:none;border-color:var(--g-border)}
+.gab-app .kpi.kpi-link{cursor:pointer;transition:box-shadow .15s,transform .15s}
+.gab-app .kpi.kpi-link:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.10);border-color:var(--g-navy2)}
 .gab-app .kpi.red{border-top-color:var(--g-red)}.gab-app .kpi.navy{border-top-color:var(--g-navy)}.gab-app .kpi.green{border-top-color:var(--g-green)}.gab-app .kpi.orange{border-top-color:var(--g-orange)}
 .gab-app .kpi-label{font-size:10px;color:var(--g-sub);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .gab-app .kpi-value{font-size:26px;font-weight:700;margin:4px 0 0}
@@ -277,14 +285,61 @@ function initApp() {
   }
   let curMod=null,curTab=null,editIdx=null,mCtx=null
 
-  function loadS(){
-    const d=localStorage.getItem('gab-v2')
-    if(d)try{S=JSON.parse(d)}catch(e){}
-    if(!S.equip.equipamentos)S.equip.equipamentos=[]
+  // Mapeamento entre chaves do estado S e nomes de tabelas no Supabase
+  const TABELA_MAP={
+    'equip.equipamentos':'equip_cadastro',
+    'equip.manutencao':'equip_manutencao',
+    'equip.concluidos':'equip_concluidos',
+    'equip.naoConformes':'equip_nao_conformes',
+    'equip.compras':'equip_compras',
+    'liq.emManutencao':'liq_manutencao',
+    'liq.prontos':'liq_prontos',
+    'loc.iso':'loc_iso',
+    'loc.grandeVitoria':'loc_grande_vitoria',
+    'loc.cachoeira':'loc_cachoeira',
+    'loc.colatina':'loc_colatina',
+    'loc.linhares':'loc_linhares',
+    'loc.saoMateus':'loc_sao_mateus',
+    'loc.emManutencao':'loc_manutencao',
   }
-  function saveS(){
-    localStorage.setItem('gab-v2',JSON.stringify(S))
-    const el=document.getElementById('last-upd');if(el)el.textContent=new Date().toLocaleString('pt-BR')
+  const TABELA_SK=Object.fromEntries(Object.entries(TABELA_MAP).map(([k,v])=>[v,k]))
+  function skToTabela(sk){return TABELA_MAP[sk]||sk}
+
+  function resetS(){
+    S={
+      equip:{equipamentos:[],manutencao:[],concluidos:[],naoConformes:[],compras:[]},
+      liq:{emManutencao:[],prontos:[]},
+      loc:{iso:[],grandeVitoria:[],cachoeira:[],colatina:[],linhares:[],saoMateus:[],emManutencao:[]}
+    }
+  }
+
+  async function loadS(){
+    const content=document.getElementById('content')
+    if(content)content.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:200px;gap:10px;color:#666;flex-direction:column"><div style="font-size:28px">⏳</div><span>Carregando dados...</span></div>`
+    try{
+      const{data,error}=await supabase.from('gab_registros').select('*').order('created_at')
+      if(error)throw error
+      resetS()
+      data.forEach(row=>{
+        const sk=TABELA_SK[row.tabela]
+        if(!sk)return
+        const d=getD(sk)
+        d.push({...row.dados,_id:row.id})
+      })
+      atualizarRodape()
+    }catch(e){
+      console.error('Supabase loadS error:',e)
+      // Fallback: localStorage
+      const saved=localStorage.getItem('gab-v2')
+      if(saved)try{S=JSON.parse(saved)}catch(e2){}
+      if(!S.equip.equipamentos)S.equip.equipamentos=[]
+      if(content)content.innerHTML+=`<div style="background:#FFF3CD;border:1px solid #FFD700;border-radius:6px;padding:8px 12px;margin:10px;font-size:12px;color:#856404">⚠️ Sem conexão com banco — usando dados locais</div>`
+    }
+  }
+
+  function atualizarRodape(){
+    const el=document.getElementById('last-upd')
+    if(el)el.textContent=new Date().toLocaleString('pt-BR')
   }
 
   function fmt(v){return v||'—'}
@@ -319,14 +374,21 @@ function initApp() {
     if(m==='loc')renderLoc('overview')
   }
 
-  function delRec(sk,idx){
+  async function delRec(sk,idx){
     if(!confirm('Excluir este registro?'))return
-    const d=getD(sk);d.splice(idx,1);setD(sk,d);saveS();setMod(curMod)
+    const d=getD(sk)
+    const id=d[idx]?._id
+    try{
+      if(id)await supabase.from('gab_registros').delete().eq('id',id)
+      d.splice(idx,1);setD(sk,d)
+      atualizarRodape();setMod(curMod)
+    }catch(e){alert('Erro ao excluir: '+(e.message||'Verifique sua conexão'))}
   }
   function exportCSV(data,fn){
     if(!data.length)return alert('Sem dados para exportar.')
-    const k=Object.keys(data[0])
-    const csv=[k.join(';'),...data.map(r=>k.map(x=>'"'+(r[x]||'')+'"').join(';'))].join('\n')
+    const clean=data.map(({_id,...rest})=>rest)
+    const k=Object.keys(clean[0])
+    const csv=[k.join(';'),...clean.map(r=>k.map(x=>'"'+(r[x]||'')+'"').join(';'))].join('\n')
     const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,﻿'+encodeURIComponent(csv);a.download=fn;a.click()
   }
 
@@ -398,10 +460,10 @@ function initApp() {
     const hasData=m||c||nc||cp
     return `
     <div class="kpi-grid">
-      <div class="kpi red"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">aguardando</div></div>
-      <div class="kpi green"><div class="kpi-label">Concluídos</div><div class="kpi-value">${c}</div><div class="kpi-sub">finalizados</div></div>
-      <div class="kpi orange"><div class="kpi-label">Não Conformes</div><div class="kpi-value">${nc}</div><div class="kpi-sub">reprovados</div></div>
-      <div class="kpi navy"><div class="kpi-label">Compras</div><div class="kpi-value">${cp}</div><div class="kpi-sub">pedidos</div></div>
+      <div class="kpi red kpi-link" onclick="renderEquip('manutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi green kpi-link" onclick="renderEquip('concluidos')" title="Ver Concluídos"><div class="kpi-label">Concluídos</div><div class="kpi-value">${c}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi orange kpi-link" onclick="renderEquip('naoConformes')" title="Ver Não Conformes"><div class="kpi-label">Não Conformes</div><div class="kpi-value">${nc}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi navy kpi-link" onclick="renderEquip('compras')" title="Ver Compras"><div class="kpi-label">Compras</div><div class="kpi-value">${cp}</div><div class="kpi-sub">clique para ver →</div></div>
       <div class="kpi navy"><div class="kpi-label">Valor Total</div><div class="kpi-value" style="font-size:17px">${tv.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
     </div>
     <div class="charts-grid">
@@ -453,10 +515,10 @@ function initApp() {
     const hasData=m||p
     return `
     <div class="kpi-grid">
-      <div class="kpi red"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">em andamento</div></div>
-      <div class="kpi green"><div class="kpi-label">Prontos</div><div class="kpi-value">${p}</div><div class="kpi-sub">concluídos</div></div>
-      <div class="kpi navy"><div class="kpi-label">Tec Ramos</div><div class="kpi-value">${tr}</div><div class="kpi-sub">em manutenção</div></div>
-      <div class="kpi orange"><div class="kpi-label">StarTec</div><div class="kpi-value">${st}</div><div class="kpi-sub">em manutenção</div></div>
+      <div class="kpi red kpi-link" onclick="renderLiq('emManutencao')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${m}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi green kpi-link" onclick="renderLiq('prontos')" title="Ver Prontos"><div class="kpi-label">Prontos</div><div class="kpi-value">${p}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi navy kpi-link" onclick="renderLiq('emManutencao')" title="Ver Tec Ramos"><div class="kpi-label">Tec Ramos</div><div class="kpi-value">${tr}</div><div class="kpi-sub">em manutenção</div></div>
+      <div class="kpi orange kpi-link" onclick="renderLiq('emManutencao')" title="Ver StarTec"><div class="kpi-label">StarTec</div><div class="kpi-value">${st}</div><div class="kpi-sub">em manutenção</div></div>
       <div class="kpi navy"><div class="kpi-label">Valor Total</div><div class="kpi-value" style="font-size:17px">${tv.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
     </div>
     <div class="charts-grid">
@@ -528,10 +590,10 @@ function initApp() {
     return `
     <div class="kpi-grid">
       <div class="kpi navy"><div class="kpi-label">Total Equipamentos</div><div class="kpi-value">${tg}</div><div class="kpi-sub">em todas as unidades</div></div>
-      <div class="kpi navy"><div class="kpi-label">Liquidificadores</div><div class="kpi-value">${tl}</div></div>
-      <div class="kpi green"><div class="kpi-label">Processadores</div><div class="kpi-value">${tp}</div></div>
-      <div class="kpi orange"><div class="kpi-label">Caldeiras</div><div class="kpi-value">${tc}</div></div>
-      <div class="kpi red"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${em}</div></div>
+      <div class="kpi navy kpi-link" onclick="renderLoc('iso')" title="Ver por região"><div class="kpi-label">Liquidificadores</div><div class="kpi-value">${tl}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi green kpi-link" onclick="renderLoc('iso')" title="Ver por região"><div class="kpi-label">Processadores</div><div class="kpi-value">${tp}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi orange kpi-link" onclick="renderLoc('iso')" title="Ver por região"><div class="kpi-label">Caldeiras</div><div class="kpi-value">${tc}</div><div class="kpi-sub">clique para ver →</div></div>
+      <div class="kpi red kpi-link" onclick="renderLoc('manut')" title="Ver Em Manutenção"><div class="kpi-label">Em Manutenção</div><div class="kpi-value">${em}</div><div class="kpi-sub">clique para ver →</div></div>
     </div>
     <div class="charts-grid">
       <div class="chart-card"><h4>Distribuição por Tipo</h4><div class="chart-wrap">${hasData?'<canvas id="ch-loc-tp"></canvas>':noData()}</div></div>
@@ -573,27 +635,41 @@ function initApp() {
   }
 
   // ─── Mudança de status com movimentação ────────────────────────────────────
-  function changeEquipStatus(sk, idx, newStatus){
+  async function changeEquipStatus(sk,idx,newStatus){
     if(!newStatus)return
     const d=getD(sk)
+    const id=d[idx]?._id
     const rec={...d[idx],status:newStatus}
+    delete rec._id
     if(sk==='equip.manutencao'){
       if(newStatus==='Concluído'){
         if(!confirm(`Mover "${rec.equipamento||'equipamento'}" para Concluídos?`)){setMod(curMod);return}
         if(!rec.dataConclusao)rec.dataConclusao=new Date().toISOString().split('T')[0]
-        S.equip.manutencao.splice(idx,1)
-        S.equip.concluidos.push(rec)
-        saveS();renderEquip('concluidos');return
+        try{
+          if(id)await supabase.from('gab_registros').update({tabela:'equip_concluidos',dados:rec}).eq('id',id)
+          S.equip.manutencao.splice(idx,1)
+          S.equip.concluidos.push({...rec,_id:id})
+          atualizarRodape();renderEquip('concluidos')
+        }catch(e){alert('Erro: '+e.message)}
+        return
       }
       if(newStatus==='Não Conforme'){
         if(!confirm(`Mover "${rec.equipamento||'equipamento'}" para Não Conformes?`)){setMod(curMod);return}
         if(!rec.dataRetorno)rec.dataRetorno=new Date().toISOString().split('T')[0]
-        S.equip.manutencao.splice(idx,1)
-        S.equip.naoConformes.push(rec)
-        saveS();renderEquip('naoConformes');return
+        try{
+          if(id)await supabase.from('gab_registros').update({tabela:'equip_nao_conformes',dados:rec}).eq('id',id)
+          S.equip.manutencao.splice(idx,1)
+          S.equip.naoConformes.push({...rec,_id:id})
+          atualizarRodape();renderEquip('naoConformes')
+        }catch(e){alert('Erro: '+e.message)}
+        return
       }
     }
-    d[idx]=rec;setD(sk,d);saveS();setMod(curMod)
+    try{
+      if(id)await supabase.from('gab_registros').update({dados:rec}).eq('id',id)
+      d[idx]={...rec,_id:id};setD(sk,d)
+      atualizarRodape();setMod(curMod)
+    }catch(e){alert('Erro: '+e.message)}
   }
 
   // ─── Context de adição ──────────────────────────────────────────────────────
@@ -642,12 +718,31 @@ function initApp() {
     document.getElementById('overlay').classList.add('open')
   }
   function closeModal(){document.getElementById('overlay').classList.remove('open');editIdx=null;mCtx=null}
-  function saveRec(){
+  async function saveRec(){
+    const btnSave=document.querySelector('.mfooter .btn-primary')
+    if(btnSave){btnSave.disabled=true;btnSave.textContent='Salvando...'}
     const inputs=document.getElementById('m-body').querySelectorAll('input,select,textarea')
     const rec={};inputs.forEach(el=>{if(el.name)rec[el.name]=el.value})
+    const tabela=skToTabela(mCtx.sk)
     const d=getD(mCtx.sk)
-    if(editIdx!==null)d[editIdx]=rec;else d.push(rec)
-    setD(mCtx.sk,d);saveS();closeModal();setMod(curMod)
+    try{
+      if(editIdx!==null){
+        const id=d[editIdx]?._id
+        if(id){
+          const{error}=await supabase.from('gab_registros').update({dados:rec}).eq('id',id)
+          if(error)throw error
+        }
+        d[editIdx]={...rec,_id:id}
+      }else{
+        const{data:ins,error}=await supabase.from('gab_registros').insert({tabela,dados:rec}).select().single()
+        if(error)throw error
+        d.push({...rec,_id:ins.id})
+      }
+      setD(mCtx.sk,d);atualizarRodape();closeModal();setMod(curMod)
+    }catch(e){
+      if(btnSave){btnSave.disabled=false;btnSave.innerHTML='💾 Salvar'}
+      alert('Erro ao salvar: '+(e.message||'Verifique sua conexão'))
+    }
   }
 
   function F(n,l,t='text',opts=null,rec={}){
@@ -749,9 +844,10 @@ function initApp() {
     openAddCtx, lookupEquip, maskCurrency, changeEquipStatus,
   })
 
-  loadS()
-  const upd=document.getElementById('last-upd');if(upd)upd.textContent=new Date().toLocaleString('pt-BR')
   const ov=document.getElementById('overlay');if(ov)ov.addEventListener('click',function(e){if(e.target===this)closeModal()})
+  loadS().then(()=>{
+    // Dados carregados — nada a fazer aqui, o loadS já atualiza o rodapé
+  })
 }
 
 // ─── Componente React ─────────────────────────────────────────────────────────
