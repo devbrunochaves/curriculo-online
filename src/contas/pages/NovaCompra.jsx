@@ -6,6 +6,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 
 const fmt      = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
+const formatBRLInput = raw => {
+  const digits = String(raw).replace(/\D/g, '')
+  if (!digits) return ''
+  return (parseInt(digits, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 
 /**
  * Determina o month_ref de um lançamento considerando o fechamento do cartão.
@@ -69,10 +74,10 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
         const { data: exp } = await supabase.from('expenses').select('*, splits:expense_splits(*)').eq('id', editId).single()
         if (exp) {
           setDate(exp.date); setDesc(exp.description); setCardId(exp.card_id)
-          setCatId(exp.category_id || ''); setTotal(String(exp.total_amount).replace('.', ','))
+          setCatId(exp.category_id || ''); setTotal(formatBRLInput(String(Math.round(Number(exp.total_amount) * 100))))
           setIsFixed(exp.is_fixed); setNotes(exp.notes || '')
           const sp = {}
-          exp.splits?.forEach(s => { sp[s.person_id] = String(s.amount).replace('.', ',') })
+          exp.splits?.forEach(s => { sp[s.person_id] = formatBRLInput(String(Math.round(Number(s.amount) * 100))) })
           setSplits(sp)
         }
       }
@@ -144,9 +149,8 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
     const each = parseFloat((totalNum / sel.length).toFixed(2))
     const n = {}
     sel.forEach((id, i) => {
-      n[id] = i === sel.length - 1
-        ? (totalNum - each * (sel.length - 1)).toFixed(2).replace('.', ',')
-        : each.toFixed(2).replace('.', ',')
+      const v = i === sel.length - 1 ? totalNum - each * (sel.length - 1) : each
+      n[id] = formatBRLInput(String(Math.round(v * 100)))
     })
     setSplits(n)
   }
@@ -279,7 +283,12 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
           </div>
           <div className="c-form-group">
             <label className="c-form-label">Valor Total (R$)</label>
-            <input type="text" className="c-form-input" placeholder="0,00" value={total} onChange={e => setTotal(e.target.value)} required />
+            <input
+              type="text" inputMode="numeric" className="c-form-input"
+              placeholder="0,00" value={total}
+              onChange={e => setTotal(formatBRLInput(e.target.value))}
+              required
+            />
           </div>
         </div>
 
@@ -373,9 +382,12 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
                 <span className="c-dot" style={{ background: person.color }} />
                 <span style={{ flex: 1, fontWeight: 500, fontSize: 13.5 }}>{person.name}</span>
                 {isSel && (
-                  <input type="text" className="c-form-input" placeholder="0,00" value={splits[person.id]}
-                    onChange={e => setSplits(prev => ({ ...prev, [person.id]: e.target.value }))}
-                    style={{ width: 110, textAlign: 'right' }} />
+                  <input
+                    type="text" inputMode="numeric" className="c-form-input" placeholder="0,00"
+                    value={splits[person.id]}
+                    onChange={e => setSplits(prev => ({ ...prev, [person.id]: formatBRLInput(e.target.value) }))}
+                    style={{ width: 110, textAlign: 'right' }}
+                  />
                 )}
               </div>
             )
