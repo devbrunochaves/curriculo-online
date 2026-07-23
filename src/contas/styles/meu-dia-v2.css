@@ -31,7 +31,8 @@
 .contas-root .c-meudia-hero-copy {
   min-height: 252px;
   border-radius: var(--v2-radius-xl);
-  padding: clamp(var(--v2-space-6), 4vw, var(--v2-space-9));
+  box-sizing: border-box;
+  padding: clamp(var(--v2-space-6), 3vw, var(--v2-space-8));
 }
 
 .contas-root .c-meudia-eyebrow,
