@@ -5,8 +5,7 @@
 
 .contas-root .c-v2-app-shell {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: var(--v2-sidebar-width) minmax(0, 1fr);
+  display: block;
   background: var(--v2-color-bg);
   color: var(--v2-color-text);
   font-family: var(--v2-font-family-sans);
@@ -14,9 +13,12 @@
 }
 
 .contas-root .c-v2-sidebar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  width: var(--v2-sidebar-width);
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   gap: var(--v2-space-4);
@@ -262,6 +264,7 @@
 
 .contas-root .c-v2-main-shell {
   min-width: 0;
+  margin-left: var(--v2-sidebar-width);
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--v2-color-accent-subtle) 72%, transparent), transparent 34rem),
     var(--v2-color-bg);
@@ -361,6 +364,7 @@
 
   .contas-root .c-v2-main-shell {
     min-height: 100vh;
+    margin-left: 0;
   }
 
   .contas-root .c-v2-main-content {
