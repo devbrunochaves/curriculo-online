@@ -3,6 +3,27 @@ import { supabase } from '../lib/supabase'
 import { format, subMonths, addMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import {
+  BarChart3,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Home,
+  ReceiptText,
+  UserRound,
+  Users,
+  WalletCards,
+} from 'lucide-react'
+import {
+  EmptyState,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
@@ -29,7 +50,7 @@ export default function Pessoas() {
       supabase.from('recurring_bills').select('*').eq('is_active', true),
     ])
 
-    // Auto-gera entradas das contas fixas para o mês se ainda não existirem
+    // Auto-gera entradas das contas fixas para o mês se ainda não existirem.
     if (activeBills?.length) {
       const { data: existing } = await supabase
         .from('bill_entries').select('bill_id').eq('month_ref', monthRef)
@@ -74,27 +95,44 @@ export default function Pessoas() {
 
   useEffect(() => { load() }, [load])
 
-  if (loading) return <div className="c-loading-screen" style={{ height: '40vh' }}><div className="c-loading-spinner" /></div>
+  if (loading) {
+    return (
+      <div className="c-pessoas-v2-page" aria-busy="true">
+        <PageHeader
+          eyebrow="Financeiro"
+          title="Pessoas"
+          description="Carregando a divisão financeira do mês."
+        />
+        <div className="c-pessoas-v2-metrics">
+          <Skeleton variant="card" />
+          <Skeleton variant="card" />
+          <Skeleton variant="card" />
+          <Skeleton variant="card" />
+        </div>
+        <SectionCard className="c-pessoas-v2-section" padding="lg">
+          <Skeleton variant="text" lines={6} />
+        </SectionCard>
+      </div>
+    )
+  }
 
   const { people, expenses, billEntries } = data
 
   const summaries = people.map(p => {
-    // ── Cartões ──────────────────────────────────────────────────────────────
+    // Cartões.
     const cardSplits = []
     expenses.forEach(e => {
       const s = e.splits?.find(s => s.person_id === p.id)
       if (s) cardSplits.push({ ...e, myAmount: Number(s.amount), sourceType: 'card' })
     })
 
-    // ── Contas Fixas ─────────────────────────────────────────────────────────
+    // Contas fixas.
     const fixedSplits = []
     billEntries.forEach(e => {
       const splitEntry = e.splits?.find(s => s.person_id === p.id)
       if (splitEntry) {
-        // Tem divisão → usa o valor da divisão
         fixedSplits.push({ ...e, myAmount: Number(splitEntry.amount), sourceType: 'fixed' })
       } else if (!e.splits?.length && e.bill?.person_id === p.id) {
-        // Sem divisão mas é o responsável → conta o total
         fixedSplits.push({ ...e, myAmount: Number(e.amount), sourceType: 'fixed' })
       }
     })
@@ -102,7 +140,6 @@ export default function Pessoas() {
     const allSplits = [...cardSplits, ...fixedSplits]
     const total     = allSplits.reduce((acc, e) => acc + e.myAmount, 0)
 
-    // Agrupamento por cartão
     const byCard = {}
     cardSplits.forEach(e => {
       const key   = e.card?.name || 'Sem cartão'
@@ -111,7 +148,6 @@ export default function Pessoas() {
       byCard[key].amount += e.myAmount
     })
 
-    // Total de contas fixas agrupado
     const fixedTotal = fixedSplits.reduce((s, e) => s + e.myAmount, 0)
 
     return {
@@ -120,154 +156,222 @@ export default function Pessoas() {
       cardSplits,
       fixedSplits,
       allSplits,
-      byCard:     Object.values(byCard),
+      byCard: Object.values(byCard),
       fixedTotal,
     }
   }).filter(p => p.total > 0).sort((a, b) => b.total - a.total)
 
   const grandTotal = summaries.reduce((s, p) => s + p.total, 0)
+  const monthLabel = format(currentDate, 'MMMM yyyy', { locale: ptBR })
+  const cardEntriesCount = summaries.reduce((sum, p) => sum + p.cardSplits.length, 0)
+  const fixedEntriesCount = summaries.reduce((sum, p) => sum + p.fixedSplits.length, 0)
+  const topPerson = summaries[0]
 
   return (
-    <div>
-      <div className="c-flex c-items-center c-justify-between c-mb-4">
-        <div className="c-page-header" style={{ margin: 0 }}>
-          <h2>Pessoas</h2>
-          <p>Quem deve quanto este mês — {fmt(grandTotal)} total</p>
-        </div>
-        <div className="c-month-nav">
-          <button onClick={() => setCurrentDate(d => subMonths(d, 1))}>‹</button>
-          <span style={{ textTransform: 'capitalize' }}>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
-          <button onClick={() => setCurrentDate(d => addMonths(d, 1))}>›</button>
-        </div>
+    <div className="c-pessoas-v2-page">
+      <PageHeader
+        eyebrow="Financeiro"
+        title="Pessoas"
+        description={`Quem participa das despesas em ${monthLabel}.`}
+        meta={<StatusBadge tone="accent" icon={<CalendarDays size={14} />}>{monthLabel}</StatusBadge>}
+        actions={
+          <div className="c-pessoas-v2-month-nav" aria-label="Navegação de mês">
+            <IconButton
+              icon={<ChevronLeft size={18} />}
+              label="Mês anterior"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentDate(d => subMonths(d, 1))}
+            />
+            <span>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
+            <IconButton
+              icon={<ChevronRight size={18} />}
+              label="Próximo mês"
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentDate(d => addMonths(d, 1))}
+            />
+          </div>
+        }
+      />
+
+      <div className="c-pessoas-v2-metrics">
+        <MetricCard
+          label="Total dividido"
+          value={fmt(grandTotal)}
+          description="Despesas atribuídas às pessoas"
+          tone="accent"
+          icon={<Users size={18} />}
+        />
+        <MetricCard
+          label="Pessoas com saldo"
+          value={summaries.length}
+          description={`${people.length} pessoa${people.length !== 1 ? 's' : ''} ativa${people.length !== 1 ? 's' : ''}`}
+          icon={<UserRound size={18} />}
+        />
+        <MetricCard
+          label="Lançamentos em cartão"
+          value={cardEntriesCount}
+          description="Itens com divisão no mês"
+          icon={<CreditCard size={18} />}
+        />
+        <MetricCard
+          label="Contas fixas"
+          value={fixedEntriesCount}
+          description={topPerson ? `Maior saldo: ${topPerson.name}` : 'Nenhuma conta no mês'}
+          tone="success"
+          icon={<Home size={18} />}
+        />
       </div>
 
       {summaries.length === 0 ? (
-        <div className="c-card"><div className="c-empty-state"><div className="c-empty-icon">👥</div><h3>Nenhum dado neste mês</h3></div></div>
+        <SectionCard padding="lg">
+          <EmptyState
+            icon={<Users size={24} />}
+            title="Nenhum dado neste mês"
+            description="Não há despesas ou contas fixas divididas entre pessoas para o período selecionado."
+          />
+        </SectionCard>
       ) : (
         <>
-          {/* ── Gráfico ── */}
-          <div className="c-card c-mb-4">
-            <div className="c-section-title">Resumo Geral</div>
-            <ResponsiveContainer width="100%" height={Math.max(120, summaries.length * 60)}>
-              <BarChart data={summaries} layout="vertical" margin={{ left: 10, right: 24 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" tickFormatter={v => fmt(v)} tick={{ fontSize: 11 }} />
-                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
-                <Tooltip formatter={v => fmt(v)} />
-                <Bar dataKey="total" radius={[0, 4, 4, 0]}>
-                  {summaries.map((p, i) => <Cell key={i} fill={p.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="c-pessoas-v2-insights">
+            <SectionCard
+              title="Resumo geral"
+              description="Distribuição do total por pessoa no mês selecionado."
+              actions={<StatusBadge tone="info" icon={<BarChart3 size={14} />}>{summaries.length} pessoa{summaries.length !== 1 ? 's' : ''}</StatusBadge>}
+              className="c-pessoas-v2-section"
+            >
+              <div className="c-pessoas-v2-chart">
+                <ResponsiveContainer width="100%" height={Math.max(180, summaries.length * 58)}>
+                  <BarChart data={summaries} layout="vertical" margin={{ left: 10, right: 24 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--v2-color-border)" />
+                    <XAxis type="number" tickFormatter={v => fmt(v)} tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
+                    <YAxis type="category" dataKey="name" width={86} tick={{ fontSize: 12, fill: 'var(--v2-color-text-muted)' }} />
+                    <Tooltip formatter={v => fmt(v)} />
+                    <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                      {summaries.map((p, i) => <Cell key={i} fill={p.color} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Ranking"
+              description="Maiores participações no período."
+              className="c-pessoas-v2-section"
+            >
+              <div className="c-pessoas-v2-ranking">
+                {summaries.slice(0, 5).map((p, index) => (
+                  <button
+                    type="button"
+                    key={p.id}
+                    className={`c-pessoas-v2-ranking-row ${selected === p.id ? 'is-active' : ''}`}
+                    onClick={() => setSelected(selected === p.id ? null : p.id)}
+                  >
+                    <span className="c-pessoas-v2-rank">{index + 1}</span>
+                    <span className="c-pessoas-v2-avatar" style={{ '--person-color': p.color }}>{p.name?.slice(0, 1)}</span>
+                    <span className="c-pessoas-v2-ranking-name">{p.name}</span>
+                    <strong>{fmt(p.total)}</strong>
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
           </div>
 
-          {/* ── Cards por pessoa ── */}
-          <div className="c-grid-3">
+          <section className="c-pessoas-v2-grid" aria-label="Pessoas do mês">
             {summaries.map(p => (
-              <div
+              <button
+                type="button"
                 key={p.id}
-                className="c-card"
-                style={{ cursor: 'pointer', border: selected === p.id ? `2px solid ${p.color}` : '2px solid transparent', transition: 'border 0.15s' }}
+                className={`c-pessoas-v2-person-card ${selected === p.id ? 'is-active' : ''}`}
+                style={{ '--person-color': p.color }}
                 onClick={() => setSelected(selected === p.id ? null : p.id)}
               >
-                <div className="c-flex c-items-center c-gap-2 c-mb-2">
-                  <span className="c-dot" style={{ background: p.color, width: 12, height: 12 }} />
-                  <span style={{ fontWeight: 700, fontSize: 15 }}>{p.name}</span>
+                <div className="c-pessoas-v2-person-card__top">
+                  <span className="c-pessoas-v2-avatar">{p.name?.slice(0, 1)}</span>
+                  <span className="c-pessoas-v2-person-card__name">{p.name}</span>
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: p.color }}>{fmt(p.total)}</div>
-                <div className="c-text-muted c-text-sm c-mt-1">
+                <strong className="c-pessoas-v2-person-card__value">{fmt(p.total)}</strong>
+                <p className="c-pessoas-v2-person-card__meta">
                   {p.cardSplits.length} lançamento{p.cardSplits.length !== 1 ? 's' : ''} em cartão
                   {p.fixedSplits.length > 0 && ` · ${p.fixedSplits.length} conta${p.fixedSplits.length !== 1 ? 's' : ''} fixa${p.fixedSplits.length !== 1 ? 's' : ''}`}
-                </div>
+                </p>
 
-                {/* Por cartão */}
-                <div className="c-mt-2">
+                <div className="c-pessoas-v2-card-breakdown">
                   {p.byCard.map(c => (
-                    <div key={c.name} className="c-flex c-items-center c-justify-between c-mt-1">
-                      <div className="c-flex c-items-center c-gap-2">
-                        <span className="c-dot" style={{ background: c.color, width: 8, height: 8 }} />
-                        <span className="c-text-sm">{c.name}</span>
-                      </div>
-                      <span className="c-text-sm c-font-bold">{fmt(c.amount)}</span>
+                    <div key={c.name} className="c-pessoas-v2-breakdown-row">
+                      <span><i style={{ background: c.color }} />{c.name}</span>
+                      <strong>{fmt(c.amount)}</strong>
                     </div>
                   ))}
-                  {/* Linha de contas fixas */}
                   {p.fixedTotal > 0 && (
-                    <div className="c-flex c-items-center c-justify-between c-mt-1">
-                      <div className="c-flex c-items-center c-gap-2">
-                        <span style={{ fontSize: 12 }}>🏠</span>
-                        <span className="c-text-sm">Contas Fixas</span>
-                      </div>
-                      <span className="c-text-sm c-font-bold">{fmt(p.fixedTotal)}</span>
+                    <div className="c-pessoas-v2-breakdown-row">
+                      <span><i />Contas Fixas</span>
+                      <strong>{fmt(p.fixedTotal)}</strong>
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             ))}
-          </div>
+          </section>
 
-          {/* ── Detalhe ao clicar na pessoa ── */}
           {selected && (() => {
             const p = summaries.find(p => p.id === selected)
             if (!p) return null
             return (
-              <div className="c-card c-mt-4">
-                <div className="c-section-title" style={{ color: p.color }}>Detalhe — {p.name}</div>
-
-                {/* Lançamentos de cartão */}
+              <SectionCard
+                title={`Detalhe — ${p.name}`}
+                description={`${fmt(p.total)} distribuídos no mês selecionado.`}
+                actions={<StatusBadge tone="accent" icon={<WalletCards size={14} />}>{p.cardSplits.length + p.fixedSplits.length} item{p.cardSplits.length + p.fixedSplits.length !== 1 ? 's' : ''}</StatusBadge>}
+                className="c-pessoas-v2-detail"
+              >
                 {p.cardSplits.length > 0 && (
-                  <>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-muted)', marginBottom: 8, marginTop: 4, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                      💳 Cartões
+                  <div className="c-pessoas-v2-detail-group">
+                    <div className="c-pessoas-v2-detail-group__title">
+                      <CreditCard size={16} />
+                      <span>Cartões</span>
                     </div>
-                    <div className="c-table-wrap" style={{ marginBottom: 20 }}>
-                      <table>
-                        <thead><tr><th>Data</th><th>Descrição</th><th>Cartão</th><th>Categoria</th><th style={{ textAlign: 'right' }}>Valor</th></tr></thead>
-                        <tbody>
-                          {p.cardSplits.map(e => (
-                            <tr key={e.id}>
-                              <td style={{ whiteSpace: 'nowrap', fontSize: 12, color: 'var(--c-text-muted)' }}>{format(new Date(e.date + 'T12:00:00'), 'dd/MM/yy')}</td>
-                              <td style={{ fontWeight: 500 }}>{e.description}</td>
-                              <td>{e.card && <span className="c-chip" style={{ background: e.card.color + '20', color: e.card.color }}>{e.card.name}</span>}</td>
-                              <td>{e.category && <span className="c-text-sm">{e.category.icon} {e.category.name}</span>}</td>
-                              <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(e.myAmount)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="c-pessoas-v2-detail-list">
+                      {p.cardSplits.map(e => (
+                        <div className="c-pessoas-v2-detail-row" key={e.id}>
+                          <div>
+                            <strong>{e.description}</strong>
+                            <span>{format(new Date(e.date + 'T12:00:00'), 'dd/MM/yy')} · {e.category?.name || 'Sem categoria'}</span>
+                          </div>
+                          <div className="c-pessoas-v2-detail-row__side">
+                            {e.card && <StatusBadge tone="neutral" size="sm">{e.card.name}</StatusBadge>}
+                            <strong>{fmt(e.myAmount)}</strong>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </>
+                  </div>
                 )}
 
-                {/* Contas fixas */}
                 {p.fixedSplits.length > 0 && (
-                  <>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                      🏠 Contas Fixas
+                  <div className="c-pessoas-v2-detail-group">
+                    <div className="c-pessoas-v2-detail-group__title">
+                      <ReceiptText size={16} />
+                      <span>Contas Fixas</span>
                     </div>
-                    <div className="c-table-wrap">
-                      <table>
-                        <thead><tr><th>Conta</th><th>Categoria</th><th>Vencimento</th><th style={{ textAlign: 'right' }}>Valor</th></tr></thead>
-                        <tbody>
-                          {p.fixedSplits.map(e => {
-                            const cat = e.bill?.category_id
-                            return (
-                              <tr key={e.id}>
-                                <td style={{ fontWeight: 500 }}>{e.bill?.name}</td>
-                                <td><span className="c-text-sm c-text-muted">{cat ? '—' : '—'}</span></td>
-                                <td style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>
-                                  {e.bill?.due_day ? `Dia ${e.bill.due_day}` : '—'}
-                                </td>
-                                <td style={{ textAlign: 'right', fontWeight: 700 }}>{fmt(e.myAmount)}</td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
+                    <div className="c-pessoas-v2-detail-list">
+                      {p.fixedSplits.map(e => (
+                        <div className="c-pessoas-v2-detail-row" key={e.id}>
+                          <div>
+                            <strong>{e.bill?.name}</strong>
+                            <span>{e.bill?.due_day ? `Vencimento dia ${e.bill.due_day}` : 'Sem vencimento informado'}</span>
+                          </div>
+                          <div className="c-pessoas-v2-detail-row__side">
+                            <StatusBadge tone="success" size="sm">Fixa</StatusBadge>
+                            <strong>{fmt(e.myAmount)}</strong>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </>
+                  </div>
                 )}
-              </div>
+              </SectionCard>
             )
           })()}
         </>
