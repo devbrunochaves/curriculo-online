@@ -12,6 +12,7 @@
   grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
   gap: var(--v2-space-5);
   align-items: start;
+  overflow: visible;
 }
 
 .contas-root .c-nova-v2-main {
@@ -22,14 +23,24 @@
 
 .contas-root .c-nova-v2-summary {
   position: sticky;
-  top: var(--v2-space-4);
+  top: var(--v2-space-6);
+  align-self: start;
   min-width: 0;
+  max-height: calc(100dvh - var(--v2-space-12));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.contas-root .c-v2-main-shell:has(.c-nova-v2-page) {
+  overflow-x: clip;
 }
 
 .contas-root .c-lanc-v2-form-dialog:has(.c-nova-v2-page) {
   width: min(1180px, calc(100vw - var(--v2-space-8)));
   max-height: calc(100dvh - var(--v2-space-8));
   overflow-y: auto;
+  overflow-x: hidden;
   padding: var(--v2-space-5);
 }
 
@@ -42,10 +53,26 @@
   padding-right: var(--v2-space-8);
 }
 
+.contas-root .c-lanc-v2-form-dialog:has(.c-nova-v2-page) .c-nova-v2-summary {
+  top: 0;
+  max-height: calc(100dvh - var(--v2-space-16));
+}
+
 .contas-root .c-nova-v2-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--v2-space-3);
+  align-items: start;
+}
+
+.contas-root .c-nova-v2-grid .c-v2-form-field {
+  min-width: 0;
+  align-self: start;
+}
+
+.contas-root .c-nova-v2-grid .c-v2-select-field,
+.contas-root .c-nova-v2-grid .c-nova-v2-input {
+  min-height: 44px;
 }
 
 .contas-root .c-nova-v2-card-basic .c-v2-section-card__header {
@@ -87,6 +114,26 @@
 
 .contas-root .c-nova-v2-money {
   font-weight: var(--v2-font-weight-bold);
+}
+
+.contas-root .c-nova-v2-money-field {
+  position: relative;
+}
+
+.contas-root .c-nova-v2-money-field span {
+  position: absolute;
+  left: var(--v2-space-4);
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-bold);
+  pointer-events: none;
+}
+
+.contas-root .c-nova-v2-money-field .c-nova-v2-money {
+  padding-left: calc(var(--v2-space-8) + var(--v2-space-2));
 }
 
 .contas-root .c-nova-v2-textarea {
@@ -294,8 +341,36 @@
 .contas-root .c-nova-v2-split-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--v2-space-2);
   margin-bottom: var(--v2-space-4);
+}
+
+.contas-root .c-nova-v2-split-total {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--v2-space-2);
+  margin-left: auto;
+  border: 1px solid var(--v2-color-border-soft);
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-bg-soft);
+  padding: 0.375rem var(--v2-space-3);
+  white-space: nowrap;
+}
+
+.contas-root .c-nova-v2-split-total span {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-nova-v2-split-total strong {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-bold);
+  font-variant-numeric: tabular-nums;
 }
 
 .contas-root .c-nova-v2-people {
@@ -558,6 +633,8 @@
 
   .contas-root .c-nova-v2-summary {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .contas-root .c-lanc-v2-form-dialog:has(.c-nova-v2-page) {
@@ -570,9 +647,12 @@
     gap: var(--v2-space-4);
   }
 
-  .contas-root .c-nova-v2-grid,
   .contas-root .c-nova-v2-person,
   .contas-root .c-nova-v2-receipt {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-nova-v2-grid {
     grid-template-columns: 1fr;
   }
 
@@ -580,15 +660,30 @@
     grid-template-columns: 40px minmax(0, 1fr) 40px;
   }
 
-  .contas-root .c-nova-v2-toggles,
-  .contas-root .c-nova-v2-split-actions {
+  .contas-root .c-nova-v2-toggles {
     flex-direction: column;
   }
 
   .contas-root .c-nova-v2-checkline,
-  .contas-root .c-nova-v2-split-actions .c-v2-button,
   .contas-root .c-nova-v2-receipt .c-v2-button {
     width: 100%;
+  }
+
+  .contas-root .c-nova-v2-split-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--v2-space-2);
+  }
+
+  .contas-root .c-nova-v2-split-actions .c-v2-button {
+    width: 100%;
+  }
+
+  .contas-root .c-nova-v2-split-total {
+    grid-column: 1 / -1;
+    justify-content: space-between;
+    width: 100%;
+    margin-left: 0;
   }
 
   .contas-root .c-nova-v2-summary-group div {

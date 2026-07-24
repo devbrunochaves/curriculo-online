@@ -326,7 +326,10 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
               />
 
               <FormField label="Valor total (R$)" required help="Use o mesmo formato atual, como 149,90.">
-                <input type="text" className="c-nova-v2-input c-nova-v2-money" placeholder="0,00" value={total} onChange={e => setTotal(e.target.value)} required />
+                <div className="c-nova-v2-money-field">
+                  <span aria-hidden="true">R$</span>
+                  <input type="text" className="c-nova-v2-input c-nova-v2-money" placeholder="0,00" value={total} onChange={e => setTotal(e.target.value)} required />
+                </div>
               </FormField>
             </div>
 
@@ -407,11 +410,12 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
             }
           >
             <div className="c-nova-v2-split-actions">
-              <Button type="button" variant="secondary" size="sm" onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setSplits(n) }}>Todos</Button>
+              <Button type="button" variant="secondary" size="sm" icon={<Split />} onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setSplits(n) }}>Dividir igualmente</Button>
               <Button type="button" variant="secondary" size="sm" onClick={() => setSplits({})}>Limpar</Button>
-              {Object.keys(splits).length > 0 && totalNum > 0 && (
-                <Button type="button" variant="secondary" size="sm" icon={<Split />} onClick={splitEqually}>Dividir igualmente</Button>
-              )}
+              <div className="c-nova-v2-split-total">
+                <span>Total dividido</span>
+                <strong>{fmt(splitTotal)}</strong>
+              </div>
             </div>
 
             <div className="c-nova-v2-people">
