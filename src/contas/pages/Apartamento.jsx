@@ -1,6 +1,18 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, parseISO, differenceInDays } from 'date-fns'
+import {
+  Building2,
+  X,
+} from 'lucide-react'
+import {
+  EmptyState as V2EmptyState,
+  IconButton,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge as V2StatusBadge,
+} from '../components/ui'
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const ALBUNS = ['Compra do Imóvel','Reforma','Sala','Cozinha','Quartos','Banheiros','Decoração','Antes e Depois','Área Externa','Outros']
@@ -40,26 +52,23 @@ async function deleteFile(path) {
 /* ── Shared UI ─────────────────────────────────────────────────────────── */
 function Loading() {
   return (
-    <div className="c-loading-screen">
-      <div className="c-loading-spinner" />
+    <div className="c-apartamento-v2-loading" aria-busy="true">
+      <Skeleton variant="card" />
+      <Skeleton variant="text" lines={4} />
     </div>
   )
 }
 
 function EmptyState({ icon, title, desc }) {
   return (
-    <div className="c-empty-state">
-      <div className="c-empty-icon">{icon}</div>
-      <h3>{title}</h3>
-      <p>{desc}</p>
-    </div>
+    <V2EmptyState compact icon={<Building2 size={22} />} title={title} description={desc || icon} />
   )
 }
 
 function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" style={{maxWidth:560}} onClick={e=>e.stopPropagation()}>
+    <div className="c-apartamento-v2-modal-backdrop" onClick={onClose}>
+      <div className="c-apartamento-v2-modal" onClick={e=>e.stopPropagation()} role="dialog" aria-modal="true">
         <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}>
           <div style={{width:40,height:4,borderRadius:99,background:'var(--c-border)'}}/>
         </div>
@@ -68,10 +77,10 @@ function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:20,color:'var(--c-text-muted)',lineHeight:1}}>✕</button>
         </div>
         <form onSubmit={onSubmit}>
-          <div style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:14,maxHeight:'65vh',overflowY:'auto',overflowX:'hidden'}}>
+          <div className="c-apartamento-v2-modal__body">
             {children}
           </div>
-          <div style={{padding:'12px 20px 24px',borderTop:'1px solid var(--c-border)',display:'flex',gap:10}}>
+          <div className="c-apartamento-v2-modal__footer">
             <button type="button" className="c-btn c-btn-secondary" style={{flex:1}} onClick={onClose}>Cancelar</button>
             <button type="submit" className="c-btn c-btn-primary" style={{flex:2}} disabled={saving}>{saveLabel ?? (saving?'Salvando...':'Salvar')}</button>
           </div>
@@ -83,7 +92,7 @@ function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
 
 function Field({ label, children }) {
   return (
-    <div>
+    <div className="c-apartamento-v2-field">
       <label className="c-form-label">{label}</label>
       {children}
     </div>
@@ -1565,36 +1574,37 @@ export default function Apartamento() {
     { key:'projetos',    icon:'🎨', label:'Projetos'     },
   ]
 
+  const activeTab = TABS.find(t => t.key === tab)
+
   return (
-    <div>
-      {/* Tab bar - horizontal scroll */}
-      <div style={{display:'flex',gap:4,overflowX:'auto',paddingBottom:8,marginBottom:20,scrollbarWidth:'none'}}>
+    <div className="c-apartamento-v2-page">
+      <PageHeader
+        eyebrow="Casa"
+        title="Apartamento"
+        description="Central do imóvel: gastos, boletos, documentos, manutenções, garantias, inventário e projetos."
+        meta={<V2StatusBadge tone="accent" icon={<Building2 size={14} />}>{activeTab?.label}</V2StatusBadge>}
+      />
+
+      <div className="c-apartamento-v2-tabs" role="tablist" aria-label="Módulos do apartamento">
         {TABS.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)}
-            style={{
-              flexShrink:0, padding:'7px 14px', borderRadius:99, fontSize:13, fontWeight:600,
-              border:'none', cursor:'pointer', whiteSpace:'nowrap',
-              background: tab===t.key ? '#6366f1' : 'var(--c-surface)',
-              color: tab===t.key ? '#fff' : 'var(--c-text-muted)',
-              boxShadow: tab===t.key ? '0 2px 8px rgba(99,102,241,.3)' : 'none',
-              transition:'all .15s',
-            }}>
+          <button key={t.key} onClick={()=>setTab(t.key)} className={tab===t.key ? 'is-active' : ''} role="tab" aria-selected={tab===t.key}>
             {t.icon} {t.label}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
-      {tab === 'dashboard'   && <DashboardTab />}
-      {tab === 'galeria'     && <GaleriaTab />}
-      {tab === 'boletos'     && <BoletosTab />}
-      {tab === 'gastos'      && <GastosTab />}
-      {tab === 'documentos'  && <DocumentosTab />}
-      {tab === 'manutencoes' && <ManutencoesTab />}
-      {tab === 'inventario'  && <InventarioTab />}
-      {tab === 'garantias'   && <GarantiasTab />}
-      {tab === 'prestadores' && <PrestadoresTab />}
-      {tab === 'projetos'    && <ProjetosTab />}
+      <SectionCard className="c-apartamento-v2-content" padding="lg">
+        {tab === 'dashboard'   && <DashboardTab />}
+        {tab === 'galeria'     && <GaleriaTab />}
+        {tab === 'boletos'     && <BoletosTab />}
+        {tab === 'gastos'      && <GastosTab />}
+        {tab === 'documentos'  && <DocumentosTab />}
+        {tab === 'manutencoes' && <ManutencoesTab />}
+        {tab === 'inventario'  && <InventarioTab />}
+        {tab === 'garantias'   && <GarantiasTab />}
+        {tab === 'prestadores' && <PrestadoresTab />}
+        {tab === 'projetos'    && <ProjetosTab />}
+      </SectionCard>
     </div>
   )
 }
