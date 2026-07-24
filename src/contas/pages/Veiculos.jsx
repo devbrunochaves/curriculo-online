@@ -13,6 +13,7 @@ const FOTO_ALBUMS = ['Geral', 'Manutenções', 'Sinistros', 'Venda', 'Outros']
 /* ── Helpers ───────────────────────────────────────────────────────────── */
 const fmtBRL = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const fmtDate = d => d ? format(parseISO(d), 'dd/MM/yyyy') : '—'
+const fmtDateShort = d => d ? format(parseISO(d), "dd/MM/yy") : '—'
 
 async function getSignedUrl(path) {
   if (!path) return null
@@ -219,7 +220,7 @@ function VeiculosList({ onSelect }) {
     { icon: '📁', label: 'Docs Vencendo', value: summary.docsVencendo, color: summary.docsVencendo > 0 ? '#d97706' : '#15803d' },
     { icon: '💸', label: 'Gastos no Ano', value: fmtBRL(summary.gastosAno), color: '#3b82f6' },
     { icon: '🛡️', label: 'Seguros Ativos', value: summary.segurosAtivos, color: '#10b981' },
-    { icon: '⛽', label: 'Último Abast.', value: summary.ultimoAbast ? fmtDate(summary.ultimoAbast) : '—', color: '#8b5cf6' },
+    { icon: '⛽', label: 'Último Abast.', value: summary.ultimoAbast ? fmtDateShort(summary.ultimoAbast) : '—', color: '#8b5cf6' },
   ]
 
   if (loading) return <Loading />
@@ -245,31 +246,61 @@ function VeiculosList({ onSelect }) {
       {veiculos.length === 0 ? (
         <EmptyState icon="🚗" title="Nenhum veículo cadastrado" desc="Adicione seu primeiro veículo para começar." />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {veiculos.map(v => (
-            <div key={v.id} className="c-card"
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', cursor: 'pointer' }}
-              onClick={() => onSelect(v)}>
-              <div style={{ width: 80, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#6366f120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
+            <div key={v.id} className="c-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              {/* Foto — 16:9 */}
+              <div
+                style={{ position: 'relative', width: '100%', paddingTop: '56.25%', background: 'linear-gradient(135deg, #6366f120 0%, #818cf820 100%)', cursor: 'pointer', flexShrink: 0 }}
+                onClick={() => onSelect(v)}
+              >
                 {fotoUrls[v.id]
-                  ? <img src={fotoUrls[v.id]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={v.modelo} />
-                  : '🚗'}
+                  ? <img src={fotoUrls[v.id]} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} alt={v.modelo} />
+                  : <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, opacity: 0.4 }}>🚗</div>
+                }
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{v.marca} {v.modelo}</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
-                  {v.ano && <span style={{ background: '#6366f120', color: '#6366f1', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{v.ano}</span>}
-                  {v.placa && <span style={{ background: '#f8fafc', border: '1px solid var(--c-border)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>{v.placa}</span>}
+
+              {/* Conteúdo */}
+              <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 0, flex: 1 }}>
+                {/* Título */}
+                <div
+                  style={{ fontWeight: 700, fontSize: 17, marginBottom: 8, cursor: 'pointer', color: 'var(--c-text)' }}
+                  onClick={() => onSelect(v)}
+                >
+                  {v.marca} {v.modelo}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {v.cor && <span>● {v.cor}</span>}
+
+                {/* Placa + Ano */}
+                <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+                  {v.placa && (
+                    <span style={{ background: 'var(--c-surface2, #f8fafc)', border: '1px solid var(--c-border)', borderRadius: 6, padding: '3px 10px', fontSize: 12, fontWeight: 700, letterSpacing: 1.5 }}>
+                      {v.placa}
+                    </span>
+                  )}
+                  {v.ano && (
+                    <span style={{ background: '#6366f115', color: '#6366f1', borderRadius: 6, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>
+                      {v.ano}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--c-border)', marginBottom: 12 }} />
+
+                {/* Detalhes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13, color: 'var(--c-text-muted)', marginBottom: 12 }}>
                   {v.combustivel && <span>⛽ {v.combustivel}</span>}
+                  {v.cor && <span>🎨 {v.cor}</span>}
                   {v.quilometragem && <span>🛣️ {Number(v.quilometragem).toLocaleString('pt-BR')} km</span>}
                 </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
-                <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => openEdit(v)}>Editar</button>
-                <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(v)}>✕</button>
+
+                <div style={{ borderTop: '1px solid var(--c-border)', marginBottom: 12 }} />
+
+                {/* Ações */}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="c-btn c-btn-primary" style={{ flex: 1, fontSize: 13 }} onClick={() => onSelect(v)}>Ver detalhes</button>
+                  <button className="c-btn c-btn-secondary c-btn-sm" style={{ fontSize: 13 }} onClick={() => openEdit(v)}>Editar</button>
+                  <button className="c-btn c-btn-danger c-btn-sm" style={{ fontSize: 13 }} onClick={() => handleDelete(v)}>✕</button>
+                </div>
               </div>
             </div>
           ))}
