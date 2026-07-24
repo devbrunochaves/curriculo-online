@@ -3,6 +3,31 @@ import { supabase } from '../lib/supabase'
 import { format, addMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  AlertCircle,
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  CreditCard,
+  FileText,
+  Minus,
+  Plus,
+  ReceiptText,
+  Save,
+  Split,
+  UploadCloud,
+  WalletCards,
+  X,
+} from 'lucide-react'
+import {
+  Button,
+  FormField,
+  IconButton,
+  PageHeader,
+  SectionCard,
+  SelectField,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt      = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
@@ -221,6 +246,273 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
       setSaving(false)
     }
   }
+
+  return (
+    <div className="c-nova-v2-page">
+      <PageHeader
+        eyebrow={editId ? 'Edição' : 'Novo lançamento'}
+        title={editId ? 'Editar compra' : 'Nova compra'}
+        description="Registre a compra, confirme a fatura e feche a divisão antes de salvar."
+        meta={
+          <StatusBadge tone={isValid ? 'success' : 'warning'} icon={isValid ? <CheckCircle2 /> : <AlertCircle />}>
+            {isValid ? 'Pronto para salvar' : 'Aguardando divisão'}
+          </StatusBadge>
+        }
+        actions={
+          <Button variant="secondary" icon={<ArrowLeft />} onClick={() => onCancel ? onCancel() : navigate(-1)}>
+            {onCancel ? 'Fechar' : 'Voltar'}
+          </Button>
+        }
+      />
+
+      {success && (
+        <div className="c-nova-v2-alert is-success" role="status">
+          <CheckCircle2 aria-hidden="true" />
+          <span>{isInstallment ? `${installments} parcelas registradas com sucesso!` : 'Lançamento salvo com sucesso!'}</span>
+        </div>
+      )}
+      {error && (
+        <div className="c-nova-v2-alert is-danger" role="alert">
+          <AlertCircle aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="c-nova-v2-layout">
+        <div className="c-nova-v2-main">
+          <SectionCard
+            title="Dados da compra"
+            description="Informações principais usadas no lançamento e nos relatórios."
+            actions={<StatusBadge tone={isFixed ? 'info' : 'neutral'}>{isFixed ? 'Fixo' : 'Variável'}</StatusBadge>}
+          >
+            <div className="c-nova-v2-grid">
+              <FormField label="Data da compra" required>
+                <input type="date" className="c-nova-v2-input" value={date} onChange={e => setDate(e.target.value)} required />
+              </FormField>
+
+              <SelectField
+                label="Cartão"
+                value={cardId}
+                onChange={e => setCardId(e.target.value)}
+                required
+                placeholder="Selecione..."
+                options={cards.map(c => ({ value: c.id, label: c.name }))}
+              />
+            </div>
+
+            {selectedCard && date && (
+              <div className="c-nova-v2-invoice">
+                <span className="c-nova-v2-invoice-icon" aria-hidden="true"><CalendarDays /></span>
+                <div>
+                  <span>Esta compra entrará na fatura de</span>
+                  <strong>{baseMonthLabel}</strong>
+                  {selectedCard.closing_day && <small>Cartão fecha dia {selectedCard.closing_day}</small>}
+                </div>
+              </div>
+            )}
+
+            <FormField label="Descrição" required>
+              <input type="text" className="c-nova-v2-input" placeholder="Ex: Renner" value={description} onChange={e => setDesc(e.target.value)} required />
+            </FormField>
+
+            <div className="c-nova-v2-grid">
+              <SelectField
+                label="Categoria"
+                value={catId}
+                onChange={e => setCatId(e.target.value)}
+                placeholder="Sem categoria"
+                options={categories.map(c => ({ value: c.id, label: `${c.icon} ${c.name}` }))}
+              />
+
+              <FormField label="Valor total (R$)" required help="Use o mesmo formato atual, como 149,90.">
+                <input type="text" className="c-nova-v2-input c-nova-v2-money" placeholder="0,00" value={total} onChange={e => setTotal(e.target.value)} required />
+              </FormField>
+            </div>
+
+            <div className="c-nova-v2-toggles">
+              {!isInstallment && (
+                <label className="c-nova-v2-checkline">
+                  <input type="checkbox" checked={isFixed} onChange={e => setIsFixed(e.target.checked)} />
+                  <span><WalletCards aria-hidden="true" /> Gasto fixo mensal</span>
+                </label>
+              )}
+
+              {!isFixed && (
+                <label className={`c-nova-v2-checkline ${isInstallment ? 'is-active' : ''}`}>
+                  <input type="checkbox" checked={isInstallment} onChange={e => { setIsInst(e.target.checked); setIsFixed(false) }} />
+                  <span><CreditCard aria-hidden="true" /> Compra parcelada</span>
+                </label>
+              )}
+            </div>
+          </SectionCard>
+
+          {!isFixed && (
+            <SectionCard
+              title="Parcelamento"
+              description="Preview calculado a partir da fatura e do total informados."
+              actions={<StatusBadge tone={isInstallment ? 'accent' : 'neutral'}>{isInstallment ? `${installments}x` : 'À vista'}</StatusBadge>}
+            >
+              {!isInstallment ? (
+                <div className="c-nova-v2-muted-line">
+                  <ReceiptText aria-hidden="true" />
+                  <span>Compra registrada em parcela única na fatura indicada acima.</span>
+                </div>
+              ) : (
+                <>
+                  <FormField label="Número de parcelas">
+                    <div className="c-nova-v2-stepper">
+                      <IconButton icon={<Minus />} label="Diminuir parcelas" variant="secondary" onClick={() => setInst(v => Math.max(2, v - 1))} />
+                      <div className="c-nova-v2-stepper-input">
+                        <input
+                          type="number"
+                          min={2}
+                          max={999}
+                          value={installments}
+                          onChange={e => {
+                            const v = parseInt(e.target.value)
+                            if (!isNaN(v) && v >= 1) setInst(v)
+                          }}
+                          className="c-nova-v2-input"
+                        />
+                        <span>x</span>
+                      </div>
+                      <IconButton icon={<Plus />} label="Aumentar parcelas" variant="secondary" onClick={() => setInst(v => v + 1)} />
+                    </div>
+                  </FormField>
+
+                  {installmentPreview.length > 0 && totalNum > 0 && (
+                    <div className="c-nova-v2-installments">
+                      {installmentPreview.map(p => (
+                        <div key={p.index} className="c-nova-v2-installment">
+                          <span>{p.index}/{installments}</span>
+                          <strong>{fmt(p.amount)}</strong>
+                          <small>{p.mLabel}</small>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </SectionCard>
+          )}
+
+          <SectionCard
+            title="Divisão entre pessoas"
+            description="A soma das divisões precisa fechar exatamente com o valor total."
+            actions={
+              Object.keys(splits).length > 0
+                ? <StatusBadge tone={Math.abs(diff) < 0.01 ? 'success' : 'danger'}>{Math.abs(diff) < 0.01 ? 'Conferido' : `Falta ${fmt(diff)}`}</StatusBadge>
+                : <StatusBadge tone="warning">Selecione pessoas</StatusBadge>
+            }
+          >
+            <div className="c-nova-v2-split-actions">
+              <Button type="button" variant="secondary" size="sm" onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setSplits(n) }}>Todos</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => setSplits({})}>Limpar</Button>
+              {Object.keys(splits).length > 0 && totalNum > 0 && (
+                <Button type="button" variant="secondary" size="sm" icon={<Split />} onClick={splitEqually}>Dividir igualmente</Button>
+              )}
+            </div>
+
+            <div className="c-nova-v2-people">
+              {people.map(person => {
+                const isSel = splits[person.id] !== undefined
+                return (
+                  <div key={person.id} className={`c-nova-v2-person ${isSel ? 'is-selected' : ''}`} style={{ '--person-color': person.color }}>
+                    <label>
+                      <input type="checkbox" checked={isSel} onChange={() => togglePerson(person.id)} />
+                      <span className="c-nova-v2-person-dot" aria-hidden="true" />
+                      <strong>{person.name}</strong>
+                    </label>
+                    {isSel && (
+                      <input
+                        type="text"
+                        className="c-nova-v2-input c-nova-v2-split-input"
+                        placeholder="0,00"
+                        value={splits[person.id]}
+                        onChange={e => setSplits(prev => ({ ...prev, [person.id]: e.target.value }))}
+                      />
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Observações e comprovante" description="Campos opcionais preservados no lançamento.">
+            <FormField label="Observações (opcional)">
+              <textarea className="c-nova-v2-input c-nova-v2-textarea" placeholder="Ex: Presente aniversário..." value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
+            </FormField>
+
+            <FormField label="Comprovante (opcional)" help="JPG, PNG ou PDF. O upload continua usando o bucket receipts.">
+              {!receipt ? (
+                <label htmlFor="receipt-upload" className="c-nova-v2-upload">
+                  <UploadCloud aria-hidden="true" />
+                  <strong>Adicionar comprovante</strong>
+                  <span>Toque para tirar foto ou escolher da galeria</span>
+                </label>
+              ) : (
+                <div className="c-nova-v2-receipt">
+                  {receiptPreview ? (
+                    <img src={receiptPreview} alt="Comprovante" />
+                  ) : (
+                    <span className="c-nova-v2-receipt-file"><FileText aria-hidden="true" /></span>
+                  )}
+                  <div>
+                    <strong>{receipt.name}</strong>
+                    <small>{receiptPreview ? 'Imagem anexada' : 'Arquivo anexado'}</small>
+                  </div>
+                  <Button type="button" variant="danger" size="sm" icon={<X />} onClick={removeReceipt}>Remover</Button>
+                </div>
+              )}
+              <input
+                id="receipt-upload"
+                type="file"
+                accept="image/*,application/pdf"
+                className="c-nova-v2-file"
+                onChange={handleReceiptChange}
+              />
+            </FormField>
+          </SectionCard>
+        </div>
+
+        <aside className="c-nova-v2-summary" aria-label="Resumo antes de salvar">
+          <SectionCard title="Resumo" description="Confira os dados calculados antes de registrar." variant="elevated">
+            <div className="c-nova-v2-summary-total">
+              <span>Total</span>
+              <strong>{fmt(totalNum)}</strong>
+            </div>
+
+            <div className="c-nova-v2-summary-list">
+              <div><span>Descrição</span><strong>{description || 'Não informada'}</strong></div>
+              <div><span>Cartão</span><strong>{selectedCard?.name || 'Selecione'}</strong></div>
+              <div><span>Fatura</span><strong>{baseMonthLabel || '—'}</strong></div>
+              <div><span>Categoria</span><strong>{categories.find(c => c.id === catId)?.name || 'Sem categoria'}</strong></div>
+              <div><span>Parcelas</span><strong>{isInstallment ? `${installments}x` : 'À vista'}</strong></div>
+              <div><span>Divisão</span><strong>{fmt(splitTotal)}</strong></div>
+              <div><span>Diferença</span><strong className={Math.abs(diff) < 0.01 ? 'is-ok' : 'is-danger'}>{fmt(diff)}</strong></div>
+              <div><span>Comprovante</span><strong>{receipt ? 'Anexado' : 'Não anexado'}</strong></div>
+            </div>
+
+            {!isValid && (
+              <div className="c-nova-v2-validation">
+                <AlertCircle aria-hidden="true" />
+                <span>A soma das divisões deve ser igual ao total para liberar o salvamento.</span>
+              </div>
+            )}
+
+            <div className="c-nova-v2-actions">
+              <Button type="submit" size="lg" icon={<Save />} loading={saving} disabled={saving || !isValid}>
+                {saving ? 'Salvando...' : isInstallment ? `Registrar ${installments}x parcelas` : editId ? 'Salvar alterações' : 'Registrar compra'}
+              </Button>
+              <Button type="button" variant="secondary" size="lg" onClick={() => onCancel ? onCancel() : navigate(-1)}>
+                Cancelar
+              </Button>
+            </div>
+          </SectionCard>
+        </aside>
+      </form>
+    </div>
+  )
 
   return (
     <div style={{ maxWidth: 680 }}>
