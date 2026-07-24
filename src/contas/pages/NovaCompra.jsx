@@ -284,6 +284,7 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
             title="Dados da compra"
             description="Informações principais usadas no lançamento e nos relatórios."
             actions={<StatusBadge tone={isFixed ? 'info' : 'neutral'}>{isFixed ? 'Fixo' : 'Variável'}</StatusBadge>}
+            className="c-nova-v2-card-basic"
           >
             <div className="c-nova-v2-grid">
               <FormField label="Data da compra" required>
@@ -438,11 +439,13 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
             </div>
           </SectionCard>
 
-          <SectionCard title="Observações e comprovante" description="Campos opcionais preservados no lançamento.">
+          <SectionCard title="Observações" description="Contexto opcional para lembrar detalhes da compra.">
             <FormField label="Observações (opcional)">
               <textarea className="c-nova-v2-input c-nova-v2-textarea" placeholder="Ex: Presente aniversário..." value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
             </FormField>
+          </SectionCard>
 
+          <SectionCard title="Comprovante" description="Anexe uma foto ou PDF sem alterar o fluxo atual de upload.">
             <FormField label="Comprovante (opcional)" help="JPG, PNG ou PDF. O upload continua usando o bucket receipts.">
               {!receipt ? (
                 <label htmlFor="receipt-upload" className="c-nova-v2-upload">
@@ -476,29 +479,58 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
         </div>
 
         <aside className="c-nova-v2-summary" aria-label="Resumo antes de salvar">
-          <SectionCard title="Resumo" description="Confira os dados calculados antes de registrar." variant="elevated">
+          <SectionCard title="Resumo da compra" description="Sempre visível para conferir antes de salvar." variant="elevated">
             <div className="c-nova-v2-summary-total">
               <span>Total</span>
               <strong>{fmt(totalNum)}</strong>
             </div>
 
-            <div className="c-nova-v2-summary-list">
-              <div><span>Descrição</span><strong>{description || 'Não informada'}</strong></div>
-              <div><span>Cartão</span><strong>{selectedCard?.name || 'Selecione'}</strong></div>
-              <div><span>Fatura</span><strong>{baseMonthLabel || '—'}</strong></div>
-              <div><span>Categoria</span><strong>{categories.find(c => c.id === catId)?.name || 'Sem categoria'}</strong></div>
-              <div><span>Parcelas</span><strong>{isInstallment ? `${installments}x` : 'À vista'}</strong></div>
-              <div><span>Divisão</span><strong>{fmt(splitTotal)}</strong></div>
-              <div><span>Diferença</span><strong className={Math.abs(diff) < 0.01 ? 'is-ok' : 'is-danger'}>{fmt(diff)}</strong></div>
-              <div><span>Comprovante</span><strong>{receipt ? 'Anexado' : 'Não anexado'}</strong></div>
+            <div className="c-nova-v2-summary-groups">
+              <section className="c-nova-v2-summary-group">
+                <h3>Financeiro</h3>
+                <div><span>Descrição</span><strong>{description || 'Não informada'}</strong></div>
+                <div><span>Categoria</span><strong>{categories.find(c => c.id === catId)?.name || 'Sem categoria'}</strong></div>
+              </section>
+
+              <section className="c-nova-v2-summary-group">
+                <h3>Cartão</h3>
+                <div><span>Cartão</span><strong>{selectedCard?.name || 'Selecione'}</strong></div>
+                <div><span>Fatura</span><strong>{baseMonthLabel || '—'}</strong></div>
+                <div><span>month_ref</span><strong>{baseMonthRef || '—'}</strong></div>
+              </section>
+
+              <section className="c-nova-v2-summary-group">
+                <h3>Parcelas</h3>
+                <div><span>Formato</span><strong>{isInstallment ? `${installments}x` : 'À vista'}</strong></div>
+                <div><span>Primeira</span><strong>{installmentPreview[0]?.mLabel || baseMonthLabel || '—'}</strong></div>
+              </section>
+
+              <section className="c-nova-v2-summary-group">
+                <h3>Divisão</h3>
+                <div><span>Dividido</span><strong>{fmt(splitTotal)}</strong></div>
+                <div><span>Diferença</span><strong className={Math.abs(diff) < 0.01 ? 'is-ok' : 'is-danger'}>{fmt(diff)}</strong></div>
+              </section>
+
+              <section className="c-nova-v2-summary-group">
+                <h3>Comprovante</h3>
+                <div><span>Status</span><strong>{receipt ? 'Anexado' : 'Não anexado'}</strong></div>
+              </section>
             </div>
 
-            {!isValid && (
-              <div className="c-nova-v2-validation">
-                <AlertCircle aria-hidden="true" />
-                <span>A soma das divisões deve ser igual ao total para liberar o salvamento.</span>
-              </div>
-            )}
+            <div className="c-nova-v2-summary-alerts">
+              <h3>Avisos</h3>
+              {!isValid ? (
+                <div className="c-nova-v2-validation">
+                  <AlertCircle aria-hidden="true" />
+                  <span>A soma das divisões deve ser igual ao total para liberar o salvamento.</span>
+                </div>
+              ) : (
+                <div className="c-nova-v2-validation is-ok">
+                  <CheckCircle2 aria-hidden="true" />
+                  <span>Divisão conferida. O formulário está pronto para salvar.</span>
+                </div>
+              )}
+            </div>
 
             <div className="c-nova-v2-actions">
               <Button type="submit" size="lg" icon={<Save />} loading={saving} disabled={saving || !isValid}>
