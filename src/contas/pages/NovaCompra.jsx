@@ -31,6 +31,11 @@ import {
 
 const fmt      = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
+const formatBRLInput = str => {
+  const digits = String(str || '').replace(/\D/g, '')
+  if (!digits) return ''
+  return (Number(digits) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 
 /**
  * Determina o month_ref de um lançamento considerando o fechamento do cartão.
@@ -328,7 +333,7 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
               <FormField label="Valor total (R$)" required help="Use o mesmo formato atual, como 149,90.">
                 <div className="c-nova-v2-money-field">
                   <span aria-hidden="true">R$</span>
-                  <input type="text" className="c-nova-v2-input c-nova-v2-money" placeholder="0,00" value={total} onChange={e => setTotal(e.target.value)} required />
+                  <input type="text" className="c-nova-v2-input c-nova-v2-money" placeholder="0,00" value={total} onChange={e => setTotal(formatBRLInput(e.target.value))} required />
                 </div>
               </FormField>
             </div>
@@ -410,7 +415,7 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
             }
           >
             <div className="c-nova-v2-split-actions">
-              <Button type="button" variant="secondary" size="sm" icon={<Split />} onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setSplits(n) }}>Dividir igualmente</Button>
+              <Button type="button" variant="secondary" size="sm" icon={<Split />} onClick={splitEqually}>Dividir igualmente</Button>
               <Button type="button" variant="secondary" size="sm" onClick={() => setSplits({})}>Limpar</Button>
               <div className="c-nova-v2-split-total">
                 <span>Total dividido</span>
@@ -500,7 +505,7 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
                 <h3>Cartão</h3>
                 <div><span>Cartão</span><strong>{selectedCard?.name || 'Selecione'}</strong></div>
                 <div><span>Fatura</span><strong>{baseMonthLabel || '—'}</strong></div>
-                <div><span>month_ref</span><strong>{baseMonthRef || '—'}</strong></div>
+                <div><span>Mês de referência</span><strong>{baseMonthRef || '—'}</strong></div>
               </section>
 
               <section className="c-nova-v2-summary-group">
