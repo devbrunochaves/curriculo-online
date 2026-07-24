@@ -2,6 +2,33 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, subMonths, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  Check,
+  CircleDollarSign,
+  CreditCard,
+  Home,
+  Landmark,
+  Plus,
+  ReceiptText,
+  Trash2,
+  UsersRound,
+  X,
+} from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  FormField,
+  IconButton,
+  MetricCard,
+  ModalShell,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 
@@ -70,6 +97,74 @@ function ModalPagamento({ pd, monthRef, onClose, onSaved }) {
     const [type, id] = selectedKey.split(':')
     return pd.allItems.find(i => i.type === type && i.key === id)
   })()
+
+  return (
+    <ModalShell
+      open
+      title="Registrar pagamento"
+      description={pd.pessoa.name}
+      onClose={onClose}
+      size="md"
+      className="c-acertos-v2-modal"
+      actions={(
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="primary" loading={saving} disabled={saving || !selectedKey || !valor} onClick={save} icon={<Check size={16} />}>
+            Confirmar
+          </Button>
+        </>
+      )}
+    >
+      <div className="c-acertos-v2-modal-body">
+        <FormField label="Cartao / Conta Fixa">
+          <select value={selectedKey} onChange={e => handleChange(e.target.value)} className="c-acertos-v2-input">
+            <option value="">Selecione...</option>
+            {pd.cardItems.length > 0 && (
+              <optgroup label="Cartoes">
+                {pd.cardItems.map(item => (
+                  <option key={item.key} value={`card:${item.key}`}>
+                    {item.name} - falta {fmt(Math.max(0, item.falta))}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {pd.billItems.length > 0 && (
+              <optgroup label="Contas Fixas">
+                {pd.billItems.map(item => (
+                  <option key={item.key} value={`bill:${item.key}`}>
+                    {item.name} - falta {fmt(Math.max(0, item.falta))}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+          </select>
+        </FormField>
+
+        {selectedItem && (
+          <div className="c-acertos-v2-selected" style={{ '--item-color': selectedItem.color }}>
+            <span>{selectedItem.type === 'bill' ? <Home size={16} /> : <CreditCard size={16} />}</span>
+            <div>
+              <strong>{selectedItem.name}</strong>
+              <small>Total devido: {fmt(selectedItem.totalDevido)}</small>
+            </div>
+          </div>
+        )}
+
+        <div className="c-acertos-v2-modal-grid">
+          <FormField label="Valor recebido">
+            <input type="number" value={valor} onChange={e => setValor(e.target.value)} min="0" step="0.01" placeholder="0,00" className="c-acertos-v2-input" />
+          </FormField>
+          <FormField label="Data do recebimento">
+            <input type="date" value={data} onChange={e => setData(e.target.value)} className="c-acertos-v2-input" />
+          </FormField>
+        </div>
+
+        <FormField label="Observacao">
+          <input type="text" value={obs} onChange={e => setObs(e.target.value)} placeholder="Ex: Pix recebido" className="c-acertos-v2-input" />
+        </FormField>
+      </div>
+    </ModalShell>
+  )
 
   return (
     <div className="c-modal-overlay" onClick={onClose} style={{ alignItems: 'center', padding: '20px' }}>
@@ -149,6 +244,39 @@ function ModalPagamento({ pd, monthRef, onClose, onSaved }) {
 function HistoricoAcertos({ acertos, cards, billEntries, onDelete }) {
   if (!acertos.length) return null
   return (
+    <div className="c-acertos-v2-history">
+      <div className="c-acertos-v2-history__label">Pagamentos registrados</div>
+      <div className="c-acertos-v2-history__list">
+        {acertos.map(ac => {
+          const card  = cards.find(c => c.id === ac.card_id)
+          const entry = billEntries.find(e => e.id === ac.bill_entry_id)
+          const nome  = card?.name || entry?.bill?.name || '-'
+          return (
+            <div key={ac.id} className="c-acertos-v2-history-row">
+              <div className="c-acertos-v2-history-row__main">
+                <span className="c-acertos-v2-history-row__icon">
+                  {card ? <CreditCard size={15} /> : <Home size={15} />}
+                </span>
+                <div>
+                  <strong>{nome}</strong>
+                  <small>
+                    {format(new Date(ac.data + 'T12:00:00'), 'dd/MM/yyyy')}
+                    {ac.observacao ? ` - ${ac.observacao}` : ''}
+                  </small>
+                </div>
+              </div>
+              <div className="c-acertos-v2-history-row__side">
+                <strong>{fmt(ac.valor)}</strong>
+                <IconButton icon={<X size={14} />} label="Desfazer pagamento" variant="ghost" size="sm" onClick={() => onDelete(ac.id)} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+
+  return (
     <div style={{ marginTop: 10 }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
         Pagamentos registrados
@@ -187,7 +315,25 @@ function HistoricoAcertos({ acertos, cards, billEntries, onDelete }) {
 function ItemRow({ item }) {
   const pago = item.falta <= 0
   const cor  = pago ? '#16a34a' : item.color
-  const icon = item.type === 'bill' ? '🏠' : null
+
+  return (
+    <div className={`c-acertos-v2-item ${pago ? 'is-paid' : ''}`} style={{ '--item-color': cor }}>
+      <div className="c-acertos-v2-item__main">
+        <span className="c-acertos-v2-item__icon">
+          {item.type === 'bill' ? <Home size={15} /> : <CreditCard size={15} />}
+        </span>
+        <div>
+          <strong>{item.name}</strong>
+          {item.totalPago > 0 && <small>Pago {fmt(item.totalPago)}</small>}
+        </div>
+      </div>
+      <div className="c-acertos-v2-item__side">
+        <strong>{fmt(item.totalDevido)}</strong>
+        {!pago && <small>Falta {fmt(item.falta)}</small>}
+        {pago && <small>Quitado</small>}
+      </div>
+    </div>
+  )
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 12px', borderRadius: 10, background: pago ? '#16a34a08' : item.color + '08', border: `1px solid ${pago ? '#16a34a25' : item.color + '25'}` }}>
@@ -320,6 +466,158 @@ export default function Acertos() {
   const totalQuitado  = pessoaData.reduce((s, pd) => s + pd.totalPago, 0)
   const totalPendente = pessoaData.reduce((s, pd) => s + pd.totalFalta, 0)
   const qtdQuitados   = pessoaData.filter(pd => pd.status === 'quitado').length
+
+  if (loading) return (
+    <div className="c-acertos-v2-page">
+      <PageHeader
+        eyebrow="Financeiro"
+        title="Acertos"
+        description="Controle de quitacao entre pessoas."
+        meta={<StatusBadge tone="accent" icon={<CalendarDays size={14} />}>{monthLabel}</StatusBadge>}
+      />
+      <div className="c-acertos-v2-metrics">
+        <Skeleton variant="card" height="132px" />
+        <Skeleton variant="card" height="132px" />
+        <Skeleton variant="card" height="132px" />
+      </div>
+      <SectionCard title="Saldos por pessoa" description="Carregando acertos do mes selecionado.">
+        <div className="c-acertos-v2-loading">
+          <Skeleton variant="card" height="150px" />
+          <Skeleton variant="card" height="150px" />
+        </div>
+      </SectionCard>
+    </div>
+  )
+
+  return (
+    <div className="c-acertos-v2-page">
+      <PageHeader
+        eyebrow="Financeiro"
+        title="Acertos"
+        description="Controle de quitacao entre pessoas, cartoes e contas fixas."
+        meta={<StatusBadge tone="accent" icon={<CalendarDays size={14} />}>{monthLabel}</StatusBadge>}
+        actions={(
+          <div className="c-acertos-v2-header-actions">
+            <div className="c-acertos-v2-month-nav" aria-label="Navegacao mensal">
+              <IconButton icon={<ArrowLeft size={17} />} label="Mes anterior" variant="secondary" size="sm" onClick={() => setCurrentDate(d => subMonths(d, 1))} />
+              <span>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
+              <IconButton icon={<ArrowRight size={17} />} label="Proximo mes" variant="secondary" size="sm" onClick={() => setCurrentDate(d => addMonths(d, 1))} />
+            </div>
+          </div>
+        )}
+      />
+
+      <div className="c-acertos-v2-metrics">
+        <MetricCard
+          label="Total a receber"
+          value={fmt(totalGeral)}
+          description={`${pessoaData.length} pessoa${pessoaData.length !== 1 ? 's' : ''} com divisao`}
+          tone="accent"
+          icon={<CircleDollarSign size={18} />}
+        />
+        <MetricCard
+          label="Ja quitado"
+          value={fmt(totalQuitado)}
+          description={`${qtdQuitados} pessoa${qtdQuitados !== 1 ? 's' : ''} quitada${qtdQuitados !== 1 ? 's' : ''}`}
+          tone="success"
+          icon={<Check size={18} />}
+        />
+        <MetricCard
+          label="Pendente"
+          value={fmt(totalPendente)}
+          description={`${pessoaData.filter(pd => pd.status === 'pendente').length} pendente${pessoaData.filter(pd => pd.status === 'pendente').length !== 1 ? 's' : ''}`}
+          tone={totalPendente > 0 ? 'danger' : 'success'}
+          icon={<Landmark size={18} />}
+        />
+      </div>
+
+      <SectionCard
+        title="Saldos por pessoa"
+        description="Valores calculados a partir dos splits de cartoes e contas fixas."
+        actions={pessoaData.length > 0 && <StatusBadge tone="info" icon={<UsersRound size={14} />}>{pessoaData.length} pessoas</StatusBadge>}
+        className="c-acertos-v2-section"
+      >
+        {pessoaData.length === 0 ? (
+          <EmptyState
+            icon={<ReceiptText size={28} />}
+            title="Nenhum acerto neste mes"
+            description={`Nao ha divisoes registradas em ${monthLabel}.`}
+            compact
+          />
+        ) : (
+          <div className="c-acertos-v2-people">
+            {pessoaData.map(pd => {
+              const isQuitado = pd.status === 'quitado'
+              const cor = pd.pessoa.color || '#6366f1'
+              const pct = pd.totalDevido > 0 ? Math.min(100, (pd.totalPago / pd.totalDevido) * 100) : 100
+              const nCartoes = pd.cardItems.length
+              const nFixas   = pd.billItems.length
+              const subtitle = [
+                nCartoes > 0 && `${nCartoes} cartao${nCartoes !== 1 ? 'oes' : ''}`,
+                nFixas   > 0 && `${nFixas} conta${nFixas !== 1 ? 's' : ''} fixa${nFixas !== 1 ? 's' : ''}`,
+              ].filter(Boolean).join(', ')
+
+              return (
+                <article key={pd.pessoa.id} className="c-acertos-v2-person" style={{ '--person-color': cor }}>
+                  <div className="c-acertos-v2-person__progress">
+                    <span style={{ width: `${pct}%` }} />
+                  </div>
+
+                  <div className="c-acertos-v2-person__header">
+                    <div className="c-acertos-v2-person__identity">
+                      <span>{pd.pessoa.name.charAt(0).toUpperCase()}</span>
+                      <div>
+                        <h3>{pd.pessoa.name}</h3>
+                        <p>{subtitle}</p>
+                      </div>
+                    </div>
+                    <StatusBadge tone={isQuitado ? 'success' : 'danger'} icon={isQuitado ? <Check size={13} /> : <Landmark size={13} />}>
+                      {isQuitado ? 'Quitado' : 'Pendente'}
+                    </StatusBadge>
+                  </div>
+
+                  {pd.allItems.some(i => i.falta > 0) && (
+                    <div className="c-acertos-v2-items">
+                      {pd.allItems.filter(i => i.falta > 0).map(item => <ItemRow key={`${item.type}:${item.key}`} item={item} />)}
+                    </div>
+                  )}
+
+                  <div className="c-acertos-v2-total">
+                    <div>
+                      <span>Total</span>
+                      <strong>{fmt(pd.totalDevido)}</strong>
+                    </div>
+                    <div>
+                      <span>Pago</span>
+                      <strong className="is-success">{fmt(pd.totalPago)}</strong>
+                    </div>
+                    <div>
+                      <span>{pd.totalFalta > 0 ? 'Falta' : 'Status'}</span>
+                      <strong className={pd.totalFalta > 0 ? 'is-danger' : 'is-success'}>
+                        {pd.totalFalta > 0 ? fmt(pd.totalFalta) : 'Quitado'}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <HistoricoAcertos acertos={pd.pessoaAcertos} cards={cards} billEntries={billEntries} onDelete={deleteAcerto} />
+
+                  {!isQuitado && (
+                    <Button className="c-acertos-v2-person__action" icon={<Plus size={16} />} onClick={() => setModalPd(pd)}>
+                      Registrar pagamento
+                    </Button>
+                  )}
+                </article>
+              )
+            })}
+          </div>
+        )}
+      </SectionCard>
+
+      {modalPd && (
+        <ModalPagamento pd={modalPd} monthRef={monthRef} onClose={() => setModalPd(null)} onSaved={load} />
+      )}
+    </div>
+  )
 
   if (loading) return (
     <div className="c-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>

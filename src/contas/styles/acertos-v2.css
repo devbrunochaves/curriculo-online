@@ -1,0 +1,416 @@
+.contas-root .c-acertos-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+  margin: 0 auto;
+  max-width: var(--v2-layout-content-wide);
+  padding-bottom: calc(var(--v2-space-10) + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+}
+
+.contas-root .c-acertos-v2-header-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-3);
+  justify-content: flex-end;
+}
+
+.contas-root .c-acertos-v2-month-nav {
+  align-items: center;
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-full);
+  box-shadow: var(--v2-shadow-xs);
+  display: inline-flex;
+  gap: var(--v2-space-2);
+  min-height: 42px;
+  padding: var(--v2-space-1);
+}
+
+.contas-root .c-acertos-v2-month-nav span {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  min-width: 96px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.contas-root .c-acertos-v2-metrics {
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contas-root .c-acertos-v2-section {
+  min-width: 0;
+}
+
+.contas-root .c-acertos-v2-loading,
+.contas-root .c-acertos-v2-people {
+  display: grid;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-person {
+  background: var(--v2-color-surface);
+  border: 1px solid color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 20%, var(--v2-color-border));
+  border-radius: var(--v2-radius-xl);
+  box-shadow: var(--v2-shadow-xs);
+  overflow: hidden;
+}
+
+.contas-root .c-acertos-v2-person__progress {
+  background: var(--v2-color-border-soft);
+  height: 4px;
+}
+
+.contas-root .c-acertos-v2-person__progress span {
+  background: var(--person-color, var(--v2-color-accent));
+  border-radius: 0 var(--v2-radius-full) var(--v2-radius-full) 0;
+  display: block;
+  height: 100%;
+  transition: width var(--v2-duration-slow) var(--v2-ease-standard);
+}
+
+.contas-root .c-acertos-v2-person__header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--v2-space-4);
+  justify-content: space-between;
+  padding: var(--v2-space-5) var(--v2-space-5) var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-person__identity {
+  align-items: center;
+  display: flex;
+  gap: var(--v2-space-3);
+  min-width: 0;
+}
+
+.contas-root .c-acertos-v2-person__identity > span {
+  align-items: center;
+  background: color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 12%, var(--v2-color-surface));
+  border: 2px solid var(--person-color, var(--v2-color-accent));
+  border-radius: var(--v2-radius-full);
+  color: var(--person-color, var(--v2-color-accent));
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--v2-font-size-heading-3);
+  font-weight: var(--v2-font-weight-bold);
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.contas-root .c-acertos-v2-person__identity h3,
+.contas-root .c-acertos-v2-item strong,
+.contas-root .c-acertos-v2-history-row strong {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  line-height: var(--v2-line-height-heading);
+  margin: 0;
+}
+
+.contas-root .c-acertos-v2-person__identity p {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  margin: var(--v2-space-1) 0 0;
+}
+
+.contas-root .c-acertos-v2-items {
+  display: grid;
+  gap: var(--v2-space-2);
+  padding: 0 var(--v2-space-5) var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-item {
+  align-items: center;
+  background: color-mix(in srgb, var(--item-color, var(--v2-color-accent)) 8%, var(--v2-color-surface));
+  border: 1px solid color-mix(in srgb, var(--item-color, var(--v2-color-accent)) 22%, var(--v2-color-border));
+  border-radius: var(--v2-radius-lg);
+  display: flex;
+  gap: var(--v2-space-3);
+  justify-content: space-between;
+  padding: var(--v2-space-3) var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-item.is-paid {
+  background: var(--v2-color-success-soft);
+  border-color: color-mix(in srgb, var(--v2-color-success) 24%, var(--v2-color-border));
+}
+
+.contas-root .c-acertos-v2-item__main {
+  align-items: center;
+  display: flex;
+  gap: var(--v2-space-3);
+  min-width: 0;
+}
+
+.contas-root .c-acertos-v2-item__icon,
+.contas-root .c-acertos-v2-history-row__icon {
+  align-items: center;
+  background: var(--v2-color-surface);
+  border-radius: var(--v2-radius-md);
+  color: var(--item-color, var(--v2-color-success));
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 32px;
+  justify-content: center;
+  width: 32px;
+}
+
+.contas-root .c-acertos-v2-item small,
+.contas-root .c-acertos-v2-history-row small {
+  color: var(--v2-color-text-muted);
+  display: block;
+  font-size: var(--v2-font-size-caption);
+  margin-top: 2px;
+}
+
+.contas-root .c-acertos-v2-item__side {
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.contas-root .c-acertos-v2-item__side strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.contas-root .c-acertos-v2-item__side small {
+  color: var(--v2-color-danger);
+}
+
+.contas-root .c-acertos-v2-item.is-paid .c-acertos-v2-item__side small {
+  color: var(--v2-color-success-text);
+}
+
+.contas-root .c-acertos-v2-total {
+  background: var(--v2-color-bg-soft);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  display: grid;
+  gap: var(--v2-space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0 var(--v2-space-5) var(--v2-space-4);
+  padding: var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-total span {
+  color: var(--v2-color-text-muted);
+  display: block;
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-acertos-v2-total strong {
+  color: var(--v2-color-text);
+  display: block;
+  font-size: var(--v2-font-size-heading-3);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--v2-font-weight-bold);
+  margin-top: var(--v2-space-1);
+}
+
+.contas-root .c-acertos-v2-total strong.is-success {
+  color: var(--v2-color-success-text);
+}
+
+.contas-root .c-acertos-v2-total strong.is-danger {
+  color: var(--v2-color-danger);
+}
+
+.contas-root .c-acertos-v2-person__action {
+  margin: 0 var(--v2-space-5) var(--v2-space-5);
+  width: calc(100% - (var(--v2-space-5) * 2));
+}
+
+.contas-root .c-acertos-v2-history {
+  display: grid;
+  gap: var(--v2-space-2);
+  margin: 0 var(--v2-space-5) var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-history__label {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-acertos-v2-history__list {
+  display: grid;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-acertos-v2-history-row {
+  align-items: center;
+  background: var(--v2-color-success-soft);
+  border: 1px solid color-mix(in srgb, var(--v2-color-success) 22%, var(--v2-color-border));
+  border-radius: var(--v2-radius-lg);
+  display: flex;
+  gap: var(--v2-space-3);
+  justify-content: space-between;
+  padding: var(--v2-space-3) var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-history-row__main {
+  align-items: center;
+  display: flex;
+  gap: var(--v2-space-3);
+  min-width: 0;
+}
+
+.contas-root .c-acertos-v2-history-row__side {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-acertos-v2-history-row__side strong {
+  color: var(--v2-color-success-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.contas-root .c-v2-modal__dialog.c-acertos-v2-modal {
+  max-width: 640px;
+}
+
+.contas-root .c-acertos-v2-modal-body {
+  display: grid;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-modal-grid {
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.contas-root .c-acertos-v2-input {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  color: var(--v2-color-text);
+  font-family: var(--v2-font-family-sans);
+  font-size: var(--v2-font-size-body);
+  font-variant-numeric: tabular-nums;
+  min-height: 44px;
+  padding: 0 var(--v2-space-4);
+  transition: border-color var(--v2-duration-base) var(--v2-ease-standard), box-shadow var(--v2-duration-base) var(--v2-ease-standard);
+  width: 100%;
+}
+
+.contas-root .c-acertos-v2-input:focus-visible {
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-acertos-v2-selected {
+  align-items: center;
+  background: color-mix(in srgb, var(--item-color, var(--v2-color-accent)) 9%, var(--v2-color-surface));
+  border: 1px solid color-mix(in srgb, var(--item-color, var(--v2-color-accent)) 22%, var(--v2-color-border));
+  border-radius: var(--v2-radius-lg);
+  display: flex;
+  gap: var(--v2-space-3);
+  padding: var(--v2-space-4);
+}
+
+.contas-root .c-acertos-v2-selected > span {
+  align-items: center;
+  background: var(--v2-color-surface);
+  border-radius: var(--v2-radius-md);
+  color: var(--item-color, var(--v2-color-accent));
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.contas-root .c-acertos-v2-selected strong,
+.contas-root .c-acertos-v2-selected small {
+  display: block;
+}
+
+.contas-root .c-acertos-v2-selected strong {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+}
+
+.contas-root .c-acertos-v2-selected small {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  margin-top: 2px;
+}
+
+@media (max-width: 980px) {
+  .contas-root .c-acertos-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .contas-root .c-acertos-v2-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .contas-root .c-acertos-v2-month-nav {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .contas-root .c-acertos-v2-month-nav span {
+    min-width: 0;
+  }
+
+  .contas-root .c-acertos-v2-person__header,
+  .contas-root .c-acertos-v2-item,
+  .contas-root .c-acertos-v2-history-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .contas-root .c-acertos-v2-total,
+  .contas-root .c-acertos-v2-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-acertos-v2-item__side,
+  .contas-root .c-acertos-v2-history-row__side {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .contas-root .c-acertos-v2-person__header,
+  .contas-root .c-acertos-v2-items,
+  .contas-root .c-acertos-v2-total,
+  .contas-root .c-acertos-v2-history,
+  .contas-root .c-acertos-v2-person__action {
+    margin-left: var(--v2-space-4);
+    margin-right: var(--v2-space-4);
+  }
+
+  .contas-root .c-acertos-v2-person__header {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .contas-root .c-acertos-v2-person__action {
+    width: calc(100% - (var(--v2-space-4) * 2));
+  }
+}
