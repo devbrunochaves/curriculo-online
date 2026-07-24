@@ -186,13 +186,15 @@
 .contas-root .c-nova-v2-invoice-icon {
   width: 34px;
   height: 34px;
-  display: inline-flex;
+  display: inline-grid;
+  place-items: center;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
   border-radius: var(--v2-radius-md);
   background: var(--v2-color-surface);
   box-shadow: var(--v2-shadow-xs);
+  line-height: 0;
 }
 
 .contas-root .c-nova-v2-invoice-icon svg,
@@ -201,6 +203,7 @@
 .contas-root .c-nova-v2-upload svg,
 .contas-root .c-nova-v2-validation svg,
 .contas-root .c-nova-v2-receipt-file svg {
+  display: block;
   width: 18px;
   height: 18px;
   stroke-width: 1.75;
