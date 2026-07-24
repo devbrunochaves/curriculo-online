@@ -525,7 +525,19 @@ export default function Lancamentos() {
 
             <div className="c-lanc-v2-mobile-list">
               {filtered.map(e => (
-                <article key={e.id} className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}`} onClick={() => setSelected(e)}>
+                <article
+                  key={e.id}
+                  className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelected(e)}
+                  onKeyDown={ev => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                      ev.preventDefault()
+                      setSelected(e)
+                    }
+                  }}
+                >
                   <div className="c-lanc-v2-mobile-top">
                     <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={ev => { ev.stopPropagation(); toggleReconciled(e.id, e.reconciled) }} aria-label={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
                       {e.reconciled ? <Check /> : null}
@@ -539,17 +551,23 @@ export default function Lancamentos() {
                   <div className="c-lanc-v2-mobile-meta">
                     {e.is_fixed && <StatusBadge tone="info" size="sm">Fixo</StatusBadge>}
                     {e.category && <span>{e.category.icon} {e.category.name}</span>}
-                    {e.receipt_url && <StatusBadge tone="success" size="sm" icon={<Paperclip />}>Comprovante</StatusBadge>}
+                    {e.receipt_url && (
+                      <a
+                        href={e.receipt_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="c-lanc-v2-mobile-receipt"
+                        onClick={ev => ev.stopPropagation()}
+                      >
+                        <StatusBadge tone="success" size="sm" icon={<Paperclip />}>Comprovante</StatusBadge>
+                      </a>
+                    )}
                   </div>
                   {e.splits?.length > 0 && (
                     <div className="c-lanc-v2-split-pills">
                       {e.splits.map(s => <span key={s.id} className="c-lanc-v2-pill" style={{ '--pill-color': s.person.color }}>{s.person.name} {fmt(s.amount)}</span>)}
                     </div>
                   )}
-                  <div className="c-lanc-v2-mobile-actions" onClick={ev => ev.stopPropagation()}>
-                    <Button variant="secondary" size="sm" icon={<Pencil />} onClick={() => { setEditingId(e.id); setShowForm(true) }}>Editar</Button>
-                    <Button variant="danger" size="sm" icon={<Trash2 />} onClick={() => handleDelete(e.id)} loading={deleting === e.id}>Excluir</Button>
-                  </div>
                 </article>
               ))}
             </div>
