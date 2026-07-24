@@ -1,0 +1,342 @@
+.contas-root .c-entradas-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+  margin: 0 auto;
+  max-width: var(--v2-layout-content-wide);
+  padding-bottom: calc(var(--v2-space-10) + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+}
+
+.contas-root .c-entradas-v2-header-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-3);
+  justify-content: flex-end;
+}
+
+.contas-root .c-entradas-v2-month-nav {
+  align-items: center;
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-full);
+  box-shadow: var(--v2-shadow-xs);
+  display: inline-flex;
+  gap: var(--v2-space-2);
+  min-height: 42px;
+  padding: var(--v2-space-1);
+}
+
+.contas-root .c-entradas-v2-month-nav span {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  min-width: 96px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.contas-root .c-entradas-v2-metrics {
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contas-root .c-entradas-v2-grid {
+  align-items: stretch;
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+}
+
+.contas-root .c-entradas-v2-chart-card,
+.contas-root .c-entradas-v2-form-card,
+.contas-root .c-entradas-v2-list-card {
+  min-width: 0;
+}
+
+.contas-root .c-entradas-v2-chart {
+  display: block;
+  height: 220px;
+  width: 100%;
+}
+
+.contas-root .c-entradas-v2-form {
+  display: grid;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-entradas-v2-input {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  color: var(--v2-color-text);
+  font-family: var(--v2-font-family-sans);
+  font-size: var(--v2-font-size-body);
+  font-variant-numeric: tabular-nums;
+  min-height: 44px;
+  padding: 0 var(--v2-space-4);
+  transition: border-color var(--v2-duration-base) var(--v2-ease-standard), box-shadow var(--v2-duration-base) var(--v2-ease-standard);
+  width: 100%;
+}
+
+.contas-root .c-entradas-v2-input:focus-visible {
+  border-color: var(--v2-color-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--v2-color-success) 18%, transparent);
+  outline: none;
+}
+
+.contas-root .c-entradas-v2-input::placeholder {
+  color: var(--v2-color-text-subtle);
+}
+
+.contas-root .c-entradas-v2-submit {
+  width: 100%;
+}
+
+.contas-root .c-entradas-v2-loading {
+  display: grid;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-entradas-v2-table-wrap {
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  overflow: auto;
+}
+
+.contas-root .c-entradas-v2-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 680px;
+  width: 100%;
+}
+
+.contas-root .c-entradas-v2-table th,
+.contas-root .c-entradas-v2-table td {
+  border-bottom: 1px solid var(--v2-color-border-soft);
+  padding: var(--v2-space-4);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.contas-root .c-entradas-v2-table th {
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-entradas-v2-table th:nth-child(3),
+.contas-root .c-entradas-v2-table td:nth-child(3) {
+  text-align: right;
+}
+
+.contas-root .c-entradas-v2-table th:last-child,
+.contas-root .c-entradas-v2-table td:last-child {
+  width: 64px;
+}
+
+.contas-root .c-entradas-v2-table tbody tr {
+  background: var(--v2-color-surface);
+  transition: background var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-entradas-v2-table tbody tr:hover {
+  background: var(--v2-color-bg-soft);
+}
+
+.contas-root .c-entradas-v2-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.contas-root .c-entradas-v2-date,
+.contas-root .c-entradas-v2-description {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--v2-space-2);
+  min-width: 0;
+}
+
+.contas-root .c-entradas-v2-date {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+  white-space: nowrap;
+}
+
+.contas-root .c-entradas-v2-description {
+  color: var(--v2-color-text);
+  font-weight: var(--v2-font-weight-semibold);
+}
+
+.contas-root .c-entradas-v2-description svg,
+.contas-root .c-entradas-v2-date svg,
+.contas-root .c-entradas-v2-mobile-card span svg {
+  color: var(--v2-color-success);
+  flex: 0 0 auto;
+  stroke-width: 1.75;
+}
+
+.contas-root .c-entradas-v2-value,
+.contas-root .c-entradas-v2-total-row td:nth-child(2) {
+  color: var(--v2-color-success);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--v2-font-weight-bold);
+  white-space: nowrap;
+}
+
+.contas-root .c-entradas-v2-table tbody tr.c-entradas-v2-total-row {
+  background: var(--v2-color-success-soft);
+}
+
+.contas-root .c-entradas-v2-total-row td:first-child {
+  color: var(--v2-color-success-text);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-entradas-v2-mobile-list {
+  display: none;
+}
+
+.contas-root .c-entradas-v2-mobile-card,
+.contas-root .c-entradas-v2-mobile-total {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  padding: var(--v2-space-4);
+}
+
+.contas-root .c-entradas-v2-mobile-card {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--v2-space-3);
+  justify-content: space-between;
+}
+
+.contas-root .c-entradas-v2-mobile-card h3 {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  line-height: var(--v2-line-height-heading);
+  margin: 0 0 var(--v2-space-2);
+  overflow-wrap: anywhere;
+}
+
+.contas-root .c-entradas-v2-mobile-card span {
+  align-items: center;
+  color: var(--v2-color-text-muted);
+  display: inline-flex;
+  font-size: var(--v2-font-size-caption);
+  gap: var(--v2-space-1);
+}
+
+.contas-root .c-entradas-v2-mobile-card__side {
+  align-items: flex-end;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-entradas-v2-mobile-card__side strong {
+  color: var(--v2-color-success);
+  font-size: var(--v2-font-size-heading-3);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--v2-font-weight-bold);
+  white-space: nowrap;
+}
+
+.contas-root .c-entradas-v2-mobile-total {
+  align-items: center;
+  background: var(--v2-color-success-soft);
+  color: var(--v2-color-success-text);
+  display: flex;
+  justify-content: space-between;
+}
+
+.contas-root .c-entradas-v2-mobile-total span {
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-entradas-v2-mobile-total strong {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1180px) {
+  .contas-root .c-entradas-v2-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-entradas-v2-form {
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 0.45fr) auto;
+  }
+
+  .contas-root .c-entradas-v2-submit {
+    width: auto;
+  }
+}
+
+@media (max-width: 820px) {
+  .contas-root .c-entradas-v2-header-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .contas-root .c-entradas-v2-month-nav {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .contas-root .c-entradas-v2-month-nav span {
+    min-width: 0;
+  }
+
+  .contas-root .c-entradas-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-entradas-v2-form {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-entradas-v2-submit {
+    width: 100%;
+  }
+
+  .contas-root .c-entradas-v2-table-wrap {
+    display: none;
+  }
+
+  .contas-root .c-entradas-v2-mobile-list {
+    display: grid;
+    gap: var(--v2-space-3);
+  }
+}
+
+@media (max-width: 430px) {
+  .contas-root .c-entradas-v2-chart {
+    height: 180px;
+  }
+
+  .contas-root .c-entradas-v2-mobile-card {
+    flex-direction: column;
+  }
+
+  .contas-root .c-entradas-v2-mobile-card__side {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
