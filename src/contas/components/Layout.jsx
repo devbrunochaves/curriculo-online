@@ -59,12 +59,12 @@ const navGroups = [
     items: [
       { to: '/contas/apartamento', icon: Home, label: 'Apartamento' },
       { to: '/contas/veiculos', icon: Car, label: 'Veículos' },
-      { to: '/contas/documentos', icon: FileText, label: 'Documentos' },
     ],
   },
   {
     label: 'Sistema',
     items: [
+      { to: '/contas/documentos', icon: FileText, label: 'Documentos' },
       { to: '/contas/configuracoes', icon: Settings, label: 'Configurações' },
     ],
   },
