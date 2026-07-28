@@ -6,6 +6,15 @@ import {
   addMonths, subMonths, addDays, parseISO, differenceInDays,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { CalendarDays, Filter, Plus, Sun } from 'lucide-react'
+import {
+  Button,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  SelectField,
+  Skeleton,
+} from '../components/ui'
 
 /* ── Constantes ─────────────────────────────────────────────────── */
 const CATEGORIAS = [
@@ -700,41 +709,75 @@ export default function Agenda() {
     { key: 'lista',      label: '📋 Lista'       },
   ]
 
+  const todayStr = fmtDate(new Date())
+  const todayEvents = filtered.filter(e => e.data_inicio === todayStr)
+  const nextSevenEvents = filtered.filter(e => {
+    const d = differenceInDays(parseISO(e.data_inicio), new Date())
+    return d > 0 && d <= 7
+  })
+  const birthdayEvents = filtered.filter(e => {
+    if (e.categoria !== 'aniversario') return false
+    const d = differenceInDays(parseISO(e.data_inicio), new Date())
+    return d >= 0 && d <= 30
+  })
+
   return (
-    <div>
+    <div className="c-agenda-v2-page">
       {/* ── Header ── */}
-      <div className="c-flex c-items-center c-justify-between c-mb-4" style={{ flexWrap: 'wrap', gap: 10 }}>
-        <div className="c-page-header" style={{ margin: 0 }}>
-          <h2>📅 Agenda Familiar</h2>
-          <p>{filtered.length} evento{filtered.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div className="c-flex c-gap-2" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 4, background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 10, padding: 3 }}>
+      <PageHeader
+        title="Agenda"
+        eyebrow="Família"
+        description={`${filtered.length} evento${filtered.length !== 1 ? 's' : ''} na agenda familiar.`}
+        actions={(
+          <Button icon={<Plus size={16} />} onClick={() => openNew(null)}>Novo evento</Button>
+        )}
+      />
+
+      <div className="c-agenda-v2-metrics">
+        <MetricCard label="Hoje" value={todayEvents.length} description="Compromissos do dia" icon={<Sun size={18} />} tone="accent" />
+        <MetricCard label="Próximos 7 dias" value={nextSevenEvents.length} description="Eventos futuros" icon={<CalendarDays size={18} />} tone="success" />
+        <MetricCard label="Aniversários" value={birthdayEvents.length} description="Próximos 30 dias" icon={<CalendarDays size={18} />} tone="warning" />
+      </div>
+
+      {/* ── Filtros ── */}
+      <SectionCard
+        className="c-agenda-v2-toolbar"
+        title="Visualização"
+        description="Alterne entre o dia, o calendário mensal e a lista."
+        actions={(
+          <div className="c-agenda-v2-view-toggle" role="tablist" aria-label="Visualizações da agenda">
             {VIEWS.map(v => (
-              <button key={v.key} onClick={() => setView(v.key)}
-                className={`c-btn c-btn-sm ${view === v.key ? 'c-btn-primary' : 'c-btn-secondary'}`}
-                style={{ border: 'none' }}>
+              <button
+                key={v.key}
+                type="button"
+                role="tab"
+                aria-selected={view === v.key}
+                className={view === v.key ? 'is-active' : ''}
+                onClick={() => setView(v.key)}
+              >
                 {v.label}
               </button>
             ))}
           </div>
-          <button className="c-btn c-btn-primary c-btn-sm" onClick={() => openNew(null)}>+ Evento</button>
-        </div>
-      </div>
-
-      {/* ── Filtros ── */}
-      <div className="c-flex c-gap-2 c-mb-4" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
-        <select className="c-form-select" style={{ width: 'auto', fontSize: 12 }} value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-          <option value="">Todas as categorias</option>
-          {CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
-        </select>
-        {filterCat && (
-          <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => setFilterCat('')}>✕ Limpar</button>
         )}
-      </div>
+      >
+        <div className="c-agenda-v2-filters">
+          <Filter size={16} aria-hidden="true" />
+          <SelectField value={filterCat} onChange={e => setFilterCat(e.target.value)} aria-label="Filtrar por categoria">
+            <option value="">Todas as categorias</option>
+            {CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
+          </SelectField>
+          {filterCat && (
+            <Button variant="secondary" size="sm" onClick={() => setFilterCat('')}>Limpar</Button>
+          )}
+        </div>
+      </SectionCard>
 
       {loading ? (
-        <div className="c-loading-screen" style={{ height: '40vh' }}><div className="c-loading-spinner" /></div>
+        <div className="c-agenda-v2-loading" aria-label="Carregando agenda">
+          <Skeleton height={120} />
+          <Skeleton height={260} />
+        </div>
       ) : (
         <>
           {view === 'meudia' && (
