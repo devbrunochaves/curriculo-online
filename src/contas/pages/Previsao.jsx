@@ -3,12 +3,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, addMonths, startOfMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { TrendingDown } from 'lucide-react'
+import { AlertTriangle, CalendarRange, CheckCircle2, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
 import {
   Button,
   EmptyState,
   MetricCard,
   PageHeader,
+  SectionCard,
   Skeleton,
 } from '../components/ui'
 
@@ -122,6 +123,20 @@ export default function Previsao() {
   )
 
   const futureTotal = data.reduce((s, m) => s + m.total, 0)
+  const futureIncome = data.reduce((s, m) => s + m.entrada, 0)
+  const projectedBalance = data.reduce((s, m) => s + (m.entrada - m.total), 0)
+  const negativeMonths = data.filter(m => (m.entrada - m.total) < 0)
+  const lowestBalanceMonth = data.reduce((lowest, m) => {
+    const saldo = m.entrada - m.total
+    if (!lowest) return { ...m, saldo }
+    return saldo < lowest.saldo ? { ...m, saldo } : lowest
+  }, null)
+  const highestExpenseMonth = data.reduce((highest, m) => {
+    if (!highest) return m
+    return m.total > highest.total ? m : highest
+  }, null)
+  const avgMonthlyBalance = data.length ? projectedBalance / data.length : 0
+  const formatMonth = mRef => format(parseISO(mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })
 
   return (
     <div className="c-previsao-v2-page">
@@ -129,9 +144,11 @@ export default function Previsao() {
       <PageHeader
         title="Previsão"
         eyebrow="Financeiro"
-        description={`Visão dos próximos meses — total comprometido: ${fmt(futureTotal)}`}
-        actions={(
-          <div className="c-previsao-v2-periods" aria-label="Selecionar período da previsão">
+        description="Acompanhe entradas, despesas e o saldo projetado dos próximos períodos."
+      />
+
+      <SectionCard title="Período da previsão" description={`Análise a partir de ${formatMonth(currentRef || format(new Date(), 'yyyy-MM'))}.`} padding="md">
+        <div className="c-previsao-v2-periods" aria-label="Selecionar período da previsão">
           {[3, 6, 9].map(n => (
             <Button
               key={n}
@@ -143,17 +160,47 @@ export default function Previsao() {
               {n} meses
             </Button>
           ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Resumo executivo" description="Entradas, despesas e saldo projetado no período selecionado." padding="lg">
+        <div className="c-previsao-v2-metrics">
+          <MetricCard label="Saldo projetado" value={fmt(projectedBalance)} description={`Média mensal: ${fmt(avgMonthlyBalance)}`} icon={<WalletCards size={18} />} tone={projectedBalance >= 0 ? 'success' : 'danger'} />
+          <MetricCard label="Entradas previstas" value={fmt(futureIncome)} description={`Próximos ${months} meses`} icon={<TrendingUp size={18} />} tone="success" />
+          <MetricCard label="Despesas previstas" value={fmt(futureTotal)} description={highestExpenseMonth ? `Maior mês: ${formatMonth(highestExpenseMonth.mRef)}` : 'Sem despesas previstas'} icon={<TrendingDown size={18} />} tone="danger" />
+          <MetricCard label="Meses negativos" value={negativeMonths.length} description={lowestBalanceMonth ? `Menor saldo: ${fmt(lowestBalanceMonth.saldo)}` : 'Sem período calculado'} icon={<AlertTriangle size={18} />} tone={negativeMonths.length ? 'warning' : 'success'} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Atenção na previsão" description="Meses que exigem atenção por saldo projetado negativo." padding="lg">
+        {negativeMonths.length ? (
+          <div className="c-previsao-v2-alert-list">
+            {negativeMonths.map(m => {
+              const saldo = m.entrada - m.total
+              return (
+                <div key={m.mRef} className="c-previsao-v2-alert-item">
+                  <span className="c-previsao-v2-alert-icon" aria-hidden="true"><AlertTriangle size={18} /></span>
+                  <div>
+                    <strong>{formatMonth(m.mRef)}</strong>
+                    <small>Despesas previstas acima das entradas do mês.</small>
+                  </div>
+                  <span>{fmt(saldo)}</span>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="c-previsao-v2-positive">
+            <CheckCircle2 size={18} />
+            <span>Sua previsão permanece positiva no período analisado.</span>
           </div>
         )}
-      />
-
-      <div className="c-previsao-v2-metrics">
-        <MetricCard label="Total comprometido" value={fmt(futureTotal)} description={`Próximos ${months} meses`} icon={<TrendingDown size={18} />} tone="danger" />
-      </div>
+      </SectionCard>
 
       {/* ── Month cards ── */}
-      <div className="c-previsao-v2-months">
-        {data.map(m => {
+      <SectionCard title="Detalhamento mensal" description="Entradas, despesas, saldo e composição por pessoa." padding="lg">
+        <div className="c-previsao-v2-months">
+          {data.map(m => {
           const saldo = m.entrada - m.total
 
           return (
@@ -323,7 +370,8 @@ export default function Previsao() {
             </div>
           )
         })}
-      </div>
+        </div>
+      </SectionCard>
     </div>
   )
 }

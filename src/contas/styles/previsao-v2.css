@@ -29,6 +29,57 @@
   gap: var(--v2-space-4);
 }
 
+.contas-root .c-previsao-v2-alert-list {
+  display: grid;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-previsao-v2-alert-item {
+  align-items: center;
+  background: var(--v2-color-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--v2-color-danger) 24%, var(--v2-color-border));
+  border-radius: var(--v2-radius-xl);
+  color: var(--v2-color-text);
+  display: grid;
+  gap: var(--v2-space-3);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: var(--v2-space-4);
+}
+
+.contas-root .c-previsao-v2-alert-icon {
+  align-items: center;
+  background: color-mix(in srgb, var(--v2-color-danger) 12%, var(--v2-color-surface));
+  border-radius: var(--v2-radius-lg);
+  color: var(--v2-color-danger-text);
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.contas-root .c-previsao-v2-alert-item strong,
+.contas-root .c-previsao-v2-alert-item span:last-child {
+  font-weight: var(--v2-font-weight-bold);
+}
+
+.contas-root .c-previsao-v2-alert-item small {
+  color: var(--v2-color-text-muted);
+  display: block;
+  font-size: var(--v2-font-size-body-sm);
+  margin-top: var(--v2-space-1);
+}
+
+.contas-root .c-previsao-v2-positive {
+  align-items: center;
+  background: var(--v2-color-success-soft);
+  border: 1px solid color-mix(in srgb, var(--v2-color-success) 24%, var(--v2-color-border));
+  border-radius: var(--v2-radius-lg);
+  color: var(--v2-color-success-text);
+  display: inline-flex;
+  gap: var(--v2-space-2);
+  padding: var(--v2-space-3) var(--v2-space-4);
+}
+
 .contas-root .c-previsao-v2-month-card {
   box-shadow: var(--v2-shadow-xs);
 }
@@ -94,6 +145,15 @@
   .contas-root .c-previsao-v2-month-card > div:first-child > div:last-child {
     width: 100%;
     text-align: left;
+  }
+
+  .contas-root .c-previsao-v2-alert-item {
+    align-items: flex-start;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .contas-root .c-previsao-v2-alert-item span:last-child {
+    grid-column: 2;
   }
 
   .contas-root .c-previsao-v2-month-card button {
