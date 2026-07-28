@@ -1,0 +1,114 @@
+.contas-root .c-previsao-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+}
+
+.contas-root .c-previsao-v2-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-previsao-v2-periods {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-2);
+  justify-content: flex-end;
+}
+
+.contas-root .c-previsao-v2-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-previsao-v2-months {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-previsao-v2-month-card {
+  box-shadow: var(--v2-shadow-xs);
+}
+
+.contas-root .c-previsao-v2-month-card button:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-previsao-v2-month-card .c-v2-empty-state {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.contas-root .c-previsao-v2-page .c-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--v2-radius-pill);
+}
+
+@media (max-width: 1180px) {
+  .contas-root .c-previsao-v2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .contas-root .c-previsao-v2-page {
+    gap: var(--v2-space-4);
+  }
+
+  .contas-root .c-previsao-v2-periods {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .contas-root .c-previsao-v2-periods .c-v2-button {
+    flex: 1 1 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .contas-root .c-previsao-v2-page {
+    padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .contas-root .c-previsao-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-previsao-v2-month-card {
+    border-radius: var(--v2-radius-lg);
+  }
+
+  .contas-root .c-previsao-v2-month-card > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--v2-space-3);
+  }
+
+  .contas-root .c-previsao-v2-month-card > div:first-child > div:last-child {
+    width: 100%;
+    text-align: left;
+  }
+
+  .contas-root .c-previsao-v2-month-card button {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .contas-root .c-previsao-v2-month-card button > span {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-previsao-v2-month-card button,
+  .contas-root .c-previsao-v2-month-card svg {
+    transition: none;
+  }
+}

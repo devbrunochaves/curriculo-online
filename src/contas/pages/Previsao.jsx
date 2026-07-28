@@ -3,6 +3,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, addMonths, startOfMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { TrendingDown } from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  MetricCard,
+  PageHeader,
+  Skeleton,
+} from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
@@ -107,43 +115,51 @@ export default function Previsao() {
   }
 
   if (loading) return (
-    <div className="c-loading-screen" style={{ height: '60vh' }}>
-      <div className="c-loading-spinner" /><p>Carregando previsão...</p>
+    <div className="c-previsao-v2-loading" aria-label="Carregando previsão">
+      <Skeleton height={120} />
+      <Skeleton height={320} />
     </div>
   )
 
   const futureTotal = data.reduce((s, m) => s + m.total, 0)
 
   return (
-    <div>
+    <div className="c-previsao-v2-page">
       {/* ── Header ── */}
-      <div className="c-flex c-items-center c-justify-between c-mb-4">
-        <div className="c-page-header" style={{ margin: 0 }}>
-          <h2>📆 Previsão</h2>
-          <p>Visão dos próximos meses — total comprometido: {fmt(futureTotal)}</p>
-        </div>
-        <div className="c-flex c-items-center c-gap-2">
-          <span className="c-text-muted c-text-sm">Mostrar</span>
+      <PageHeader
+        title="Previsão"
+        eyebrow="Financeiro"
+        description={`Visão dos próximos meses — total comprometido: ${fmt(futureTotal)}`}
+        actions={(
+          <div className="c-previsao-v2-periods" aria-label="Selecionar período da previsão">
           {[3, 6, 9].map(n => (
-            <button
+            <Button
               key={n}
-              className={`c-btn c-btn-sm ${months === n ? 'c-btn-primary' : 'c-btn-secondary'}`}
+              size="sm"
+              variant={months === n ? 'primary' : 'secondary'}
               onClick={() => setMonths(n)}
+              aria-pressed={months === n}
             >
               {n} meses
-            </button>
+            </Button>
           ))}
-        </div>
+          </div>
+        )}
+      />
+
+      <div className="c-previsao-v2-metrics">
+        <MetricCard label="Total comprometido" value={fmt(futureTotal)} description={`Próximos ${months} meses`} icon={<TrendingDown size={18} />} tone="danger" />
       </div>
 
       {/* ── Month cards ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="c-previsao-v2-months">
         {data.map(m => {
           const saldo = m.entrada - m.total
 
           return (
             <div
               key={m.mRef}
+              className="c-previsao-v2-month-card"
               style={{
                 border: m.isCurrent ? '2px solid #6366f1' : '1px solid var(--c-border)',
                 borderRadius: 14,
@@ -196,9 +212,7 @@ export default function Previsao() {
 
               {/* Person accordions */}
               {m.byPerson.length === 0 ? (
-                <div style={{ padding: 20, textAlign: 'center', color: 'var(--c-text-muted)', fontSize: 13 }}>
-                  Nenhum lançamento para este mês
-                </div>
+                <EmptyState compact icon="📆" title="Nenhum lançamento" description="Nenhum lançamento para este mês." />
               ) : (
                 m.byPerson.map((p, idx) => {
                   const key       = `${m.mRef}-${p.id}`
