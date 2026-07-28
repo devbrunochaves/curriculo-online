@@ -1,9 +1,51 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { supabase } from '../lib/supabase'
+import {
+  AlertTriangle,
+  Archive,
+  Briefcase,
+  Building2,
+  CalendarDays,
+  Car,
+  CheckCircle2,
+  CircleHelp,
+  Download,
+  Eye,
+  FileImage,
+  FileText,
+  Folder,
+  HeartPulse,
+  Home,
+  IdCard,
+  Image as ImageIcon,
+  LayoutGrid,
+  List,
+  Paperclip,
+  Pencil,
+  Plus,
+  Search,
+  Star,
+  Tags,
+  Trash2,
+  Upload,
+  Users,
+  X,
+} from 'lucide-react'
 import { format, differenceInDays, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { supabase } from '../lib/supabase'
+import {
+  Button,
+  EmptyState,
+  FormField,
+  IconButton,
+  MetricCard,
+  ModalShell,
+  PageHeader,
+  SectionCard,
+  SelectField,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
-/* ── Constantes ─────────────────────────────────────────────────── */
 const CATEGORIAS = [
   { key: 'pessoal',    icon: '🪪', label: 'Pessoal',     color: '#6366f1' },
   { key: 'veiculo',    icon: '🚗', label: 'Veículos',    color: '#f97316' },
@@ -27,7 +69,6 @@ const TIPOS_DOC = [
 
 const ACCEPT = '.pdf,.png,.jpg,.jpeg,.webp'
 
-/* ── Helpers ────────────────────────────────────────────────────── */
 const getCat = key => CATEGORIAS.find(c => c.key === key) ?? CATEGORIAS.at(-1)
 
 function getStatus(dataValidade) {
@@ -46,9 +87,31 @@ const fmtSize = b => {
   return `${(b / 1048576).toFixed(1)} MB`
 }
 const sanitize = name =>
-  name.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
+  name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
 
-/* ══ DocFormModal ═══════════════════════════════════════════════════ */
+function CategoryIcon({ category, size = 18 }) {
+  const icons = {
+    pessoal: IdCard,
+    veiculo: Car,
+    imovel: Home,
+    contrato: FileText,
+    saude: HeartPulse,
+    trabalho: Briefcase,
+    financeiro: Archive,
+    familia: Users,
+    outros: Folder,
+  }
+  const Icon = icons[category] || Folder
+  return <Icon size={size} />
+}
+
+function statusTone(status) {
+  if (status.key === 'vencido') return 'danger'
+  if (status.key === 'vencendo') return 'warning'
+  if (status.key === 'ativo') return 'success'
+  return 'neutral'
+}
+
 function DocFormModal({ doc, people, onSave, onClose }) {
   const isEdit = !!doc?.id
 
@@ -112,7 +175,6 @@ function DocFormModal({ doc, people, onSave, onClose }) {
       docId = ins.id
     }
 
-    // Upload files
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
       const path = `${user?.id ?? 'anon'}/${docId}/${Date.now()}_${sanitize(file.name)}`
@@ -130,166 +192,147 @@ function DocFormModal({ doc, people, onSave, onClose }) {
     onSave()
   }
 
+  const personOptions = people.map(p => ({ value: p.id, label: p.name }))
+
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" style={{ maxWidth: 620 }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--c-border)' }} />
+    <ModalShell
+      open
+      title={isEdit ? 'Editar Documento' : 'Novo Documento'}
+      description="Cadastre os dados principais e anexe arquivos quando necessario."
+      onClose={onClose}
+      size="lg"
+      className="c-documentos-v2-modal"
+      actions={
+        <>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" form="documentos-form" loading={saving} disabled={saving} style={{ '--doc-accent': cat.color }}>
+            {isEdit ? 'Salvar' : 'Criar documento'}
+          </Button>
+        </>
+      }
+    >
+      <form id="documentos-form" onSubmit={handleSave} className="c-documentos-v2-form">
+        <div className="c-documentos-v2-form-grid c-documentos-v2-form-grid--headline">
+          <FormField label="Nome" required>
+            <input className="c-v2-select-field" placeholder="Ex: CNH Bruno" value={form.nome} onChange={e => set('nome', e.target.value)} autoFocus />
+          </FormField>
+          <button
+            type="button"
+            onClick={() => set('favorito', !form.favorito)}
+            className={`c-documentos-v2-favorite-toggle ${form.favorito ? 'is-active' : ''}`}
+            aria-label={form.favorito ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+            aria-pressed={form.favorito}
+          >
+            <Star size={20} fill={form.favorito ? 'currentColor' : 'none'} />
+          </button>
         </div>
 
-        <div style={{ padding: '8px 20px 14px', borderBottom: '1px solid var(--c-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 700, fontSize: 17 }}>{isEdit ? 'Editar Documento' : 'Novo Documento'}</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--c-text-muted)', lineHeight: 1 }}>✕</button>
-        </div>
-
-        <form onSubmit={handleSave}>
-          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '65vh', overflowY: 'auto' }}>
-
-            {/* Nome + Favorito */}
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
-                <label className="c-form-label">Nome *</label>
-                <input className="c-form-input" placeholder="Ex: CNH Bruno" value={form.nome} onChange={e => set('nome', e.target.value)} autoFocus />
-              </div>
-              <button type="button" onClick={() => set('favorito', !form.favorito)}
-                style={{ width: 42, height: 42, borderRadius: 10, flexShrink: 0, border: `2px solid ${form.favorito ? '#f59e0b' : 'var(--c-border)'}`, background: form.favorito ? '#fffbeb' : 'var(--c-surface2)', fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {form.favorito ? '⭐' : '☆'}
-              </button>
-            </div>
-
-            {/* Categoria */}
-            <div>
-              <label className="c-form-label">Categoria</label>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {CATEGORIAS.map(c => (
-                  <button key={c.key} type="button" onClick={() => set('categoria', c.key)}
-                    style={{
-                      padding: '5px 10px', borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                      background: form.categoria === c.key ? c.color + '20' : 'var(--c-surface2)',
-                      border: `1.5px solid ${form.categoria === c.key ? c.color : 'var(--c-border)'}`,
-                      color: form.categoria === c.key ? c.color : 'var(--c-text-muted)',
-                    }}>
-                    {c.icon} {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tipo + Pessoa */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label className="c-form-label">Tipo</label>
-                <select className="c-form-select" value={form.tipo} onChange={e => set('tipo', e.target.value)}>
-                  <option value="">— Selecione —</option>
-                  {TIPOS_DOC.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="c-form-label">Pessoa relacionada</label>
-                <select className="c-form-select" value={form.pessoa_id} onChange={e => set('pessoa_id', e.target.value)}>
-                  <option value="">— Nenhuma —</option>
-                  {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-              </div>
-            </div>
-
-            {/* Número + Órgão emissor */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label className="c-form-label">Número</label>
-                <input className="c-form-input" placeholder="Ex: 12.345.678-9" value={form.numero} onChange={e => set('numero', e.target.value)} />
-              </div>
-              <div>
-                <label className="c-form-label">Órgão emissor</label>
-                <input className="c-form-input" placeholder="Ex: SSP/SP, Detran" value={form.orgao_emissor} onChange={e => set('orgao_emissor', e.target.value)} />
-              </div>
-            </div>
-
-            {/* Datas */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div>
-                <label className="c-form-label">Data de emissão</label>
-                <input type="date" className="c-form-input" value={form.data_emissao} onChange={e => set('data_emissao', e.target.value)} />
-              </div>
-              <div>
-                <label className="c-form-label">Data de validade</label>
-                <input type="date" className="c-form-input" value={form.data_validade} onChange={e => set('data_validade', e.target.value)} />
-              </div>
-            </div>
-
-            {/* Observações */}
-            <div>
-              <label className="c-form-label">Observações</label>
-              <textarea className="c-form-textarea" rows={2} placeholder="Informações adicionais..." value={form.observacoes} onChange={e => set('observacoes', e.target.value)} />
-            </div>
-
-            {/* Tags */}
-            <div>
-              <label className="c-form-label">Tags <span style={{ fontWeight: 400, color: 'var(--c-text-muted)' }}>(separadas por vírgula)</span></label>
-              <input className="c-form-input" placeholder="Ex: urgente, renovar, original" value={form.tags} onChange={e => set('tags', e.target.value)} />
-            </div>
-
-            {/* Upload */}
-            <div>
-              <label className="c-form-label">Arquivos {isEdit && <span style={{ fontWeight: 400, color: 'var(--c-text-muted)' }}>(adicionar mais)</span>}</label>
-              <div
-                onClick={() => fileRef.current?.click()}
-                onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--c-accent)' }}
-                onDragLeave={e => e.currentTarget.style.borderColor = 'var(--c-border)'}
-                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--c-border)'; setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]) }}
-                style={{ border: '2px dashed var(--c-border)', borderRadius: 10, padding: 16, textAlign: 'center', cursor: 'pointer', background: 'var(--c-surface2)', transition: 'border-color .15s' }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--c-accent)'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--c-border)'}
-              >
-                <div style={{ fontSize: 28, marginBottom: 4 }}>📎</div>
-                <div style={{ fontSize: 13, color: 'var(--c-text-muted)' }}>Clique ou arraste arquivos aqui</div>
-                <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2 }}>PDF, PNG, JPG, JPEG, WEBP</div>
-              </div>
-              <input ref={fileRef} type="file" multiple accept={ACCEPT} style={{ display: 'none' }}
-                onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files)])}
-                capture="environment"
-              />
-
-              {files.length > 0 && (
-                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {files.map((f, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 12 }}>
-                      <span>{f.type.includes('pdf') ? '📄' : '🖼️'}</span>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                      <span style={{ color: 'var(--c-text-muted)', flexShrink: 0 }}>{fmtSize(f.size)}</span>
-                      <button type="button" onClick={() => setFiles(p => p.filter((_, j) => j !== i))}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 14, lineHeight: 1, padding: '2px' }}>✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {saving && files.length > 0 && progress > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginBottom: 4 }}>Enviando arquivos… {progress}%</div>
-                  <div style={{ height: 4, borderRadius: 99, background: 'var(--c-border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 99, background: 'var(--c-accent)', width: `${progress}%`, transition: 'width .3s' }} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {error && <div style={{ color: '#ef4444', fontSize: 13, fontWeight: 500 }}>⚠️ {error}</div>}
-          </div>
-
-          <div style={{ padding: '12px 20px 24px', borderTop: '1px solid var(--c-border)', display: 'flex', gap: 10 }}>
-            <button type="button" className="c-btn c-btn-secondary" style={{ flex: 1 }} onClick={onClose}>Cancelar</button>
-            <button type="submit" className="c-btn c-btn-primary" style={{ flex: 2, background: cat.color, borderColor: cat.color }} disabled={saving}>
-              {saving ? 'Salvando...' : isEdit ? '💾 Salvar' : `${cat.icon} Criar documento`}
+        <div className="c-documentos-v2-category-picker" aria-label="Categoria">
+          {CATEGORIAS.map(c => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => set('categoria', c.key)}
+              className={`c-documentos-v2-category-chip ${form.categoria === c.key ? 'is-active' : ''}`}
+              style={{ '--doc-accent': c.color }}
+            >
+              <CategoryIcon category={c.key} size={14} />
+              {c.label}
             </button>
+          ))}
+        </div>
+
+        <div className="c-documentos-v2-form-grid">
+          <SelectField
+            label="Tipo"
+            value={form.tipo}
+            onChange={e => set('tipo', e.target.value)}
+            placeholder="Selecione"
+            options={TIPOS_DOC.map(t => ({ value: t, label: t }))}
+          />
+          <SelectField
+            label="Pessoa relacionada"
+            value={form.pessoa_id}
+            onChange={e => set('pessoa_id', e.target.value)}
+            placeholder="Nenhuma"
+            options={personOptions}
+          />
+        </div>
+
+        <div className="c-documentos-v2-form-grid">
+          <FormField label="Numero">
+            <input className="c-v2-select-field" placeholder="Ex: 12.345.678-9" value={form.numero} onChange={e => set('numero', e.target.value)} />
+          </FormField>
+          <FormField label="Orgao emissor">
+            <input className="c-v2-select-field" placeholder="Ex: SSP/SP, Detran" value={form.orgao_emissor} onChange={e => set('orgao_emissor', e.target.value)} />
+          </FormField>
+        </div>
+
+        <div className="c-documentos-v2-form-grid">
+          <FormField label="Data de emissao">
+            <input type="date" className="c-v2-select-field" value={form.data_emissao} onChange={e => set('data_emissao', e.target.value)} />
+          </FormField>
+          <FormField label="Data de validade">
+            <input type="date" className="c-v2-select-field" value={form.data_validade} onChange={e => set('data_validade', e.target.value)} />
+          </FormField>
+        </div>
+
+        <FormField label="Observacoes">
+          <textarea className="c-documentos-v2-textarea" rows={3} placeholder="Informacoes adicionais..." value={form.observacoes} onChange={e => set('observacoes', e.target.value)} />
+        </FormField>
+
+        <FormField label="Tags" help="Separadas por virgula.">
+          <input className="c-v2-select-field" placeholder="Ex: urgente, renovar, original" value={form.tags} onChange={e => set('tags', e.target.value)} />
+        </FormField>
+
+        <div className="c-documentos-v2-upload-group">
+          <label className="c-v2-form-field__label">Arquivos {isEdit && <span>(adicionar mais)</span>}</label>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => fileRef.current?.click()}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click() }}
+            onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('is-dragging') }}
+            onDragLeave={e => e.currentTarget.classList.remove('is-dragging')}
+            onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('is-dragging'); setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]) }}
+            className="c-documentos-v2-upload"
+          >
+            <Upload size={22} />
+            <strong>Clique ou arraste arquivos aqui</strong>
+            <span>PDF, PNG, JPG, JPEG, WEBP</span>
           </div>
-        </form>
-      </div>
-    </div>
+          <input ref={fileRef} type="file" multiple accept={ACCEPT} className="c-documentos-v2-file-input"
+            onChange={e => setFiles(prev => [...prev, ...Array.from(e.target.files)])}
+            capture="environment"
+          />
+
+          {files.length > 0 && (
+            <div className="c-documentos-v2-upload-list">
+              {files.map((f, i) => (
+                <div key={`${f.name}-${i}`} className="c-documentos-v2-upload-file">
+                  {f.type.includes('pdf') ? <FileText size={16} /> : <FileImage size={16} />}
+                  <span>{f.name}</span>
+                  <small>{fmtSize(f.size)}</small>
+                  <IconButton icon={<X size={14} />} label={`Remover ${f.name}`} variant="ghost" size="sm" onClick={() => setFiles(p => p.filter((_, j) => j !== i))} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {saving && files.length > 0 && progress > 0 && (
+            <div className="c-documentos-v2-progress" aria-label={`Enviando arquivos ${progress}%`}>
+              <span>Enviando arquivos... {progress}%</span>
+              <div><span style={{ width: `${progress}%` }} /></div>
+            </div>
+          )}
+        </div>
+
+        {error && <p className="c-documentos-v2-error" role="alert">{error}</p>}
+      </form>
+    </ModalShell>
   )
 }
 
-/* ══ ArquivoItem ════════════════════════════════════════════════════ */
 function ArquivoItem({ arquivo, onDelete }) {
   const [url, setUrl]         = useState(null)
   const [preview, setPreview] = useState(false)
@@ -324,35 +367,33 @@ function ArquivoItem({ arquivo, onDelete }) {
   }
 
   return (
-    <div style={{ borderRadius: 10, border: '1px solid var(--c-border)', overflow: 'hidden', background: 'var(--c-surface)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px' }}>
-        <span style={{ fontSize: 22, flexShrink: 0 }}>{isPdf ? '📄' : isImg ? '🖼️' : '📎'}</span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{arquivo.nome_arquivo}</div>
-          {arquivo.tamanho > 0 && <div style={{ fontSize: 11, color: 'var(--c-text-muted)' }}>{fmtSize(arquivo.tamanho)}</div>}
-        </div>
-        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-          {isImg && (
-            <button onClick={togglePreview} className="c-btn c-btn-secondary c-btn-sm" style={{ padding: '4px 8px', fontSize: 11 }}>
-              {loading ? '…' : preview ? '▲' : '👁️'}
-            </button>
-          )}
-          <button onClick={handleOpen} className="c-btn c-btn-secondary c-btn-sm" style={{ padding: '4px 8px' }} title="Abrir">↗️</button>
-          <button onClick={handleDownload} className="c-btn c-btn-secondary c-btn-sm" style={{ padding: '4px 8px' }} title="Baixar">⬇️</button>
-          <button onClick={onDelete} className="c-btn c-btn-danger c-btn-sm" style={{ padding: '4px 8px' }}>✕</button>
+    <article className="c-documentos-v2-file-card">
+      <div className="c-documentos-v2-file-main">
+        <span className="c-documentos-v2-file-icon" aria-hidden="true">
+          {isPdf ? <FileText size={20} /> : isImg ? <ImageIcon size={20} /> : <Paperclip size={20} />}
+        </span>
+        <div>
+          <strong title={arquivo.nome_arquivo}>{arquivo.nome_arquivo}</strong>
+          {arquivo.tamanho > 0 && <small>{fmtSize(arquivo.tamanho)}</small>}
         </div>
       </div>
+      <div className="c-documentos-v2-file-actions">
+        {isImg && (
+          <IconButton icon={<Eye size={15} />} label={preview ? 'Ocultar preview' : 'Ver preview'} variant="secondary" size="sm" onClick={togglePreview} disabled={loading} />
+        )}
+        <IconButton icon={<Eye size={15} />} label="Abrir arquivo" variant="secondary" size="sm" onClick={handleOpen} />
+        <IconButton icon={<Download size={15} />} label="Baixar arquivo" variant="secondary" size="sm" onClick={handleDownload} />
+        <IconButton icon={<Trash2 size={15} />} label="Excluir arquivo" variant="danger" size="sm" onClick={onDelete} />
+      </div>
       {preview && url && isImg && (
-        <div style={{ padding: '0 12px 12px' }}>
-          <img src={url} alt={arquivo.nome_arquivo}
-            style={{ width: '100%', maxHeight: 320, objectFit: 'contain', borderRadius: 8, border: '1px solid var(--c-border)', background: '#f8fafc' }} />
+        <div className="c-documentos-v2-preview">
+          <img src={url} alt={arquivo.nome_arquivo} />
         </div>
       )}
-    </div>
+    </article>
   )
 }
 
-/* ══ DocDetailModal ═════════════════════════════════════════════════ */
 function DocDetailModal({ doc, people, onEdit, onDelete, onClose, deleting }) {
   const [arquivos, setArquivos] = useState([])
   const [loadingFiles, setLoadingFiles] = useState(true)
@@ -407,172 +448,149 @@ function DocDetailModal({ doc, people, onEdit, onDelete, onClose, deleting }) {
   }
 
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" style={{ maxWidth: 600 }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
-          <div style={{ width: 40, height: 4, borderRadius: 99, background: 'var(--c-border)' }} />
-        </div>
-
-        {/* Cabeçalho */}
-        <div style={{ padding: '8px 20px 16px', borderBottom: '1px solid var(--c-border)' }}>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <div style={{ width: 50, height: 50, borderRadius: 14, background: cat.color + '20', border: `2px solid ${cat.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0 }}>
-              {cat.icon}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 700, fontSize: 18 }}>{doc.nome}</span>
-                {doc.favorito && <span style={{ fontSize: 16 }}>⭐</span>}
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: cat.color, background: cat.color + '15', padding: '2px 8px', borderRadius: 99 }}>{cat.label}</span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: status.color, background: status.bg, padding: '2px 8px', borderRadius: 99 }}>{status.label}</span>
-              </div>
-            </div>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--c-text-muted)', padding: '4px', flexShrink: 0, lineHeight: 1 }}>✕</button>
-          </div>
-        </div>
-
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14, maxHeight: '55vh', overflowY: 'auto' }}>
-          {/* Info grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {doc.tipo          && <InfoItem icon="📋" label="Tipo"         value={doc.tipo} />}
-            {doc.numero        && <InfoItem icon="🔢" label="Número"       value={doc.numero} />}
-            {doc.orgao_emissor && <InfoItem icon="🏛️" label="Órgão emissor" value={doc.orgao_emissor} />}
-            {pessoa            && <InfoItem icon="👤" label="Pessoa"       value={pessoa.name} color={pessoa.color} />}
-            {doc.data_emissao  && <InfoItem icon="📅" label="Emissão"      value={fmtDate(doc.data_emissao)} />}
-            {doc.data_validade && <InfoItem icon="⏰" label="Validade"     value={fmtDate(doc.data_validade)} color={status.color} />}
-          </div>
-
-          {doc.observacoes && (
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '.5px', marginBottom: 5 }}>Observações</div>
-              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, background: 'var(--c-surface2)', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--c-border)' }}>{doc.observacoes}</p>
-            </div>
-          )}
-
-          {doc.tags?.length > 0 && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {doc.tags.map(t => (
-                <span key={t} style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', color: 'var(--c-text-muted)' }}>#{t}</span>
-              ))}
-            </div>
-          )}
-
-          {/* Arquivos */}
+    <ModalShell
+      open
+      title={doc.nome}
+      description="Detalhes, arquivos anexados e acoes do documento."
+      onClose={onClose}
+      size="lg"
+      className="c-documentos-v2-modal"
+      actions={
+        <>
+          <Button variant="secondary" icon={<Pencil size={16} />} onClick={() => { onClose(); onEdit(doc) }}>Editar</Button>
+          <Button variant="danger" icon={<Trash2 size={16} />} onClick={() => onDelete(doc.id)} loading={deleting === doc.id} disabled={deleting === doc.id}>
+            Excluir
+          </Button>
+        </>
+      }
+    >
+      <div className="c-documentos-v2-detail">
+        <div className="c-documentos-v2-detail-hero">
+          <span className="c-documentos-v2-doc-icon" style={{ '--doc-accent': cat.color }}>
+            <CategoryIcon category={doc.categoria} size={24} />
+          </span>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '.5px' }}>
-                Arquivos {!loadingFiles && `(${arquivos.length})`}
-              </div>
-              <button onClick={() => fileRef.current?.click()} className="c-btn c-btn-secondary c-btn-sm" disabled={uploading} style={{ fontSize: 11 }}>
-                {uploading ? 'Enviando…' : '+ Adicionar'}
-              </button>
-              <input ref={fileRef} type="file" multiple accept={ACCEPT} style={{ display: 'none' }} onChange={handleUploadMore} capture="environment" />
+            <div className="c-documentos-v2-badges">
+              <StatusBadge tone="accent">{cat.label}</StatusBadge>
+              <StatusBadge tone={statusTone(status)}>{status.label}</StatusBadge>
+              {doc.favorito && <StatusBadge tone="warning" icon={<Star size={13} fill="currentColor" />}>Favorito</StatusBadge>}
             </div>
-
-            {loadingFiles ? (
-              <div style={{ textAlign: 'center', padding: 12, color: 'var(--c-text-muted)', fontSize: 13 }}>Carregando...</div>
-            ) : arquivos.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 16, border: '1.5px dashed var(--c-border)', borderRadius: 10, color: 'var(--c-text-muted)', fontSize: 13 }}>
-                📎 Nenhum arquivo anexado
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {arquivos.map(arq => (
-                  <ArquivoItem key={arq.id} arquivo={arq} onDelete={() => handleDeleteArquivo(arq)} />
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
-        <div style={{ padding: '12px 20px 24px', borderTop: '1px solid var(--c-border)', display: 'flex', gap: 10 }}>
-          <button className="c-btn c-btn-secondary" style={{ flex: 1 }} onClick={() => { onClose(); onEdit(doc) }}>✏️ Editar</button>
-          <button className="c-btn c-btn-danger" style={{ flex: 1 }} onClick={() => onDelete(doc.id)} disabled={deleting === doc.id}>
-            {deleting === doc.id ? 'Excluindo...' : '🗑️ Excluir'}
-          </button>
+        <div className="c-documentos-v2-info-grid">
+          {doc.tipo          && <InfoItem icon={<FileText size={15} />} label="Tipo"          value={doc.tipo} />}
+          {doc.numero        && <InfoItem icon={<Tags size={15} />} label="Numero"        value={doc.numero} />}
+          {doc.orgao_emissor && <InfoItem icon={<Building2 size={15} />} label="Orgao emissor" value={doc.orgao_emissor} />}
+          {pessoa            && <InfoItem icon={<Users size={15} />} label="Pessoa"        value={pessoa.name} color={pessoa.color} />}
+          {doc.data_emissao  && <InfoItem icon={<CalendarDays size={15} />} label="Emissao"       value={fmtDate(doc.data_emissao)} />}
+          {doc.data_validade && <InfoItem icon={<CalendarDays size={15} />} label="Validade"      value={fmtDate(doc.data_validade)} color={status.color} />}
         </div>
+
+        {doc.observacoes && (
+          <section className="c-documentos-v2-note">
+            <h3>Observacoes</h3>
+            <p>{doc.observacoes}</p>
+          </section>
+        )}
+
+        {doc.tags?.length > 0 && (
+          <div className="c-documentos-v2-tag-list">
+            {doc.tags.map(t => <span key={t}>#{t}</span>)}
+          </div>
+        )}
+
+        <section className="c-documentos-v2-files-section">
+          <header>
+            <div>
+              <h3>Arquivos {!loadingFiles && `(${arquivos.length})`}</h3>
+              <p>Anexos vinculados a este documento.</p>
+            </div>
+            <Button variant="secondary" size="sm" icon={<Plus size={15} />} onClick={() => fileRef.current?.click()} disabled={uploading}>
+              {uploading ? 'Enviando...' : 'Adicionar'}
+            </Button>
+            <input ref={fileRef} type="file" multiple accept={ACCEPT} className="c-documentos-v2-file-input" onChange={handleUploadMore} capture="environment" />
+          </header>
+
+          {loadingFiles ? (
+            <Skeleton variant="text" lines={3} />
+          ) : arquivos.length === 0 ? (
+            <EmptyState compact icon={<Paperclip size={22} />} title="Nenhum arquivo anexado" description="Arquivos enviados para este documento aparecerao aqui." />
+          ) : (
+            <div className="c-documentos-v2-file-list">
+              {arquivos.map(arq => <ArquivoItem key={arq.id} arquivo={arq} onDelete={() => handleDeleteArquivo(arq)} />)}
+            </div>
+          )}
+        </section>
       </div>
-    </div>
+    </ModalShell>
   )
 }
 
 function InfoItem({ icon, label, value, color }) {
   return (
-    <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)' }}>
-      <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginBottom: 2 }}>{icon} {label}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: color || 'var(--c-text)' }}>{value}</div>
+    <div className="c-documentos-v2-info-item">
+      <span>{icon}</span>
+      <div>
+        <small>{label}</small>
+        <strong style={{ color: color || undefined }}>{value}</strong>
+      </div>
     </div>
   )
 }
 
-/* ══ DocCard (grid) ═════════════════════════════════════════════════ */
 function DocCard({ doc, pessoa, onView }) {
   const cat    = getCat(doc.categoria)
   const status = getStatus(doc.data_validade)
   return (
-    <div onClick={onView}
-      style={{ padding: 16, borderRadius: 14, cursor: 'pointer', background: 'var(--c-surface)', border: `1.5px solid ${cat.color}20`, boxShadow: 'var(--c-shadow)', transition: 'all .15s', position: 'relative' }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 4px 16px ${cat.color}20` }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--c-shadow)' }}
-    >
-      {doc.favorito && <span style={{ position: 'absolute', top: 10, right: 12, fontSize: 14 }}>⭐</span>}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: cat.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-          {cat.icon}
-        </div>
-        <span style={{ fontSize: 11, fontWeight: 700, color: cat.color, background: cat.color + '15', padding: '2px 8px', borderRadius: 99 }}>{cat.label}</span>
+    <button type="button" onClick={onView} className="c-documentos-v2-card">
+      <div className="c-documentos-v2-card-top">
+        <span className="c-documentos-v2-doc-icon" style={{ '--doc-accent': cat.color }}>
+          <CategoryIcon category={doc.categoria} size={21} />
+        </span>
+        {doc.favorito && <Star size={16} fill="currentColor" className="c-documentos-v2-star" />}
       </div>
-      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 3, lineHeight: 1.3 }}>{doc.nome}</div>
-      {doc.tipo && <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginBottom: 8 }}>{doc.tipo}</div>}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
-        {pessoa
-          ? <span style={{ fontSize: 11, fontWeight: 600, color: pessoa.color, background: pessoa.color + '15', padding: '2px 8px', borderRadius: 99 }}>{pessoa.name}</span>
-          : <span />}
-        <span style={{ fontSize: 11, fontWeight: 600, color: status.color, background: status.bg, padding: '2px 8px', borderRadius: 99 }}>{status.label}</span>
+      <div>
+        <strong title={doc.nome}>{doc.nome}</strong>
+        {doc.tipo && <p>{doc.tipo}</p>}
       </div>
-    </div>
+      <div className="c-documentos-v2-badges">
+        <StatusBadge tone="accent" size="sm">{cat.label}</StatusBadge>
+        <StatusBadge tone={statusTone(status)} size="sm">{status.label}</StatusBadge>
+        {pessoa && <StatusBadge tone="info" size="sm">{pessoa.name}</StatusBadge>}
+      </div>
+    </button>
   )
 }
 
-/* ══ DocRow (lista) ═════════════════════════════════════════════════ */
 function DocRow({ doc, pessoa, onView, onEdit, onDelete, onFavorite, deleting }) {
   const cat    = getCat(doc.categoria)
   const status = getStatus(doc.data_validade)
   return (
-    <div onClick={onView}
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderRadius: 12, cursor: 'pointer', background: 'var(--c-surface)', border: '1.5px solid var(--c-border)', transition: 'background .1s' }}
-      onMouseEnter={e => e.currentTarget.style.background = 'var(--c-surface2)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'var(--c-surface)'}
-    >
-      <div style={{ width: 38, height: 38, borderRadius: 10, background: cat.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-        {cat.icon}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontWeight: 600, fontSize: 14 }}>{doc.nome}</span>
-          {doc.favorito && <span style={{ fontSize: 12 }}>⭐</span>}
+    <article className="c-documentos-v2-row">
+      <button type="button" onClick={onView} className="c-documentos-v2-row-main">
+        <span className="c-documentos-v2-doc-icon" style={{ '--doc-accent': cat.color }}>
+          <CategoryIcon category={doc.categoria} size={20} />
+        </span>
+        <div>
+          <strong title={doc.nome}>{doc.nome}</strong>
+          <span>
+            <b style={{ color: cat.color }}>{cat.label}</b>
+            {doc.tipo && <> · {doc.tipo}</>}
+            {pessoa && <> · {pessoa.name}</>}
+          </span>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--c-text-muted)', display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 1 }}>
-          <span style={{ color: cat.color, fontWeight: 600 }}>{cat.label}</span>
-          {doc.tipo   && <span>{doc.tipo}</span>}
-          {pessoa     && <span style={{ color: pessoa.color, fontWeight: 600 }}>👤 {pessoa.name}</span>}
-        </div>
+      </button>
+      <div className="c-documentos-v2-row-actions">
+        <StatusBadge tone={statusTone(status)} size="sm">{status.label}</StatusBadge>
+        <IconButton icon={<Star size={15} fill={doc.favorito ? 'currentColor' : 'none'} />} label={doc.favorito ? 'Remover favorito' : 'Favoritar'} variant="secondary" size="sm" onClick={onFavorite} />
+        <IconButton icon={<Pencil size={15} />} label={`Editar ${doc.nome}`} variant="secondary" size="sm" onClick={onEdit} />
+        <IconButton icon={<Trash2 size={15} />} label={`Excluir ${doc.nome}`} variant="danger" size="sm" onClick={() => onDelete(doc.id)} disabled={deleting === doc.id} />
       </div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: status.color, background: status.bg, padding: '2px 8px', borderRadius: 99, whiteSpace: 'nowrap' }}>{status.label}</span>
-        <div style={{ display: 'flex', gap: 4 }} onClick={e => e.stopPropagation()}>
-          <button className="c-btn c-btn-secondary c-btn-sm" onClick={onFavorite} style={{ padding: '4px 8px' }}>{doc.favorito ? '⭐' : '☆'}</button>
-          <button className="c-btn c-btn-secondary c-btn-sm" onClick={e => { e.stopPropagation(); onEdit() }} style={{ padding: '4px 8px' }}>✏️</button>
-          <button className="c-btn c-btn-danger c-btn-sm" onClick={e => { e.stopPropagation(); onDelete(doc.id) }} disabled={deleting === doc.id} style={{ padding: '4px 8px' }}>🗑️</button>
-        </div>
-      </div>
-    </div>
+    </article>
   )
 }
 
-/* ══ Página principal ═══════════════════════════════════════════════ */
 export default function Documentos() {
   const [docs, setDocs]         = useState([])
   const [people, setPeople]     = useState([])
@@ -652,127 +670,124 @@ export default function Documentos() {
 
   const hasFilters = search || filterCat || filterPerson || filterStatus
 
-  return (
-    <div>
-      {/* ── Header ── */}
-      <div className="c-flex c-items-center c-justify-between c-mb-4" style={{ flexWrap: 'wrap', gap: 10 }}>
-        <div className="c-page-header" style={{ margin: 0 }}>
-          <h2>📁 Documentos</h2>
-          <p>
-            {filtered.length} documento{filtered.length !== 1 ? 's' : ''}
-            {filtered.length !== docs.length ? ` de ${docs.length}` : ''}
-          </p>
-        </div>
-        <div className="c-flex c-gap-2" style={{ alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 4, background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 10, padding: 3 }}>
-            <button onClick={() => setViewMode('lista')} className={`c-btn c-btn-sm ${viewMode === 'lista' ? 'c-btn-primary' : 'c-btn-secondary'}`} style={{ border: 'none', padding: '4px 10px' }}>☰ Lista</button>
-            <button onClick={() => setViewMode('cards')} className={`c-btn c-btn-sm ${viewMode === 'cards' ? 'c-btn-primary' : 'c-btn-secondary'}`} style={{ border: 'none', padding: '4px 10px' }}>⊞ Cards</button>
-          </div>
-          <button className="c-btn c-btn-primary c-btn-sm" onClick={() => { setEditingDoc(null); setShowForm(true) }}>+ Documento</button>
-        </div>
-      </div>
+  const metricItems = [
+    { label: 'Total', value: stats.total, icon: <Folder size={18} />, tone: 'accent', onClick: () => { setFilterCat(''); setFilterStatus('') } },
+    { label: 'Pessoal', value: stats.pessoal, icon: <IdCard size={18} />, tone: 'neutral', onClick: () => setFilterCat(filterCat === 'pessoal' ? '' : 'pessoal') },
+    { label: 'Casa/Imovel', value: stats.imovel, icon: <Home size={18} />, tone: 'success', onClick: () => setFilterCat(filterCat === 'imovel' ? '' : 'imovel') },
+    { label: 'Contratos', value: stats.contrato, icon: <FileText size={18} />, tone: 'info', onClick: () => setFilterCat(filterCat === 'contrato' ? '' : 'contrato') },
+    { label: 'Atencao', value: stats.atencao, icon: <AlertTriangle size={18} />, tone: 'warning', onClick: () => setFilterStatus(filterStatus === 'vencendo' ? '' : 'vencendo') },
+    { label: 'Favoritos', value: stats.favoritos, icon: <Star size={18} />, tone: 'warning', onClick: () => setFilterStatus(filterStatus === 'favorito' ? '' : 'favorito') },
+  ]
 
-      {/* ── Cards de resumo ── */}
-      <div className="c-cards-carousel" style={{ marginBottom: 20 }}>
-        {[
-          { label: 'Total',        value: stats.total,     icon: '📁', color: '#6366f1', f: null,         t: null },
-          { label: 'Pessoal',      value: stats.pessoal,   icon: '🪪', color: '#6366f1', f: 'pessoal',    t: 'cat' },
-          { label: 'Casa/Imóvel',  value: stats.imovel,    icon: '🏠', color: '#10b981', f: 'imovel',     t: 'cat' },
-          { label: 'Contratos',    value: stats.contrato,  icon: '📄', color: '#3b82f6', f: 'contrato',   t: 'cat' },
-          { label: 'Atenção',      value: stats.atencao,   icon: '⚠️', color: '#d97706', f: 'vencendo',   t: 'status' },
-          { label: 'Favoritos',    value: stats.favoritos, icon: '⭐', color: '#f59e0b', f: 'favorito',   t: 'status' },
-        ].map(c => (
-          <div key={c.label}
-            className="c-cards-carousel-item"
-            onClick={() => {
-              if (!c.t)               { setFilterCat(''); setFilterStatus('') }
-              else if (c.t === 'cat') setFilterCat(filterCat === c.f ? '' : c.f)
-              else                    setFilterStatus(filterStatus === c.f ? '' : c.f)
-            }}
-            style={{ padding: '14px 18px', borderRadius: 12, cursor: 'pointer', background: c.color + '10', border: `1.5px solid ${c.color}25`, transition: 'all .15s', flexShrink: 0 }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'none'}
-          >
-            <div style={{ fontSize: 20, marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: c.color, letterSpacing: '-0.5px' }}>{c.value}</div>
-            <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2 }}>{c.label}</div>
+  return (
+    <div className="c-documentos-v2-page">
+      <PageHeader
+        eyebrow="Casa"
+        title="Documentos"
+        description="Centralize documentos pessoais, da casa, veiculos, contratos e anexos importantes."
+        meta={<StatusBadge tone="accent" icon={<Folder size={14} />}>{filtered.length} de {docs.length}</StatusBadge>}
+        actions={
+          <div className="c-documentos-v2-header-actions">
+            <div className="c-documentos-v2-view-toggle" aria-label="Modo de visualizacao">
+              <button type="button" onClick={() => setViewMode('lista')} className={viewMode === 'lista' ? 'is-active' : ''} aria-label="Ver em lista"><List size={15} /> Lista</button>
+              <button type="button" onClick={() => setViewMode('cards')} className={viewMode === 'cards' ? 'is-active' : ''} aria-label="Ver em cards"><LayoutGrid size={15} /> Cards</button>
+            </div>
+            <Button icon={<Plus size={16} />} onClick={() => { setEditingDoc(null); setShowForm(true) }}>Documento</Button>
           </div>
+        }
+      />
+
+      <div className="c-documentos-v2-metrics">
+        {metricItems.map(item => (
+          <button key={item.label} type="button" onClick={item.onClick} className="c-documentos-v2-metric-button">
+            <MetricCard label={item.label} value={item.value} icon={item.icon} tone={item.tone} />
+          </button>
         ))}
       </div>
 
-      {/* ── Filtros ── */}
-      <div className="c-card c-mb-4">
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 12 }}>
-          <div>
-            <label className="c-form-label">Buscar</label>
-            <input className="c-form-input" placeholder="Nome, número, tipo, tag..." value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-          <div>
-            <label className="c-form-label">Categoria</label>
-            <select className="c-form-select" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-              <option value="">Todas</option>
-              {CATEGORIAS.map(c => <option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="c-form-label">Pessoa</label>
-            <select className="c-form-select" value={filterPerson} onChange={e => setFilterPerson(e.target.value)}>
-              <option value="">Todas</option>
-              {people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="c-form-label">Status</label>
-            <select className="c-form-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="favorito">⭐ Favoritos</option>
-              <option value="vencendo">⚠️ Vencendo</option>
-              <option value="vencido">❌ Vencidos</option>
-              <option value="sem_validade">📌 Sem validade</option>
-            </select>
-          </div>
+      <SectionCard title="Filtros" description="Use os filtros existentes para localizar documentos." padding="lg" className="c-documentos-v2-filter-card">
+        <div className="c-documentos-v2-filters">
+          <FormField label="Buscar">
+            <div className="c-documentos-v2-search">
+              <Search size={16} />
+              <input placeholder="Nome, numero, tipo, tag..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+          </FormField>
+          <SelectField
+            label="Categoria"
+            value={filterCat}
+            onChange={e => setFilterCat(e.target.value)}
+            placeholder="Todas"
+            options={CATEGORIAS.map(c => ({ value: c.key, label: c.label }))}
+          />
+          <SelectField
+            label="Pessoa"
+            value={filterPerson}
+            onChange={e => setFilterPerson(e.target.value)}
+            placeholder="Todas"
+            options={people.map(p => ({ value: p.id, label: p.name }))}
+          />
+          <SelectField
+            label="Status"
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            placeholder="Todos"
+            options={[
+              { value: 'favorito', label: 'Favoritos' },
+              { value: 'vencendo', label: 'Vencendo' },
+              { value: 'vencido', label: 'Vencidos' },
+              { value: 'sem_validade', label: 'Sem validade' },
+            ]}
+          />
         </div>
         {hasFilters && (
-          <div style={{ marginTop: 10 }}>
-            <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => { setSearch(''); setFilterCat(''); setFilterPerson(''); setFilterStatus('') }}>
-              ✕ Limpar filtros
-            </button>
+          <Button variant="secondary" size="sm" icon={<X size={15} />} onClick={() => { setSearch(''); setFilterCat(''); setFilterPerson(''); setFilterStatus('') }}>
+            Limpar filtros
+          </Button>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        title="Arquivos cadastrados"
+        description={viewMode === 'cards' ? 'Grade visual dos documentos filtrados.' : 'Lista compacta com status e acoes.'}
+        padding="lg"
+        className="c-documentos-v2-list-card"
+      >
+        {loading ? (
+          <div className="c-documentos-v2-loading">
+            <Skeleton variant="text" lines={4} />
+            <Skeleton variant="card" height={72} />
+            <Skeleton variant="card" height={72} />
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<Folder size={26} />}
+            title="Nenhum documento encontrado"
+            description={hasFilters ? 'Tente ajustar os filtros.' : 'Clique em Documento para adicionar.'}
+            action={!hasFilters ? <Button icon={<Plus size={16} />} onClick={() => { setEditingDoc(null); setShowForm(true) }}>Documento</Button> : null}
+          />
+        ) : viewMode === 'cards' ? (
+          <div className="c-documentos-v2-grid">
+            {filtered.map(doc => (
+              <DocCard key={doc.id} doc={doc} pessoa={people.find(p => p.id === doc.pessoa_id)} onView={() => setSelectedDoc(doc)} />
+            ))}
+          </div>
+        ) : (
+          <div className="c-documentos-v2-rows">
+            {filtered.map(doc => (
+              <DocRow
+                key={doc.id} doc={doc}
+                pessoa={people.find(p => p.id === doc.pessoa_id)}
+                onView={() => setSelectedDoc(doc)}
+                onEdit={() => openEdit(doc)}
+                onDelete={handleDelete}
+                onFavorite={() => toggleFavorito(doc)}
+                deleting={deleting}
+              />
+            ))}
           </div>
         )}
-      </div>
-
-      {/* ── Conteúdo ── */}
-      {loading ? (
-        <div className="c-loading-screen" style={{ height: '40vh' }}><div className="c-loading-spinner" /></div>
-      ) : filtered.length === 0 ? (
-        <div className="c-card">
-          <div className="c-empty-state">
-            <div className="c-empty-icon">📁</div>
-            <h3>Nenhum documento encontrado</h3>
-            <p>{hasFilters ? 'Tente ajustar os filtros.' : 'Clique em "+ Documento" para adicionar.'}</p>
-          </div>
-        </div>
-      ) : viewMode === 'cards' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: 12 }}>
-          {filtered.map(doc => (
-            <DocCard key={doc.id} doc={doc} pessoa={people.find(p => p.id === doc.pessoa_id)} onView={() => setSelectedDoc(doc)} />
-          ))}
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {filtered.map(doc => (
-            <DocRow
-              key={doc.id} doc={doc}
-              pessoa={people.find(p => p.id === doc.pessoa_id)}
-              onView={() => setSelectedDoc(doc)}
-              onEdit={() => openEdit(doc)}
-              onDelete={handleDelete}
-              onFavorite={() => toggleFavorito(doc)}
-              deleting={deleting}
-            />
-          ))}
-        </div>
-      )}
+      </SectionCard>
 
       {showForm && (
         <DocFormModal doc={editingDoc} people={people} onSave={afterSave} onClose={() => { setShowForm(false); setEditingDoc(null) }} />

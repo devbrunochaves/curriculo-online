@@ -1,0 +1,670 @@
+.contas-root .c-documentos-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+}
+
+.contas-root .c-documentos-v2-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+  flex-wrap: wrap;
+}
+
+.contas-root .c-documentos-v2-view-toggle {
+  display: inline-flex;
+  gap: var(--v2-space-1);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface-muted);
+  padding: var(--v2-space-1);
+}
+
+.contas-root .c-documentos-v2-view-toggle button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: var(--v2-space-2);
+  border: 0;
+  border-radius: var(--v2-radius-sm);
+  background: transparent;
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: 0 var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-view-toggle button.is-active {
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  color: var(--v2-color-accent);
+}
+
+.contas-root .c-documentos-v2-view-toggle button:focus-visible,
+.contas-root .c-documentos-v2-row-main:focus-visible,
+.contas-root .c-documentos-v2-card:focus-visible,
+.contas-root .c-documentos-v2-category-chip:focus-visible,
+.contas-root .c-documentos-v2-favorite-toggle:focus-visible,
+.contas-root .c-documentos-v2-upload:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-documentos-v2-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-metric-button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.contas-root .c-documentos-v2-metric-button:hover .c-v2-metric-card {
+  border-color: var(--v2-color-border-strong);
+  box-shadow: var(--v2-shadow-sm);
+}
+
+.contas-root .c-documentos-v2-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.35fr) repeat(3, minmax(160px, 1fr));
+  gap: var(--v2-space-4);
+  margin-bottom: var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-search {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: var(--v2-space-2);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text-muted);
+  padding: 0 var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-search:focus-within {
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-focus);
+}
+
+.contas-root .c-documentos-v2-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--v2-color-text);
+  font: inherit;
+  outline: none;
+}
+
+.contas-root .c-documentos-v2-loading,
+.contas-root .c-documentos-v2-rows,
+.contas-root .c-documentos-v2-file-list,
+.contas-root .c-documentos-v2-upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-card {
+  display: flex;
+  min-height: 180px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--v2-space-4);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  color: var(--v2-color-text);
+  cursor: pointer;
+  padding: var(--v2-space-4);
+  text-align: left;
+  transition:
+    border-color var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard),
+    transform var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-documentos-v2-card:hover {
+  border-color: var(--v2-color-border-strong);
+  box-shadow: var(--v2-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.contas-root .c-documentos-v2-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-card strong,
+.contas-root .c-documentos-v2-row-main strong,
+.contas-root .c-documentos-v2-file-main strong {
+  display: block;
+  overflow: hidden;
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  line-height: var(--v2-line-height-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-documentos-v2-card p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: var(--v2-space-1) 0 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+}
+
+.contas-root .c-documentos-v2-doc-icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--doc-accent, var(--v2-color-accent)) 24%, transparent);
+  border-radius: var(--v2-radius-lg);
+  background: color-mix(in srgb, var(--doc-accent, var(--v2-color-accent)) 12%, transparent);
+  color: var(--doc-accent, var(--v2-color-accent));
+  flex-shrink: 0;
+}
+
+.contas-root .c-documentos-v2-star {
+  color: var(--v2-color-warning);
+}
+
+.contas-root .c-documentos-v2-badges,
+.contas-root .c-documentos-v2-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-2);
+  align-items: center;
+}
+
+.contas-root .c-documentos-v2-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--v2-space-3);
+  align-items: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-row-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--v2-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--v2-color-text);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.contas-root .c-documentos-v2-row-main > div {
+  min-width: 0;
+}
+
+.contas-root .c-documentos-v2-row-main span:not(.c-documentos-v2-doc-icon) {
+  display: block;
+  overflow: hidden;
+  margin-top: var(--v2-space-1);
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-documentos-v2-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-documentos-v2-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-form-grid--headline {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.contas-root .c-documentos-v2-textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text);
+  font: inherit;
+  outline: none;
+  padding: var(--v2-space-3) var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-textarea:focus-visible {
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-focus);
+}
+
+.contas-root .c-documentos-v2-favorite-toggle {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+}
+
+.contas-root .c-documentos-v2-favorite-toggle.is-active {
+  border-color: var(--v2-color-warning);
+  background: var(--v2-color-warning-soft);
+  color: var(--v2-color-warning-text);
+}
+
+.contas-root .c-documentos-v2-category-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-documentos-v2-category-chip {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: var(--v2-space-2);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: 0 var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-category-chip.is-active {
+  border-color: color-mix(in srgb, var(--doc-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--doc-accent) 12%, transparent);
+  color: var(--doc-accent);
+}
+
+.contas-root .c-documentos-v2-upload-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-upload {
+  display: flex;
+  min-height: 132px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--v2-space-2);
+  border: 1.5px dashed var(--v2-color-border-strong);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-bg-soft);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  padding: var(--v2-space-5);
+  text-align: center;
+}
+
+.contas-root .c-documentos-v2-upload:hover,
+.contas-root .c-documentos-v2-upload.is-dragging {
+  border-color: var(--v2-color-accent);
+  color: var(--v2-color-accent);
+}
+
+.contas-root .c-documentos-v2-upload strong {
+  color: var(--v2-color-text);
+  font-weight: var(--v2-font-weight-bold);
+}
+
+.contas-root .c-documentos-v2-upload span,
+.contas-root .c-documentos-v2-upload-file small,
+.contas-root .c-documentos-v2-file-main small {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+}
+
+.contas-root .c-documentos-v2-file-input {
+  display: none;
+}
+
+.contas-root .c-documentos-v2-upload-file,
+.contas-root .c-documentos-v2-file-card {
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+}
+
+.contas-root .c-documentos-v2-upload-file {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: var(--v2-space-2);
+  align-items: center;
+  padding: var(--v2-space-2) var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-upload-file span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-documentos-v2-progress span {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+}
+
+.contas-root .c-documentos-v2-progress > div {
+  overflow: hidden;
+  height: 5px;
+  margin-top: var(--v2-space-2);
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-border-soft);
+}
+
+.contas-root .c-documentos-v2-progress > div > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--v2-color-accent);
+}
+
+.contas-root .c-documentos-v2-error {
+  margin: 0;
+  border: 1px solid var(--v2-color-danger);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-danger-soft);
+  color: var(--v2-color-danger-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: var(--v2-space-3) var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-5);
+}
+
+.contas-root .c-documentos-v2-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-documentos-v2-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-info-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--v2-space-3);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-bg-soft);
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-info-item > span {
+  display: inline-flex;
+  color: var(--v2-color-text-muted);
+}
+
+.contas-root .c-documentos-v2-info-item div {
+  min-width: 0;
+}
+
+.contas-root .c-documentos-v2-info-item small {
+  display: block;
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+}
+
+.contas-root .c-documentos-v2-info-item strong {
+  display: block;
+  overflow: hidden;
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-documentos-v2-note h3,
+.contas-root .c-documentos-v2-files-section h3 {
+  margin: 0;
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-heading-3);
+}
+
+.contas-root .c-documentos-v2-note p {
+  margin: var(--v2-space-2) 0 0;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-bg-soft);
+  color: var(--v2-color-text-soft);
+  line-height: var(--v2-line-height-body);
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-tag-list span {
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: var(--v2-space-1) var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-files-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-files-section header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-files-section p {
+  margin: var(--v2-space-1) 0 0;
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+}
+
+.contas-root .c-documentos-v2-file-card {
+  overflow: hidden;
+}
+
+.contas-root .c-documentos-v2-file-main {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-file-card > .c-documentos-v2-file-main,
+.contas-root .c-documentos-v2-file-card > .c-documentos-v2-file-actions {
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-file-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-documentos-v2-file-main > div {
+  min-width: 0;
+}
+
+.contas-root .c-documentos-v2-file-icon {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-accent-subtle);
+  color: var(--v2-color-accent);
+  flex-shrink: 0;
+}
+
+.contas-root .c-documentos-v2-file-actions {
+  display: flex;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-documentos-v2-preview {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--v2-color-border);
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-documentos-v2-preview img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-bg-soft);
+}
+
+@media (max-width: 1180px) {
+  .contas-root .c-documentos-v2-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .contas-root .c-documentos-v2-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .contas-root .c-documentos-v2-page {
+    padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .contas-root .c-documentos-v2-header-actions,
+  .contas-root .c-documentos-v2-view-toggle,
+  .contas-root .c-documentos-v2-view-toggle button {
+    width: 100%;
+  }
+
+  .contas-root .c-documentos-v2-view-toggle button {
+    justify-content: center;
+  }
+
+  .contas-root .c-documentos-v2-header-actions > .c-v2-button {
+    width: 100%;
+  }
+
+  .contas-root .c-documentos-v2-metrics,
+  .contas-root .c-documentos-v2-filters,
+  .contas-root .c-documentos-v2-form-grid,
+  .contas-root .c-documentos-v2-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-documentos-v2-row {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-documentos-v2-row-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .contas-root .c-documentos-v2-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-documentos-v2-file-card {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-documentos-v2-file-actions {
+    justify-content: flex-end;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .contas-root .c-documentos-v2-row-actions {
+    justify-content: stretch;
+  }
+
+  .contas-root .c-documentos-v2-row-actions > .c-v2-status-badge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contas-root .c-documentos-v2-upload-file {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .contas-root .c-documentos-v2-upload-file small {
+    grid-column: 2 / 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-documentos-v2-view-toggle button,
+  .contas-root .c-documentos-v2-card {
+    transition: none;
+  }
+}
