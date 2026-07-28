@@ -1,25 +1,74 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import {
+  Banknote,
+  CheckCircle2,
+  CircleDollarSign,
+  CreditCard,
+  Layers3,
+  Pause,
+  Pencil,
+  Play,
+  Plus,
+  Save,
+  Settings,
+  Tag,
+  Trash2,
+  User,
+  Users,
+  X,
+} from 'lucide-react'
 import { format } from 'date-fns'
+import { supabase } from '../lib/supabase'
+import {
+  Button,
+  EmptyState,
+  FormField,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const COLORS = ['#6366f1','#EC4899','#F97316','#10b981','#EAB308','#DC2626','#2563EB','#8B5CF6','#14B8A6','#059669','#00B4D8','#F43F5E','#64748b']
 const ICONS  = ['🍽️','🛒','⛽','💊','🏠','🚗','🎬','📱','👕','📚','💳','💸','📦','✈️','🐾','🎮','🏋️','💇','🎁','🔧']
 const CARD_COLORS = ['#6366f1','#EC4899','#F97316','#10b981','#EAB308','#DC2626','#2563EB','#8B5CF6','#14B8A6','#059669','#00B4D8','#F43F5E']
 
+const tabs = [
+  { key: 'perfil', label: 'Perfil', icon: User },
+  { key: 'pessoas', label: 'Pessoas', icon: Users },
+  { key: 'cartoes', label: 'Cartões', icon: CreditCard },
+  { key: 'categorias', label: 'Categorias', icon: Tag },
+  { key: 'entradas', label: 'Entradas', icon: Banknote },
+]
+
 export default function Configuracoes() {
   const [tab, setTab] = useState('perfil')
+  const activeTab = tabs.find(t => t.key === tab)
+
   return (
-    <div>
-      <div className="c-page-header">
-        <h2>Configurações</h2>
-        <p>Gerencie seu perfil, pessoas, cartões, categorias e entradas</p>
-      </div>
-      <div className="c-flex c-gap-2 c-mb-4" style={{ flexWrap: 'wrap' }}>
-        {[['perfil','👤 Perfil'],['pessoas','👥 Pessoas'],['cartoes','💳 Cartões'],['categorias','🏷️ Categorias'],['entradas','💵 Entradas']].map(([key, label]) => (
-          <button key={key} className={`c-btn ${tab === key ? 'c-btn-primary' : 'c-btn-secondary'}`} onClick={() => setTab(key)}>{label}</button>
-        ))}
-      </div>
+    <div className="c-config-v2-page">
+      <PageHeader
+        eyebrow="Sistema"
+        title="Configurações"
+        description="Gerencie perfil, pessoas, cartões, categorias e entradas auxiliares."
+        meta={<StatusBadge tone="accent" icon={<Settings size={14} />}>{activeTab?.label}</StatusBadge>}
+      />
+
+      <nav className="c-config-v2-tabs" aria-label="Seções de configurações">
+        {tabs.map(item => {
+          const Icon = item.icon
+          return (
+            <button key={item.key} type="button" className={tab === item.key ? 'is-active' : ''} onClick={() => setTab(item.key)}>
+              <Icon size={16} />
+              {item.label}
+            </button>
+          )
+        })}
+      </nav>
+
       {tab === 'perfil'     && <PerfilTab />}
       {tab === 'pessoas'    && <PessoasTab />}
       {tab === 'cartoes'    && <CartoesTab />}
@@ -29,7 +78,6 @@ export default function Configuracoes() {
   )
 }
 
-/* ── Aba Perfil ──────────────────────────────────────────────────── */
 function PerfilTab() {
   const [email, setEmail]       = useState('')
   const [fullName, setFullName] = useState('')
@@ -54,47 +102,35 @@ function PerfilTab() {
   }
 
   return (
-    <div style={{ maxWidth: 480 }}>
-      <div className="c-card" style={{ padding: '20px 24px' }}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Dados da conta</div>
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div className="c-form-group">
-            <label className="c-form-label">E-mail</label>
-            <input
-              type="email"
-              className="c-form-input"
-              value={email}
-              readOnly
-              style={{ opacity: 0.7, cursor: 'default' }}
-            />
-          </div>
-          <div className="c-form-group">
-            <label className="c-form-label">Nome de exibição</label>
-            <input
-              type="text"
-              className="c-form-input"
-              value={fullName}
-              onChange={e => setFullName(e.target.value)}
-              placeholder="Ex: Bruno"
-              maxLength={60}
-            />
-            <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 4 }}>
-              Este nome aparece no "Bom dia" da página Meu Dia.
-            </div>
-          </div>
-          <div className="c-flex c-gap-2 c-items-center">
-            <button type="submit" className="c-btn c-btn-primary" disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar nome'}
-            </button>
-            {saved && <span style={{ fontSize: 13, color: 'var(--c-success, #16a34a)', fontWeight: 600 }}>✅ Salvo!</span>}
-          </div>
-        </form>
-      </div>
-    </div>
+    <SectionCard
+      title="Dados da conta"
+      description="Essas informações aparecem dentro do módulo Contas."
+      padding="lg"
+      className="c-config-v2-section c-config-v2-profile"
+    >
+      <form onSubmit={handleSave} className="c-config-v2-form">
+        <FormField label="E-mail">
+          <input type="email" className="c-v2-select-field" value={email} readOnly />
+        </FormField>
+        <FormField label="Nome de exibição" help='Este nome aparece no "Bom dia" da página Meu Dia.'>
+          <input
+            type="text"
+            className="c-v2-select-field"
+            value={fullName}
+            onChange={e => setFullName(e.target.value)}
+            placeholder="Ex: Bruno"
+            maxLength={60}
+          />
+        </FormField>
+        <div className="c-config-v2-actions">
+          <Button type="submit" icon={<Save size={16} />} loading={saving} disabled={saving}>Salvar nome</Button>
+          {saved && <StatusBadge tone="success" icon={<CheckCircle2 size={14} />}>Salvo</StatusBadge>}
+        </div>
+      </form>
+    </SectionCard>
   )
 }
 
-/* ── Aba Cartões ─────────────────────────────────────────────────── */
 function CardForm({ initial, onSave, onCancel }) {
   const [name, setName]       = useState(initial?.name || '')
   const [color, setColor]     = useState(initial?.color || CARD_COLORS[0])
@@ -112,38 +148,27 @@ function CardForm({ initial, onSave, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div className="c-form-group">
-        <label className="c-form-label">Nome do Cartão</label>
-        <input type="text" className="c-form-input" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Nubank Bruno" />
+    <form onSubmit={handleSubmit} className="c-config-v2-form">
+      <FormField label="Nome do cartão">
+        <input type="text" className="c-v2-select-field" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Nubank Bruno" />
+      </FormField>
+      <div className="c-config-v2-grid">
+        <FormField label="Limite (R$)">
+          <input type="text" className="c-v2-select-field" value={limit} onChange={e => setLimit(e.target.value)} placeholder="0,00" />
+        </FormField>
+        <ColorPicker label="Cor" colors={CARD_COLORS} value={color} onChange={setColor} />
       </div>
-      <div className="c-grid-2">
-        <div className="c-form-group">
-          <label className="c-form-label">Limite (R$)</label>
-          <input type="text" className="c-form-input" value={limit} onChange={e => setLimit(e.target.value)} placeholder="0,00" />
-        </div>
-        <div>
-          <label className="c-form-label">Cor</label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-            {CARD_COLORS.map(c => (
-              <div key={c} onClick={() => setColor(c)} style={{ width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer', border: color === c ? '3px solid #0f172a' : '2px solid transparent' }} />
-            ))}
-          </div>
-        </div>
+      <div className="c-config-v2-grid">
+        <FormField label="Dia de fechamento">
+          <input type="number" className="c-v2-select-field" value={closing} onChange={e => setClosing(e.target.value)} placeholder="Ex: 11" min={1} max={31} />
+        </FormField>
+        <FormField label="Dia de vencimento">
+          <input type="number" className="c-v2-select-field" value={due} onChange={e => setDue(e.target.value)} placeholder="Ex: 18" min={1} max={31} />
+        </FormField>
       </div>
-      <div className="c-grid-2">
-        <div className="c-form-group">
-          <label className="c-form-label">Dia de fechamento</label>
-          <input type="number" className="c-form-input" value={closing} onChange={e => setClosing(e.target.value)} placeholder="Ex: 11" min={1} max={31} />
-        </div>
-        <div className="c-form-group">
-          <label className="c-form-label">Dia de vencimento</label>
-          <input type="number" className="c-form-input" value={due} onChange={e => setDue(e.target.value)} placeholder="Ex: 18" min={1} max={31} />
-        </div>
-      </div>
-      <div className="c-flex c-gap-2">
-        <button type="submit" className="c-btn c-btn-primary" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</button>
-        <button type="button" className="c-btn c-btn-secondary" onClick={onCancel}>Cancelar</button>
+      <div className="c-config-v2-actions">
+        <Button type="submit" loading={saving} disabled={saving}>Salvar</Button>
+        <Button type="button" variant="secondary" onClick={onCancel}>Cancelar</Button>
       </div>
     </form>
   )
@@ -166,45 +191,55 @@ function CartoesTab() {
   async function handleDelete(id) { if (!confirm('Excluir este cartão? Lançamentos vinculados perderão a referência.')) return; await supabase.from('cards').delete().eq('id', id); load() }
 
   return (
-    <div style={{ maxWidth: 600 }}>
-      {!adding && <button className="c-btn c-btn-primary c-mb-4" onClick={() => setAdding(true)}>+ Novo Cartão</button>}
+    <div className="c-config-v2-stack">
+      <div className="c-config-v2-metrics">
+        <MetricCard label="Cartões" value={cards.length} icon={<CreditCard size={18} />} description="Registros cadastrados" />
+        <MetricCard label="Ativos" value={cards.filter(c => c.is_active).length} tone="success" icon={<Play size={18} />} description="Disponíveis para uso" />
+        <MetricCard label="Inativos" value={cards.filter(c => !c.is_active).length} tone="warning" icon={<Pause size={18} />} description="Ocultos nos fluxos" />
+      </div>
+
+      {!adding && <Button icon={<Plus size={16} />} onClick={() => setAdding(true)}>Novo Cartão</Button>}
       {adding && (
-        <div className="c-card c-mb-4">
-          <div className="c-section-title" style={{ marginBottom: 16 }}>Novo Cartão</div>
+        <SectionCard title="Novo Cartão" description="Defina cor, limite e datas do cartão." padding="lg">
           <CardForm onSave={() => { setAdding(false); load() }} onCancel={() => setAdding(false)} />
-        </div>
+        </SectionCard>
       )}
-      {loading ? (
-        <div className="c-loading-screen" style={{ height: '30vh' }}><div className="c-loading-spinner" /></div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {cards.map(c => (
-            <div key={c.id} className="c-card" style={{ opacity: c.is_active ? 1 : 0.5 }}>
-              {editing === c.id ? (
-                <CardForm initial={c} onSave={() => { setEditing(null); load() }} onCancel={() => setEditing(null)} />
-              ) : (
-                <div className="c-flex c-items-center c-gap-3">
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: c.color, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>💳</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15 }}>{c.name}</div>
-                    <div className="c-flex c-gap-3 c-mt-1 c-text-muted c-text-sm">
-                      {c.limit_amount && <span>Limite: {fmt(c.limit_amount)}</span>}
-                      {c.closing_day  && <span>Fecha dia {c.closing_day}</span>}
-                      {c.due_day      && <span>Vence dia {c.due_day}</span>}
-                      {!c.is_active   && <span className="c-chip c-badge-warning">Inativo</span>}
+
+      <SectionCard title="Cartões cadastrados" description="Edite, ative ou desative cartões usados nos lançamentos." padding="lg">
+        {loading ? (
+          <Skeleton variant="text" lines={5} />
+        ) : cards.length === 0 ? (
+          <EmptyState compact icon={<CreditCard size={22} />} title="Nenhum cartão cadastrado" description="Adicione um cartão para usar nos lançamentos." />
+        ) : (
+          <div className="c-config-v2-list">
+            {cards.map(c => (
+              <article key={c.id} className={`c-config-v2-item ${!c.is_active ? 'is-muted' : ''}`}>
+                {editing === c.id ? (
+                  <CardForm initial={c} onSave={() => { setEditing(null); load() }} onCancel={() => setEditing(null)} />
+                ) : (
+                  <>
+                    <span className="c-config-v2-avatar" style={{ '--item-color': c.color }}><CreditCard size={18} /></span>
+                    <div className="c-config-v2-item-main">
+                      <strong>{c.name}</strong>
+                      <span>
+                        {c.limit_amount && <>Limite: {fmt(c.limit_amount)} · </>}
+                        {c.closing_day && <>Fecha dia {c.closing_day} · </>}
+                        {c.due_day && <>Vence dia {c.due_day}</>}
+                      </span>
                     </div>
-                  </div>
-                  <div className="c-flex c-gap-2">
-                    <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => setEditing(c.id)}>✏️</button>
-                    <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => toggleActive(c)} title={c.is_active ? 'Desativar' : 'Ativar'}>{c.is_active ? '⏸️' : '▶️'}</button>
-                    <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(c.id)}>🗑️</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+                    <div className="c-config-v2-item-actions">
+                      {!c.is_active && <StatusBadge tone="warning">Inativo</StatusBadge>}
+                      <IconButton icon={<Pencil size={15} />} label="Editar cartão" variant="secondary" size="sm" onClick={() => setEditing(c.id)} />
+                      <IconButton icon={c.is_active ? <Pause size={15} /> : <Play size={15} />} label={c.is_active ? 'Desativar' : 'Ativar'} variant="secondary" size="sm" onClick={() => toggleActive(c)} />
+                      <IconButton icon={<Trash2 size={15} />} label="Excluir cartão" variant="danger" size="sm" onClick={() => handleDelete(c.id)} />
+                    </div>
+                  </>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
+      </SectionCard>
     </div>
   )
 }
@@ -229,39 +264,42 @@ function PessoasTab() {
   async function handleDelete(id) { if (!confirm('Excluir esta pessoa?')) return; await supabase.from('people').delete().eq('id', id); load() }
 
   return (
-    <div style={{ maxWidth: 500 }}>
-      {!adding && <button className="c-btn c-btn-primary c-mb-4" onClick={() => setAdding(true)}>+ Nova Pessoa</button>}
+    <div className="c-config-v2-stack">
+      {!adding && <Button icon={<Plus size={16} />} onClick={() => setAdding(true)}>Nova Pessoa</Button>}
       {adding && (
-        <div className="c-card c-mb-4">
-          <form onSubmit={handleAdd}>
-            <div className="c-form-group">
-              <label className="c-form-label">Nome</label>
-              <input type="text" className="c-form-input" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Ivan" />
-            </div>
-            <div className="c-form-group">
-              <label className="c-form-label">Cor</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-                {COLORS.map(c => <div key={c} onClick={() => setColor(c)} style={{ width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer', border: color === c ? '3px solid #0f172a' : '2px solid transparent' }} />)}
-              </div>
-            </div>
-            <div className="c-flex c-gap-2">
-              <button type="submit" className="c-btn c-btn-primary" disabled={saving}>Salvar</button>
-              <button type="button" className="c-btn c-btn-secondary" onClick={() => setAdding(false)}>Cancelar</button>
+        <SectionCard title="Nova Pessoa" description="Cadastre uma pessoa para rateios e análises." padding="lg">
+          <form onSubmit={handleAdd} className="c-config-v2-form">
+            <FormField label="Nome">
+              <input type="text" className="c-v2-select-field" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Ivan" />
+            </FormField>
+            <ColorPicker label="Cor" colors={COLORS} value={color} onChange={setColor} />
+            <div className="c-config-v2-actions">
+              <Button type="submit" loading={saving} disabled={saving}>Salvar</Button>
+              <Button type="button" variant="secondary" onClick={() => setAdding(false)}>Cancelar</Button>
             </div>
           </form>
-        </div>
+        </SectionCard>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {people.map(p => (
-          <div key={p.id} className="c-card c-card-sm c-flex c-items-center c-gap-3" style={{ opacity: p.is_active ? 1 : 0.5 }}>
-            <span className="c-dot" style={{ background: p.color, width: 14, height: 14 }} />
-            <span style={{ flex: 1, fontWeight: 600 }}>{p.name}</span>
-            {!p.is_active && <span className="c-chip c-badge-warning c-text-sm">Inativo</span>}
-            <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => toggleActive(p)}>{p.is_active ? '⏸️' : '▶️'}</button>
-            <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(p.id)}>🗑️</button>
+
+      <SectionCard title="Pessoas cadastradas" description="Controle quem participa dos rateios." padding="lg">
+        {people.length === 0 ? (
+          <EmptyState compact icon={<Users size={22} />} title="Nenhuma pessoa cadastrada" description="Adicione pessoas para usar nos splits." />
+        ) : (
+          <div className="c-config-v2-list">
+            {people.map(p => (
+              <article key={p.id} className={`c-config-v2-item ${!p.is_active ? 'is-muted' : ''}`}>
+                <span className="c-config-v2-dot" style={{ background: p.color }} />
+                <div className="c-config-v2-item-main"><strong>{p.name}</strong></div>
+                <div className="c-config-v2-item-actions">
+                  {!p.is_active && <StatusBadge tone="warning">Inativo</StatusBadge>}
+                  <IconButton icon={p.is_active ? <Pause size={15} /> : <Play size={15} />} label={p.is_active ? 'Desativar pessoa' : 'Ativar pessoa'} variant="secondary" size="sm" onClick={() => toggleActive(p)} />
+                  <IconButton icon={<Trash2 size={15} />} label="Excluir pessoa" variant="danger" size="sm" onClick={() => handleDelete(p.id)} />
+                </div>
+              </article>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </SectionCard>
     </div>
   )
 }
@@ -286,46 +324,42 @@ function CategoriasTab() {
   async function handleDelete(id) { if (!confirm('Excluir esta categoria?')) return; await supabase.from('categories').delete().eq('id', id); load() }
 
   return (
-    <div style={{ maxWidth: 560 }}>
-      {!adding && <button className="c-btn c-btn-primary c-mb-4" onClick={() => setAdding(true)}>+ Nova Categoria</button>}
+    <div className="c-config-v2-stack">
+      {!adding && <Button icon={<Plus size={16} />} onClick={() => setAdding(true)}>Nova Categoria</Button>}
       {adding && (
-        <div className="c-card c-mb-4">
-          <form onSubmit={handleAdd}>
-            <div className="c-grid-2">
-              <div className="c-form-group">
-                <label className="c-form-label">Nome</label>
-                <input type="text" className="c-form-input" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Academia" />
-              </div>
-              <div>
-                <label className="c-form-label">Ícone</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                  {ICONS.map(i => <span key={i} onClick={() => setIcon(i)} style={{ fontSize: 20, cursor: 'pointer', padding: 4, borderRadius: 6, background: icon === i ? '#f1f5f9' : 'transparent', border: icon === i ? '2px solid var(--c-accent)' : '2px solid transparent' }}>{i}</span>)}
-                </div>
-              </div>
+        <SectionCard title="Nova Categoria" description="Preserve ícone e cor usados nos relatórios." padding="lg">
+          <form onSubmit={handleAdd} className="c-config-v2-form">
+            <div className="c-config-v2-grid">
+              <FormField label="Nome">
+                <input type="text" className="c-v2-select-field" value={name} onChange={e => setName(e.target.value)} required placeholder="Ex: Academia" />
+              </FormField>
+              <IconPicker value={icon} onChange={setIcon} />
             </div>
-            <div className="c-form-group">
-              <label className="c-form-label">Cor</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {COLORS.map(c => <div key={c} onClick={() => setColor(c)} style={{ width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer', border: color === c ? '3px solid #0f172a' : '2px solid transparent' }} />)}
-              </div>
-            </div>
-            <div className="c-flex c-gap-2">
-              <button type="submit" className="c-btn c-btn-primary" disabled={saving}>Salvar</button>
-              <button type="button" className="c-btn c-btn-secondary" onClick={() => setAdding(false)}>Cancelar</button>
+            <ColorPicker label="Cor" colors={COLORS} value={color} onChange={setColor} />
+            <div className="c-config-v2-actions">
+              <Button type="submit" loading={saving} disabled={saving}>Salvar</Button>
+              <Button type="button" variant="secondary" onClick={() => setAdding(false)}>Cancelar</Button>
             </div>
           </form>
-        </div>
+        </SectionCard>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        {cats.map(c => (
-          <div key={c.id} className="c-card c-card-sm c-flex c-items-center c-gap-2">
-            <span style={{ fontSize: 18 }}>{c.icon}</span>
-            <span style={{ flex: 1, fontWeight: 600, fontSize: 13 }}>{c.name}</span>
-            <span className="c-dot" style={{ background: c.color }} />
-            <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(c.id)}>🗑️</button>
+
+      <SectionCard title="Categorias cadastradas" description="Categorias disponíveis nos lançamentos." padding="lg">
+        {cats.length === 0 ? (
+          <EmptyState compact icon={<Tag size={22} />} title="Nenhuma categoria cadastrada" description="Adicione categorias para organizar despesas." />
+        ) : (
+          <div className="c-config-v2-category-grid">
+            {cats.map(c => (
+              <article key={c.id} className="c-config-v2-category">
+                <span className="c-config-v2-category-icon">{c.icon}</span>
+                <strong>{c.name}</strong>
+                <span className="c-config-v2-dot" style={{ background: c.color }} />
+                <IconButton icon={<Trash2 size={15} />} label="Excluir categoria" variant="danger" size="sm" onClick={() => handleDelete(c.id)} />
+              </article>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </SectionCard>
     </div>
   )
 }
@@ -354,56 +388,99 @@ function EntradasTab() {
   const total = income.reduce((s, r) => s + Number(r.amount), 0)
 
   return (
-    <div style={{ maxWidth: 560 }}>
-      <div className="c-flex c-items-center c-gap-3 c-mb-4">
-        {!adding && <button className="c-btn c-btn-primary" onClick={() => setAdding(true)}>+ Nova Entrada</button>}
-        <div>
-          <label className="c-form-label c-text-sm">Mês</label>
-          <input type="month" className="c-form-input" value={monthRef} onChange={e => setMonthRef(e.target.value)} style={{ width: 160 }} />
-        </div>
-        <div className="c-ml-auto">
-          <span className="c-text-muted c-text-sm">Total: </span>
-          <span style={{ fontWeight: 700, color: 'var(--c-success)' }}>{fmt(total)}</span>
-        </div>
+    <div className="c-config-v2-stack">
+      <div className="c-config-v2-metrics">
+        <MetricCard label="Total do mês" value={fmt(total)} tone="success" icon={<CircleDollarSign size={18} />} />
+        <MetricCard label="Entradas" value={income.length} icon={<Banknote size={18} />} description={monthRef} />
       </div>
 
-      {adding && (
-        <div className="c-card c-mb-4">
-          <form onSubmit={handleAdd}>
-            <div className="c-grid-2">
-              <div className="c-form-group">
-                <label className="c-form-label">Descrição</label>
-                <input type="text" className="c-form-input" value={desc} onChange={e => setDesc(e.target.value)} required placeholder="Ex: Salário Scale" />
-              </div>
-              <div className="c-form-group">
-                <label className="c-form-label">Valor (R$)</label>
-                <input type="text" className="c-form-input" value={amount} onChange={e => setAmount(e.target.value)} required placeholder="3.346,60" />
-              </div>
+      <SectionCard
+        title="Entradas auxiliares"
+        description="Cadastro simples preservado para ajustes rápidos."
+        padding="lg"
+        actions={
+          <div className="c-config-v2-income-actions">
+            {!adding && <Button icon={<Plus size={16} />} onClick={() => setAdding(true)}>Nova Entrada</Button>}
+            <FormField label="Mês">
+              <input type="month" className="c-v2-select-field" value={monthRef} onChange={e => setMonthRef(e.target.value)} />
+            </FormField>
+          </div>
+        }
+      >
+        {adding && (
+          <form onSubmit={handleAdd} className="c-config-v2-form c-config-v2-income-form">
+            <div className="c-config-v2-grid">
+              <FormField label="Descrição">
+                <input type="text" className="c-v2-select-field" value={desc} onChange={e => setDesc(e.target.value)} required placeholder="Ex: Salário Scale" />
+              </FormField>
+              <FormField label="Valor (R$)">
+                <input type="text" className="c-v2-select-field" value={amount} onChange={e => setAmount(e.target.value)} required placeholder="3.346,60" />
+              </FormField>
             </div>
-            <div className="c-form-group">
-              <label className="c-form-label">Data</label>
-              <input type="date" className="c-form-input" value={date} onChange={e => setDate(e.target.value)} required />
-            </div>
-            <div className="c-flex c-gap-2">
-              <button type="submit" className="c-btn c-btn-primary" disabled={saving}>Salvar</button>
-              <button type="button" className="c-btn c-btn-secondary" onClick={() => setAdding(false)}>Cancelar</button>
+            <FormField label="Data">
+              <input type="date" className="c-v2-select-field" value={date} onChange={e => setDate(e.target.value)} required />
+            </FormField>
+            <div className="c-config-v2-actions">
+              <Button type="submit" loading={saving} disabled={saving}>Salvar</Button>
+              <Button type="button" variant="secondary" onClick={() => setAdding(false)}>Cancelar</Button>
             </div>
           </form>
-        </div>
-      )}
+        )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {income.length === 0 && <div className="c-empty-state"><div className="c-empty-icon">💵</div><h3>Nenhuma entrada neste mês</h3></div>}
-        {income.map(r => (
-          <div key={r.id} className="c-card c-card-sm c-flex c-items-center c-gap-3">
-            <span style={{ fontSize: 20 }}>💵</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600 }}>{r.description}</div>
-              <div className="c-text-muted c-text-sm">{format(new Date(r.date + 'T12:00:00'), 'dd/MM/yyyy')}</div>
-            </div>
-            <span style={{ fontWeight: 700, color: 'var(--c-success)', fontSize: 15 }}>{fmt(r.amount)}</span>
-            <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(r.id)}>🗑️</button>
+        {income.length === 0 ? (
+          <EmptyState compact icon={<Banknote size={22} />} title="Nenhuma entrada neste mês" description="As entradas cadastradas para o mês selecionado aparecerão aqui." />
+        ) : (
+          <div className="c-config-v2-list">
+            {income.map(r => (
+              <article key={r.id} className="c-config-v2-item">
+                <span className="c-config-v2-avatar is-success"><Banknote size={18} /></span>
+                <div className="c-config-v2-item-main">
+                  <strong>{r.description}</strong>
+                  <span>{format(new Date(r.date + 'T12:00:00'), 'dd/MM/yyyy')}</span>
+                </div>
+                <div className="c-config-v2-item-actions">
+                  <strong className="c-config-v2-money">{fmt(r.amount)}</strong>
+                  <IconButton icon={<Trash2 size={15} />} label="Excluir entrada" variant="danger" size="sm" onClick={() => handleDelete(r.id)} />
+                </div>
+              </article>
+            ))}
           </div>
+        )}
+      </SectionCard>
+    </div>
+  )
+}
+
+function ColorPicker({ label, colors, value, onChange }) {
+  return (
+    <div className="c-v2-form-field">
+      <span className="c-v2-form-field__label">{label}</span>
+      <div className="c-config-v2-colors">
+        {colors.map(c => (
+          <button
+            key={c}
+            type="button"
+            className={value === c ? 'is-active' : ''}
+            style={{ background: c }}
+            onClick={() => onChange(c)}
+            aria-label={`Selecionar cor ${c}`}
+            aria-pressed={value === c}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function IconPicker({ value, onChange }) {
+  return (
+    <div className="c-v2-form-field">
+      <span className="c-v2-form-field__label">Ícone</span>
+      <div className="c-config-v2-icons">
+        {ICONS.map(i => (
+          <button key={i} type="button" className={value === i ? 'is-active' : ''} onClick={() => onChange(i)} aria-label={`Selecionar ícone ${i}`} aria-pressed={value === i}>
+            {i}
+          </button>
         ))}
       </div>
     </div>
