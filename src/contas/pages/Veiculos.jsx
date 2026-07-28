@@ -2,6 +2,16 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, parseISO, differenceInDays, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Car, FileText, Fuel, ShieldCheck, Wrench, X } from 'lucide-react'
+import {
+  EmptyState as V2EmptyState,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge as V2StatusBadge,
+} from '../components/ui'
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const COMBUSTIVEIS = ['Gasolina', 'Álcool', 'Flex', 'Diesel', 'GNV', 'Elétrico', 'Híbrido']
@@ -36,33 +46,30 @@ async function deleteFile(path) {
 /* ── Shared UI ─────────────────────────────────────────────────────────── */
 function Loading() {
   return (
-    <div className="c-loading-screen">
-      <div className="c-loading-spinner" />
+    <div className="c-veiculos-v2-loading" aria-busy="true">
+      <Skeleton variant="card" />
+      <Skeleton variant="text" lines={4} />
     </div>
   )
 }
 
 function EmptyState({ icon, title, desc }) {
   return (
-    <div className="c-empty-state">
-      <div className="c-empty-icon">{icon}</div>
-      <h3>{title}</h3>
-      <p>{desc}</p>
-    </div>
+    <V2EmptyState compact icon={<Car size={22} />} title={title} description={desc || icon} />
   )
 }
 
 function ModalShell({ title, onClose, onSave, saving, saveLabel, children }) {
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" onClick={e => e.stopPropagation()}>
+    <div className="c-veiculos-v2-modal-backdrop" onClick={onClose}>
+      <div className="c-veiculos-v2-modal" role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}>
         <div className="c-modal-header">
           <h3 className="c-modal-title">{title}</h3>
-          <button className="c-modal-close" onClick={onClose}>✕</button>
+          <IconButton icon={<X size={18} />} label="Fechar modal" variant="ghost" size="sm" onClick={onClose} />
         </div>
-        <div className="c-modal-body">{children}</div>
+        <div className="c-veiculos-v2-modal__body">{children}</div>
         {onSave && (
-          <div className="c-modal-footer">
+          <div className="c-veiculos-v2-modal__footer">
             <button className="c-btn c-btn-secondary" onClick={onClose}>Cancelar</button>
             <button className="c-btn c-btn-primary" onClick={onSave} disabled={saving}>
               {saving ? 'Salvando...' : (saveLabel || 'Salvar')}
@@ -76,7 +83,7 @@ function ModalShell({ title, onClose, onSave, saving, saveLabel, children }) {
 
 function Field({ label, children }) {
   return (
-    <div className="c-form-group">
+    <div className="c-veiculos-v2-field">
       <label className="c-form-label">{label}</label>
       {children}
     </div>
@@ -215,65 +222,74 @@ function VeiculosList({ onSelect }) {
   }
 
   const summaryCards = [
-    { icon: '🚗', label: 'Veículos', value: summary.total, color: '#6366f1' },
-    { icon: '📁', label: 'Docs Vencendo', value: summary.docsVencendo, color: summary.docsVencendo > 0 ? '#d97706' : '#15803d' },
-    { icon: '💸', label: 'Gastos no Ano', value: fmtBRL(summary.gastosAno), color: '#3b82f6' },
-    { icon: '🛡️', label: 'Seguros Ativos', value: summary.segurosAtivos, color: '#10b981' },
-    { icon: '⛽', label: 'Último Abast.', value: summary.ultimoAbast ? fmtDate(summary.ultimoAbast) : '—', color: '#8b5cf6' },
+    { icon: <Car size={18} />, label: 'Veículos', value: summary.total, tone: 'accent' },
+    { icon: <FileText size={18} />, label: 'Docs Vencendo', value: summary.docsVencendo, tone: summary.docsVencendo > 0 ? 'warning' : 'success' },
+    { icon: <Wrench size={18} />, label: 'Gastos no Ano', value: fmtBRL(summary.gastosAno), tone: 'accent' },
+    { icon: <ShieldCheck size={18} />, label: 'Seguros Ativos', value: summary.segurosAtivos, tone: 'success' },
+    { icon: <Fuel size={18} />, label: 'Último Abast.', value: summary.ultimoAbast ? fmtDate(summary.ultimoAbast) : '—', tone: 'neutral' },
   ]
 
   if (loading) return <Loading />
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>🚗 Veículos</h2>
-        <button className="c-btn c-btn-primary" onClick={openNew}>+ Veículo</button>
-      </div>
+    <div className="c-veiculos-v2-page">
+      <PageHeader
+        eyebrow="Casa"
+        title="Veículos"
+        description="Controle documentos, custos, manutenções, abastecimentos e histórico da frota familiar."
+        meta={<V2StatusBadge tone="accent" icon={<Car size={13} />}>{summary.total} cadastrado{summary.total === 1 ? '' : 's'}</V2StatusBadge>}
+        actions={<button className="c-btn c-btn-primary" onClick={openNew}>+ Veículo</button>}
+      />
 
       {/* Summary cards */}
-      <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, marginBottom: 24 }}>
+      <div className="c-veiculos-v2-metrics">
         {summaryCards.map(c => (
-          <div key={c.label} style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, padding: '14px 18px', minWidth: 130, flexShrink: 0 }}>
-            <div style={{ fontSize: 24, marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: c.color }}>{c.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>{c.label}</div>
-          </div>
+          <MetricCard key={c.label} icon={c.icon} label={c.label} value={c.value} tone={c.tone} />
         ))}
       </div>
 
       {veiculos.length === 0 ? (
         <EmptyState icon="🚗" title="Nenhum veículo cadastrado" desc="Adicione seu primeiro veículo para começar." />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <SectionCard title="Veículos cadastrados" description="Toque em um veículo para abrir documentos, custos, manutenções e histórico." className="c-veiculos-v2-list-card" padding="lg">
+          <div className="c-veiculos-v2-list">
           {veiculos.map(v => (
-            <div key={v.id} className="c-card"
+            <div key={v.id} className="c-card c-veiculos-v2-card"
               style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', cursor: 'pointer' }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onSelect(v)
+                }
+              }}
               onClick={() => onSelect(v)}>
-              <div style={{ width: 80, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#6366f120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
+              <div className="c-veiculos-v2-card__cover" style={{ width: 80, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#6366f120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
                 {fotoUrls[v.id]
-                  ? <img src={fotoUrls[v.id]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={v.modelo} />
+                  ? <img src={fotoUrls[v.id]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`${v.marca} ${v.modelo}`} />
                   : '🚗'}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{v.marca} {v.modelo}</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+              <div className="c-veiculos-v2-card__content" style={{ flex: 1, minWidth: 0 }}>
+                <div className="c-veiculos-v2-card__title" style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{v.marca} {v.modelo}</div>
+                <div className="c-veiculos-v2-card__badges" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                   {v.ano && <span style={{ background: '#6366f120', color: '#6366f1', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{v.ano}</span>}
                   {v.placa && <span style={{ background: '#f8fafc', border: '1px solid var(--c-border)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>{v.placa}</span>}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div className="c-veiculos-v2-card__facts" style={{ fontSize: 12, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {v.cor && <span>● {v.cor}</span>}
                   {v.combustivel && <span>⛽ {v.combustivel}</span>}
                   {v.quilometragem && <span>🛣️ {Number(v.quilometragem).toLocaleString('pt-BR')} km</span>}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
-                <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => openEdit(v)}>Editar</button>
-                <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(v)}>✕</button>
+              <div className="c-veiculos-v2-card__actions" style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+                <button className="c-btn c-btn-secondary c-btn-sm" aria-label={`Editar ${v.marca} ${v.modelo}`} onClick={() => openEdit(v)}>Editar</button>
+                <button className="c-btn c-btn-danger c-btn-sm" aria-label={`Excluir ${v.marca} ${v.modelo}`} onClick={() => handleDelete(v)}>✕</button>
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </SectionCard>
       )}
 
       <button className="c-fab-nova" style={{ display: 'none' }} onClick={openNew}>+</button>
@@ -1469,12 +1485,12 @@ function VeiculoDetail({ veiculo, onBack, onUpdated }) {
   ]
 
   return (
-    <div>
+    <div className="c-veiculos-v2-detail-page">
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 20 }}>
         <button className="c-btn c-btn-secondary" onClick={onBack}>← Veículos</button>
       </div>
 
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
+      <div className="c-veiculos-v2-hero">
         <div style={{ width: 80, height: 80, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#6366f120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36 }}>
           {fotoUrl ? <img src={fotoUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={veiculo.modelo} /> : '🚗'}
         </div>
@@ -1490,23 +1506,27 @@ function VeiculoDetail({ veiculo, onBack, onUpdated }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 4, marginBottom: 20, borderBottom: '2px solid var(--c-border)' }}>
+      <div className="c-veiculos-v2-tabs" role="tablist" aria-label="Seções do veículo">
         {tabs.map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
-            style={{ whiteSpace: 'nowrap', padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: tab === key ? 700 : 500, fontSize: 13, background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? '#fff' : 'var(--c-text-muted)' }}>
+            className={tab === key ? 'is-active' : ''}
+            role="tab"
+            aria-selected={tab === key}>
             {label}
           </button>
         ))}
       </div>
 
-      {tab === 'resumo' && <ResumoTab veiculo={veiculo} />}
-      {tab === 'documentacao' && <DocumentacaoTab veiculo={veiculo} />}
-      {tab === 'manutencoes' && <ManutencoesTab veiculo={veiculo} />}
-      {tab === 'abastecimentos' && <AbastecimentosTab veiculo={veiculo} />}
-      {tab === 'gastos' && <GastosTab veiculo={veiculo} />}
-      {tab === 'seguro' && <SeguroTab veiculo={veiculo} />}
-      {tab === 'fotos' && <FotosTab veiculo={veiculo} />}
-      {tab === 'historico' && <HistoricoTab veiculo={veiculo} />}
+      <SectionCard className="c-veiculos-v2-content" padding="lg">
+        {tab === 'resumo' && <ResumoTab veiculo={veiculo} />}
+        {tab === 'documentacao' && <DocumentacaoTab veiculo={veiculo} />}
+        {tab === 'manutencoes' && <ManutencoesTab veiculo={veiculo} />}
+        {tab === 'abastecimentos' && <AbastecimentosTab veiculo={veiculo} />}
+        {tab === 'gastos' && <GastosTab veiculo={veiculo} />}
+        {tab === 'seguro' && <SeguroTab veiculo={veiculo} />}
+        {tab === 'fotos' && <FotosTab veiculo={veiculo} />}
+        {tab === 'historico' && <HistoricoTab veiculo={veiculo} />}
+      </SectionCard>
     </div>
   )
 }

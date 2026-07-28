@@ -3,6 +3,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, addMonths, startOfMonth, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { AlertTriangle, CalendarRange, CheckCircle2, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+} from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
@@ -107,43 +116,97 @@ export default function Previsao() {
   }
 
   if (loading) return (
-    <div className="c-loading-screen" style={{ height: '60vh' }}>
-      <div className="c-loading-spinner" /><p>Carregando previsão...</p>
+    <div className="c-previsao-v2-loading" aria-label="Carregando previsão">
+      <Skeleton height={120} />
+      <Skeleton height={320} />
     </div>
   )
 
   const futureTotal = data.reduce((s, m) => s + m.total, 0)
+  const futureIncome = data.reduce((s, m) => s + m.entrada, 0)
+  const projectedBalance = data.reduce((s, m) => s + (m.entrada - m.total), 0)
+  const negativeMonths = data.filter(m => (m.entrada - m.total) < 0)
+  const lowestBalanceMonth = data.reduce((lowest, m) => {
+    const saldo = m.entrada - m.total
+    if (!lowest) return { ...m, saldo }
+    return saldo < lowest.saldo ? { ...m, saldo } : lowest
+  }, null)
+  const highestExpenseMonth = data.reduce((highest, m) => {
+    if (!highest) return m
+    return m.total > highest.total ? m : highest
+  }, null)
+  const avgMonthlyBalance = data.length ? projectedBalance / data.length : 0
+  const formatMonth = mRef => format(parseISO(mRef + '-01'), "MMMM 'de' yyyy", { locale: ptBR })
 
   return (
-    <div>
+    <div className="c-previsao-v2-page">
       {/* ── Header ── */}
-      <div className="c-flex c-items-center c-justify-between c-mb-4">
-        <div className="c-page-header" style={{ margin: 0 }}>
-          <h2>📆 Previsão</h2>
-          <p>Visão dos próximos meses — total comprometido: {fmt(futureTotal)}</p>
-        </div>
-        <div className="c-flex c-items-center c-gap-2">
-          <span className="c-text-muted c-text-sm">Mostrar</span>
+      <PageHeader
+        title="Previsão"
+        eyebrow="Financeiro"
+        description="Acompanhe entradas, despesas e o saldo projetado dos próximos períodos."
+      />
+
+      <SectionCard title="Período da previsão" description={`Análise a partir de ${formatMonth(currentRef || format(new Date(), 'yyyy-MM'))}.`} padding="md">
+        <div className="c-previsao-v2-periods" aria-label="Selecionar período da previsão">
           {[3, 6, 9].map(n => (
-            <button
+            <Button
               key={n}
-              className={`c-btn c-btn-sm ${months === n ? 'c-btn-primary' : 'c-btn-secondary'}`}
+              size="sm"
+              variant={months === n ? 'primary' : 'secondary'}
               onClick={() => setMonths(n)}
+              aria-pressed={months === n}
             >
               {n} meses
-            </button>
+            </Button>
           ))}
         </div>
-      </div>
+      </SectionCard>
+
+      <SectionCard title="Resumo executivo" description="Entradas, despesas e saldo projetado no período selecionado." padding="lg">
+        <div className="c-previsao-v2-metrics">
+          <MetricCard label="Saldo projetado" value={fmt(projectedBalance)} description={`Média mensal: ${fmt(avgMonthlyBalance)}`} icon={<WalletCards size={18} />} tone={projectedBalance >= 0 ? 'success' : 'danger'} />
+          <MetricCard label="Entradas previstas" value={fmt(futureIncome)} description={`Próximos ${months} meses`} icon={<TrendingUp size={18} />} tone="success" />
+          <MetricCard label="Despesas previstas" value={fmt(futureTotal)} description={highestExpenseMonth ? `Maior mês: ${formatMonth(highestExpenseMonth.mRef)}` : 'Sem despesas previstas'} icon={<TrendingDown size={18} />} tone="danger" />
+          <MetricCard label="Meses negativos" value={negativeMonths.length} description={lowestBalanceMonth ? `Menor saldo: ${fmt(lowestBalanceMonth.saldo)}` : 'Sem período calculado'} icon={<AlertTriangle size={18} />} tone={negativeMonths.length ? 'warning' : 'success'} />
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Atenção na previsão" description="Meses que exigem atenção por saldo projetado negativo." padding="lg">
+        {negativeMonths.length ? (
+          <div className="c-previsao-v2-alert-list">
+            {negativeMonths.map(m => {
+              const saldo = m.entrada - m.total
+              return (
+                <div key={m.mRef} className="c-previsao-v2-alert-item">
+                  <span className="c-previsao-v2-alert-icon" aria-hidden="true"><AlertTriangle size={18} /></span>
+                  <div>
+                    <strong>{formatMonth(m.mRef)}</strong>
+                    <small>Despesas previstas acima das entradas do mês.</small>
+                  </div>
+                  <span>{fmt(saldo)}</span>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="c-previsao-v2-positive">
+            <CheckCircle2 size={18} />
+            <span>Sua previsão permanece positiva no período analisado.</span>
+          </div>
+        )}
+      </SectionCard>
 
       {/* ── Month cards ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {data.map(m => {
+      <SectionCard title="Detalhamento mensal" description="Entradas, despesas, saldo e composição por pessoa." padding="lg">
+        <div className="c-previsao-v2-months">
+          {data.map(m => {
           const saldo = m.entrada - m.total
 
           return (
             <div
               key={m.mRef}
+              className="c-previsao-v2-month-card"
               style={{
                 border: m.isCurrent ? '2px solid #6366f1' : '1px solid var(--c-border)',
                 borderRadius: 14,
@@ -196,9 +259,7 @@ export default function Previsao() {
 
               {/* Person accordions */}
               {m.byPerson.length === 0 ? (
-                <div style={{ padding: 20, textAlign: 'center', color: 'var(--c-text-muted)', fontSize: 13 }}>
-                  Nenhum lançamento para este mês
-                </div>
+                <EmptyState compact icon="📆" title="Nenhum lançamento" description="Nenhum lançamento para este mês." />
               ) : (
                 m.byPerson.map((p, idx) => {
                   const key       = `${m.mRef}-${p.id}`
@@ -309,7 +370,8 @@ export default function Previsao() {
             </div>
           )
         })}
-      </div>
+        </div>
+      </SectionCard>
     </div>
   )
 }

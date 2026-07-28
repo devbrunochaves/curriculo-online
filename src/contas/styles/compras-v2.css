@@ -1,0 +1,274 @@
+.contas-root .c-compras-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+}
+
+.contas-root .c-compras-v2-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-compras-v2-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.7fr) auto;
+  gap: var(--v2-space-4);
+  align-items: end;
+}
+
+.contas-root .c-compras-v2-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-compras-v2-label {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  line-height: var(--v2-line-height-caption);
+  text-transform: uppercase;
+}
+
+.contas-root .c-compras-v2-input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text);
+  font: inherit;
+  outline: none;
+  padding: 0 var(--v2-space-4);
+  transition:
+    border-color var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard),
+    background var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-compras-v2-input::placeholder {
+  color: var(--v2-color-text-subtle);
+}
+
+.contas-root .c-compras-v2-input:focus-visible {
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-focus);
+}
+
+.contas-root .c-compras-v2-submit {
+  min-height: 44px;
+}
+
+.contas-root .c-compras-v2-error {
+  margin: var(--v2-space-4) 0 0;
+  border: 1px solid var(--v2-color-danger);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-danger-soft);
+  color: var(--v2-color-danger-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: var(--v2-space-3) var(--v2-space-4);
+}
+
+.contas-root .c-compras-v2-filter {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-1);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface-muted);
+  padding: var(--v2-space-1);
+}
+
+.contas-root .c-compras-v2-filter-button {
+  min-height: 32px;
+  border: 0;
+  border-radius: var(--v2-radius-sm);
+  background: transparent;
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: 0 var(--v2-space-3);
+  transition:
+    background var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard),
+    color var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-compras-v2-filter-button:hover {
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-compras-v2-filter-button:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-compras-v2-filter-button.is-active {
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  color: var(--v2-color-accent);
+}
+
+.contas-root .c-compras-v2-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-compras-v2-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.contas-root .c-compras-v2-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--v2-space-3);
+  align-items: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  padding: var(--v2-space-3) var(--v2-space-4);
+  transition:
+    border-color var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard),
+    opacity var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-compras-v2-item:hover {
+  border-color: var(--v2-color-border-strong);
+  box-shadow: var(--v2-shadow-sm);
+}
+
+.contas-root .c-compras-v2-item.is-done {
+  background: var(--v2-color-bg-soft);
+  opacity: 0.72;
+}
+
+.contas-root .c-compras-v2-check {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--v2-color-border-strong);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text-inverse);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background var(--v2-duration-fast) var(--v2-ease-standard),
+    border-color var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-compras-v2-check[aria-pressed="true"] {
+  border-color: var(--v2-color-success);
+  background: var(--v2-color-success);
+}
+
+.contas-root .c-compras-v2-check:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-compras-v2-item-content {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-compras-v2-item-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--v2-color-text);
+  font-weight: var(--v2-font-weight-semibold);
+  line-height: var(--v2-line-height-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-compras-v2-item.is-done .c-compras-v2-item-name {
+  color: var(--v2-color-text-muted);
+  text-decoration: line-through;
+}
+
+.contas-root .c-compras-v2-delete {
+  color: var(--v2-color-text-muted);
+}
+
+.contas-root .c-compras-v2-delete:hover {
+  color: var(--v2-color-danger);
+}
+
+@media (max-width: 900px) {
+  .contas-root .c-compras-v2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-root .c-compras-v2-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .contas-root .c-compras-v2-field--item,
+  .contas-root .c-compras-v2-submit {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .contas-root .c-compras-v2-page {
+    gap: var(--v2-space-4);
+    padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .contas-root .c-compras-v2-metrics,
+  .contas-root .c-compras-v2-form {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-compras-v2-filter {
+    width: 100%;
+  }
+
+  .contas-root .c-compras-v2-filter-button {
+    flex: 1 1 auto;
+  }
+
+  .contas-root .c-compras-v2-item {
+    align-items: start;
+    padding: var(--v2-space-3);
+  }
+
+  .contas-root .c-compras-v2-item-content {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--v2-space-1);
+  }
+
+  .contas-root .c-compras-v2-item-name {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-compras-v2-input,
+  .contas-root .c-compras-v2-filter-button,
+  .contas-root .c-compras-v2-item,
+  .contas-root .c-compras-v2-check {
+    transition: none;
+  }
+}

@@ -1,0 +1,537 @@
+/* ============================================================
+   CONTAS V2 - App shell and navigation
+   Layout-only layer. Pages keep their current JSX and behavior.
+   ============================================================ */
+
+.contas-root .c-v2-app-shell {
+  min-height: 100vh;
+  display: block;
+  background: var(--v2-color-bg);
+  color: var(--v2-color-text);
+  font-family: var(--v2-font-family-sans);
+  overflow-x: hidden;
+}
+
+.contas-root .c-v2-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--v2-sidebar-width);
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+  padding: var(--v2-space-6) var(--v2-space-4);
+  background: var(--v2-color-surface);
+  border-right: 1px solid var(--v2-color-border-soft);
+  z-index: var(--v2-z-sticky);
+}
+
+.contas-root .c-v2-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+  min-width: 0;
+}
+
+.contas-root .c-v2-brand-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-accent);
+  color: var(--v2-color-text-inverse);
+  box-shadow: var(--v2-shadow-sm);
+  font-size: var(--v2-font-size-heading-3);
+  font-weight: var(--v2-font-weight-extrabold);
+  letter-spacing: var(--v2-letter-spacing-display);
+}
+
+.contas-root .c-v2-brand-name {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  line-height: 1.15;
+}
+
+.contas-root .c-v2-brand-subtitle {
+  margin-top: 2px;
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  line-height: var(--v2-line-height-caption);
+}
+
+.contas-root .c-v2-sidebar-action {
+  width: 100%;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--v2-space-2);
+  border: 0;
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-accent);
+  color: var(--v2-color-text-inverse);
+  box-shadow: var(--v2-shadow-sm);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-bold);
+  transition:
+    background-color var(--v2-duration-base) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-base) var(--v2-ease-standard),
+    transform var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-v2-sidebar-action:hover {
+  background: var(--v2-color-accent-hover);
+  box-shadow: var(--v2-shadow-md);
+}
+
+.contas-root .c-v2-sidebar-action:focus-visible,
+.contas-root .c-v2-mobile-icon-button:focus-visible,
+.contas-root .c-v2-nav-item:focus-visible,
+.contas-root .c-v2-logout-button:focus-visible,
+.contas-root .c-v2-bottom-item:focus-visible,
+.contas-root .c-v2-fab-nova:focus-visible,
+.contas-root .c-v2-mobile-group-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--v2-shadow-focus);
+}
+
+.contas-root .c-v2-sidebar-action svg,
+.contas-root .c-v2-nav-item svg,
+.contas-root .c-v2-logout-button svg,
+.contas-root .c-v2-mobile-icon-button svg,
+.contas-root .c-v2-bottom-item svg,
+.contas-root .c-v2-fab-nova svg,
+.contas-root .c-v2-mobile-group-toggle svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
+}
+
+.contas-root .c-v2-sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--v2-space-1);
+}
+
+.contas-root .c-v2-sidebar-scroll::-webkit-scrollbar,
+.contas-root .c-v2-drawer-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contas-root .c-v2-sidebar-scroll::-webkit-scrollbar-thumb,
+.contas-root .c-v2-drawer-scroll::-webkit-scrollbar-thumb {
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-border);
+}
+
+.contas-root .c-v2-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-5);
+}
+
+.contas-root .c-v2-nav-group {
+  margin: 0;
+}
+
+.contas-root .c-v2-nav-label {
+  margin: 0 0 var(--v2-space-2) var(--v2-space-3);
+  color: var(--v2-color-text-subtle);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-extrabold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  line-height: var(--v2-line-height-caption);
+  text-transform: uppercase;
+}
+
+.contas-root .c-v2-nav-list {
+  display: grid;
+  gap: var(--v2-space-1);
+  overflow: hidden;
+  transition:
+    max-height var(--v2-duration-slow) var(--v2-ease-standard),
+    opacity var(--v2-duration-base) var(--v2-ease-standard);
+}
+
+.contas-root .c-v2-nav-list.is-collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.contas-root .c-v2-nav-item {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+  border-radius: var(--v2-radius-md);
+  color: var(--v2-color-text-muted);
+  padding: 0 var(--v2-space-3);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--v2-duration-fast) var(--v2-ease-standard),
+    color var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-v2-nav-item:hover {
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-v2-nav-item.active {
+  background: var(--v2-color-accent-soft);
+  color: var(--v2-color-accent);
+}
+
+.contas-root .c-v2-sidebar-footer {
+  display: grid;
+  gap: var(--v2-space-3);
+  padding-top: var(--v2-space-4);
+  border-top: 1px solid var(--v2-color-border-soft);
+}
+
+.contas-root .c-v2-user-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+  min-width: 0;
+}
+
+.contas-root .c-v2-user-avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-accent-soft);
+  color: var(--v2-color-accent);
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-extrabold);
+}
+
+.contas-root .c-v2-user-copy {
+  min-width: 0;
+}
+
+.contas-root .c-v2-user-name {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-bold);
+  line-height: 1.2;
+}
+
+.contas-root .c-v2-user-email {
+  max-width: 160px;
+  overflow: hidden;
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  line-height: var(--v2-line-height-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-v2-logout-button {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--v2-space-2);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+}
+
+.contas-root .c-v2-logout-button:hover {
+  color: var(--v2-color-danger-text);
+  background: var(--v2-color-danger-soft);
+  border-color: var(--v2-color-danger-soft);
+}
+
+.contas-root .c-v2-main-shell {
+  min-width: 0;
+  margin-left: var(--v2-sidebar-width);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--v2-color-accent-subtle) 72%, transparent), transparent 34rem),
+    var(--v2-color-bg);
+  overflow-x: hidden;
+}
+
+.contas-root .c-v2-main-content {
+  width: min(100%, var(--v2-layout-content-wide));
+  margin: 0 auto;
+  padding: var(--v2-space-8) clamp(var(--v2-space-5), 4vw, var(--v2-space-10)) var(--v2-space-12);
+}
+
+.contas-root .c-v2-mobile-header,
+.contas-root .c-v2-mobile-drawer,
+.contas-root .c-v2-bottom-nav,
+.contas-root .c-v2-drawer-backdrop {
+  display: none;
+}
+
+.contas-root .c-v2-mobile-icon-button {
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text);
+  cursor: pointer;
+}
+
+.contas-root .c-v2-mobile-header-spacer {
+  width: 42px;
+  height: 42px;
+}
+
+.contas-root .c-v2-mobile-title-wrap {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.contas-root .c-v2-mobile-kicker {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-v2-mobile-title {
+  overflow: hidden;
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-v2-fab-nova {
+  position: fixed;
+  right: max(var(--v2-space-5), env(safe-area-inset-right));
+  bottom: max(var(--v2-space-5), env(safe-area-inset-bottom));
+  z-index: var(--v2-z-sticky);
+  width: 58px;
+  height: 58px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-accent);
+  color: var(--v2-color-text-inverse);
+  box-shadow: var(--v2-shadow-lg);
+  cursor: pointer;
+}
+
+.contas-root[data-contas-theme="dark"] .c-v2-sidebar,
+[data-contas-theme="dark"] .contas-root .c-v2-sidebar,
+.contas-root[data-contas-theme="dark"] .c-v2-mobile-drawer,
+[data-contas-theme="dark"] .contas-root .c-v2-mobile-drawer {
+  background: var(--v2-color-bg-soft);
+  border-color: var(--v2-color-border-soft);
+}
+
+@media (max-width: 980px) {
+  .contas-root .c-v2-app-shell {
+    display: block;
+    min-height: 100vh;
+    padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+
+  .contas-root .c-v2-sidebar {
+    display: none;
+  }
+
+  .contas-root .c-v2-main-shell {
+    min-height: 100vh;
+    margin-left: 0;
+  }
+
+  .contas-root .c-v2-main-content {
+    padding: var(--v2-space-5) var(--v2-space-5) calc(var(--v2-bottom-nav-height) + var(--v2-space-8));
+  }
+
+  .contas-root .c-v2-mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--v2-z-sticky);
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--v2-space-3);
+    padding: max(var(--v2-space-3), env(safe-area-inset-top)) var(--v2-space-5) var(--v2-space-3);
+    background: color-mix(in srgb, var(--v2-color-bg) 90%, transparent);
+    border-bottom: 1px solid var(--v2-color-border-soft);
+    backdrop-filter: blur(18px);
+  }
+
+  .contas-root .c-v2-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--v2-z-overlay);
+    display: block;
+    background: var(--v2-color-overlay);
+  }
+
+  .contas-root .c-v2-mobile-drawer {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--v2-z-modal);
+    width: min(88vw, 360px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--v2-space-4);
+    padding: max(var(--v2-space-5), env(safe-area-inset-top)) var(--v2-space-4) var(--v2-space-5);
+    background: var(--v2-color-surface);
+    border-right: 1px solid var(--v2-color-border);
+    box-shadow: var(--v2-shadow-lg);
+    transform: translateX(-104%);
+    transition: transform var(--v2-duration-slow) var(--v2-ease-emphasized);
+  }
+
+  .contas-root .c-v2-mobile-drawer.is-open {
+    transform: translateX(0);
+  }
+
+  .contas-root .c-v2-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--v2-space-4);
+  }
+
+  .contas-root .c-v2-drawer-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: var(--v2-space-1);
+  }
+
+  .contas-root .c-v2-mobile-group-toggle {
+    width: 100%;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    gap: var(--v2-space-3);
+    margin-bottom: var(--v2-space-3);
+    border: 1px solid var(--v2-color-border-soft);
+    border-radius: var(--v2-radius-md);
+    background: var(--v2-color-surface-muted);
+    color: var(--v2-color-text);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--v2-font-size-body-sm);
+    font-weight: var(--v2-font-weight-bold);
+    padding: 0 var(--v2-space-3);
+  }
+
+  .contas-root .c-v2-mobile-group-toggle span {
+    flex: 1;
+    text-align: left;
+  }
+
+  .contas-root .c-v2-mobile-group-toggle svg:last-child {
+    transition: transform var(--v2-duration-base) var(--v2-ease-standard);
+  }
+
+  .contas-root .c-v2-mobile-group-toggle.is-open svg:last-child {
+    transform: rotate(180deg);
+  }
+
+  .contas-root .c-v2-bottom-nav {
+    position: fixed;
+    left: max(var(--v2-space-3), env(safe-area-inset-left));
+    right: max(var(--v2-space-3), env(safe-area-inset-right));
+    bottom: max(var(--v2-space-3), env(safe-area-inset-bottom));
+    z-index: var(--v2-z-sticky);
+    min-height: 66px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--v2-space-1);
+    padding: var(--v2-space-1);
+    border: 1px solid var(--v2-color-border);
+    border-radius: var(--v2-radius-xl);
+    background: color-mix(in srgb, var(--v2-color-surface) 94%, transparent);
+    box-shadow: var(--v2-shadow-lg);
+    backdrop-filter: blur(18px);
+  }
+
+  .contas-root .c-v2-bottom-item {
+    min-width: 0;
+    min-height: 54px;
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    border: 0;
+    border-radius: var(--v2-radius-lg);
+    background: transparent;
+    color: var(--v2-color-text-muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: var(--v2-font-weight-bold);
+  }
+
+  .contas-root .c-v2-bottom-item.active {
+    background: var(--v2-color-accent-soft);
+    color: var(--v2-color-accent);
+  }
+
+  .contas-root .c-v2-bottom-item svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .contas-root .c-v2-fab-nova {
+    display: inline-flex;
+    right: var(--v2-space-5);
+    bottom: calc(var(--v2-bottom-nav-height) + var(--v2-space-5) + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 430px) {
+  .contas-root .c-v2-main-content {
+    padding-right: var(--v2-space-4);
+    padding-left: var(--v2-space-4);
+  }
+
+  .contas-root .c-v2-bottom-nav {
+    left: var(--v2-space-2);
+    right: var(--v2-space-2);
+  }
+
+  .contas-root .c-v2-bottom-item {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-v2-sidebar-action,
+  .contas-root .c-v2-nav-item,
+  .contas-root .c-v2-nav-list,
+  .contas-root .c-v2-mobile-drawer,
+  .contas-root .c-v2-mobile-group-toggle svg:last-child {
+    transition: none;
+  }
+}

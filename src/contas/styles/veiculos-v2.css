@@ -1,0 +1,386 @@
+.contas-root .c-veiculos-v2-page,
+.contas-root .c-veiculos-v2-detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+  margin: 0 auto;
+  max-width: var(--v2-layout-content-wide);
+  padding-bottom: calc(var(--v2-space-10) + env(safe-area-inset-bottom, 0px));
+  width: 100%;
+}
+
+.contas-root .c-veiculos-v2-metrics {
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.contas-root .c-veiculos-v2-list-card {
+  min-width: 0;
+}
+
+.contas-root .c-veiculos-v2-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-veiculos-v2-list .c-card,
+.contas-root .c-veiculos-v2-content .c-card,
+.contas-root .c-veiculos-v2-content [style*="background: var(--c-surface)"],
+.contas-root .c-veiculos-v2-content [style*="background:'var(--c-surface)'"],
+.contas-root .c-veiculos-v2-content [style*="background: 'var(--c-surface)'"] {
+  border-color: var(--v2-color-border) !important;
+  border-radius: var(--v2-radius-xl) !important;
+  box-shadow: var(--v2-shadow-xs);
+}
+
+.contas-root .c-veiculos-v2-list .c-card {
+  transition: background var(--v2-duration-fast) var(--v2-ease-standard), border-color var(--v2-duration-fast) var(--v2-ease-standard), transform var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-veiculos-v2-list .c-card:hover {
+  background: var(--v2-color-surface-muted);
+  border-color: color-mix(in srgb, var(--v2-color-accent) 18%, var(--v2-color-border)) !important;
+  transform: translateY(-1px);
+}
+
+.contas-root .c-veiculos-v2-card:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-veiculos-v2-hero {
+  align-items: center;
+  background: color-mix(in srgb, var(--v2-color-surface) 92%, transparent);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-2xl);
+  box-shadow: var(--v2-shadow-xs);
+  display: flex;
+  gap: var(--v2-space-4);
+  padding: var(--v2-space-5);
+}
+
+.contas-root .c-veiculos-v2-tabs {
+  background: color-mix(in srgb, var(--v2-color-surface) 88%, transparent);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  box-shadow: var(--v2-shadow-xs);
+  display: flex;
+  gap: var(--v2-space-2);
+  overflow-x: auto;
+  padding: var(--v2-space-2);
+  scrollbar-width: none;
+}
+
+.contas-root .c-veiculos-v2-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.contas-root .c-veiculos-v2-tabs button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--v2-radius-full);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-family: var(--v2-font-family-sans);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  gap: var(--v2-space-2);
+  min-height: 38px;
+  padding: 0 var(--v2-space-4);
+  transition: background var(--v2-duration-fast) var(--v2-ease-standard), border-color var(--v2-duration-fast) var(--v2-ease-standard), color var(--v2-duration-fast) var(--v2-ease-standard), box-shadow var(--v2-duration-fast) var(--v2-ease-standard);
+  white-space: nowrap;
+}
+
+.contas-root .c-veiculos-v2-tabs button:hover {
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-veiculos-v2-tabs button.is-active {
+  background: var(--v2-color-accent-soft);
+  border-color: color-mix(in srgb, var(--v2-color-accent) 24%, var(--v2-color-border));
+  color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-xs);
+}
+
+.contas-root .c-veiculos-v2-tabs button:focus-visible,
+.contas-root .c-veiculos-v2-field input:focus-visible,
+.contas-root .c-veiculos-v2-field select:focus-visible,
+.contas-root .c-veiculos-v2-field textarea:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-veiculos-v2-content {
+  min-width: 0;
+  overflow: visible;
+}
+
+.contas-root .c-veiculos-v2-content .c-btn,
+.contas-root .c-veiculos-v2-list .c-btn,
+.contas-root .c-veiculos-v2-modal .c-btn {
+  border-radius: var(--v2-radius-md);
+  font-family: var(--v2-font-family-sans);
+  font-weight: var(--v2-font-weight-semibold);
+}
+
+.contas-root .c-veiculos-v2-content .c-btn-primary,
+.contas-root .c-veiculos-v2-list .c-btn-primary,
+.contas-root .c-veiculos-v2-modal .c-btn-primary {
+  background: var(--v2-color-accent);
+}
+
+.contas-root .c-veiculos-v2-content .c-btn-secondary,
+.contas-root .c-veiculos-v2-list .c-btn-secondary,
+.contas-root .c-veiculos-v2-modal .c-btn-secondary {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-veiculos-v2-content .c-btn-danger,
+.contas-root .c-veiculos-v2-list .c-btn-danger,
+.contas-root .c-veiculos-v2-modal .c-btn-danger {
+  background: var(--v2-color-danger-soft);
+  border: 1px solid color-mix(in srgb, var(--v2-color-danger) 24%, var(--v2-color-border));
+  color: var(--v2-color-danger-text);
+}
+
+.contas-root .c-veiculos-v2-loading {
+  display: grid;
+  gap: var(--v2-space-4);
+  min-height: 220px;
+  padding: var(--v2-space-2);
+}
+
+.contas-root .c-veiculos-v2-field {
+  display: grid;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-veiculos-v2-field .c-form-label {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-label);
+  text-transform: uppercase;
+}
+
+.contas-root .c-veiculos-v2-field .c-form-input,
+.contas-root .c-veiculos-v2-field .c-form-select,
+.contas-root .c-veiculos-v2-field .c-form-textarea,
+.contas-root .c-veiculos-v2-field input,
+.contas-root .c-veiculos-v2-field select,
+.contas-root .c-veiculos-v2-field textarea {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  color: var(--v2-color-text);
+  font-family: var(--v2-font-family-sans);
+  font-size: var(--v2-font-size-body);
+  min-height: 42px;
+}
+
+.contas-root .c-veiculos-v2-modal-backdrop {
+  align-items: center;
+  background: var(--v2-color-overlay);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--v2-space-5);
+  position: fixed;
+  z-index: var(--v2-z-modal);
+}
+
+.contas-root .c-veiculos-v2-modal {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  box-shadow: var(--v2-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 820px);
+  overflow: hidden;
+  width: min(100%, 600px);
+}
+
+.contas-root .c-veiculos-v2-modal .c-modal-header {
+  align-items: center;
+  border-bottom: 1px solid var(--v2-color-border-soft);
+  display: flex;
+  justify-content: space-between;
+  padding: var(--v2-space-5);
+}
+
+.contas-root .c-veiculos-v2-modal .c-modal-title {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-heading-1);
+  font-weight: var(--v2-font-weight-bold);
+  margin: 0;
+}
+
+.contas-root .c-veiculos-v2-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--v2-space-5);
+}
+
+.contas-root .c-veiculos-v2-modal__footer {
+  border-top: 1px solid var(--v2-color-border-soft);
+  display: flex;
+  gap: var(--v2-space-3);
+  justify-content: flex-end;
+  padding: var(--v2-space-5);
+}
+
+@media (max-width: 1180px) {
+  .contas-root .c-veiculos-v2-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .contas-root .c-veiculos-v2-page,
+  .contas-root .c-veiculos-v2-detail-page {
+    gap: var(--v2-space-4);
+  }
+
+  .contas-root .c-veiculos-v2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-root .c-veiculos-v2-hero {
+    align-items: flex-start;
+    border-radius: var(--v2-radius-xl);
+    padding: var(--v2-space-4);
+  }
+
+  .contas-root .c-veiculos-v2-tabs {
+    border-radius: var(--v2-radius-lg);
+    margin-inline: calc(var(--v2-space-2) * -1);
+  }
+
+  .contas-root .c-veiculos-v2-tabs button {
+    min-height: 42px;
+  }
+
+  .contas-root .c-veiculos-v2-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .contas-root .c-veiculos-v2-modal {
+    border-radius: var(--v2-radius-xl) var(--v2-radius-xl) 0 0;
+    max-height: 92dvh;
+    width: 100%;
+  }
+
+  .contas-root .c-veiculos-v2-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .contas-root .c-veiculos-v2-modal__footer .c-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .contas-root .c-veiculos-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-veiculos-v2-content,
+  .contas-root .c-veiculos-v2-list-card {
+    padding: var(--v2-space-4);
+  }
+
+  .contas-root .c-veiculos-v2-card {
+    align-items: stretch !important;
+    border-radius: var(--v2-radius-xl) !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    overflow: hidden;
+    padding: 0 !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__cover {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--v2-radius-xl) var(--v2-radius-xl) 0 0 !important;
+    font-size: 42px !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__cover img {
+    display: block;
+    height: 100% !important;
+    object-fit: cover;
+    width: 100% !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__content {
+    padding: var(--v2-space-4) var(--v2-space-4) var(--v2-space-3);
+    width: 100%;
+  }
+
+  .contas-root .c-veiculos-v2-card__title {
+    color: var(--v2-color-text);
+    font-size: var(--v2-font-size-heading-2) !important;
+    line-height: var(--v2-line-height-heading);
+    margin-bottom: var(--v2-space-3) !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__badges {
+    gap: var(--v2-space-2) !important;
+    margin-bottom: var(--v2-space-4) !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__badges span {
+    min-height: 26px;
+    padding: var(--v2-space-1) var(--v2-space-3) !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__facts {
+    display: grid !important;
+    gap: var(--v2-space-2) !important;
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-veiculos-v2-card__facts span {
+    background: var(--v2-color-surface-muted);
+    border: 1px solid var(--v2-color-border-soft);
+    border-radius: var(--v2-radius-md);
+    color: var(--v2-color-text-muted);
+    min-width: 0;
+    padding: var(--v2-space-2) var(--v2-space-3);
+  }
+
+  .contas-root .c-veiculos-v2-card__actions {
+    border-top: 1px solid var(--v2-color-border-soft);
+    display: flex !important;
+    gap: var(--v2-space-2) !important;
+    justify-content: space-between;
+    padding: var(--v2-space-3) var(--v2-space-4) var(--v2-space-4);
+    width: 100%;
+  }
+
+  .contas-root .c-veiculos-v2-card__actions .c-btn {
+    min-height: 40px;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-veiculos-v2-tabs button,
+  .contas-root .c-veiculos-v2-list .c-card {
+    transition: none;
+  }
+}

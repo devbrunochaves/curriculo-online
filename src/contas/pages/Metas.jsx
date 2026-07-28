@@ -28,6 +28,33 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import {
+  Banknote,
+  CheckCircle2,
+  CircleDollarSign,
+  Coins,
+  Edit3,
+  Landmark,
+  Package,
+  PiggyBank,
+  Plus,
+  Target,
+  Trash2,
+  TrendingUp,
+  WalletCards,
+  X,
+} from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  FormField,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  SelectField,
+  Skeleton,
+} from '../components/ui'
 
 const TIPOS = [
   { value: 'poupanca',     label: 'Poupança',         icon: '🏦' },
@@ -51,47 +78,43 @@ const BLANK = {
   cor: '#10b981', icone: '🐷', observacoes: '',
 }
 
-/* ── Small reusable pieces ────────────────────────────────────────── */
-function ModalShell({ title, onClose, onSave, saving, children }) {
+function tipoIcon(tipo) {
+  const props = { size: 18 }
+  if (tipo === 'investimento') return <TrendingUp {...props} />
+  if (tipo === 'corrente') return <WalletCards {...props} />
+  if (tipo === 'tesouro') return <Landmark {...props} />
+  if (tipo === 'cripto') return <Coins {...props} />
+  if (tipo === 'emergencia') return <Target {...props} />
+  if (tipo === 'outros') return <Package {...props} />
+  return <PiggyBank {...props} />
+}
+
+function CofrinhoModal({ title, description, onClose, actions, children, size = 'md' }) {
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" onClick={e => e.stopPropagation()}>
-        <div className="c-modal-header">
-          <h3 className="c-modal-title">{title}</h3>
-          <button className="c-modal-close" onClick={onClose}>✕</button>
-        </div>
-        <div className="c-modal-body">{children}</div>
-        {onSave && (
-          <div className="c-modal-footer">
-            <button className="c-btn c-btn-secondary" onClick={onClose}>Cancelar</button>
-            <button className="c-btn c-btn-primary" onClick={onSave} disabled={saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
-            </button>
+    <div className="c-cofrinhos-v2-modal-backdrop" onClick={onClose}>
+      <div className={`c-cofrinhos-v2-modal c-cofrinhos-v2-modal--${size}`} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cofrinhos-modal-title">
+        <header className="c-cofrinhos-v2-modal__header">
+          <div>
+            <h2 id="cofrinhos-modal-title">{title}</h2>
+            {description && <p>{description}</p>}
           </div>
-        )}
+          <IconButton icon={<X size={18} />} label="Fechar" variant="ghost" onClick={onClose} />
+        </header>
+        <div className="c-cofrinhos-v2-modal__body">{children}</div>
+        {actions && <footer className="c-cofrinhos-v2-modal__footer">{actions}</footer>}
       </div>
     </div>
   )
 }
 
-function Field({ label, children }) {
+function ProgressBar({ pct, color, label }) {
   return (
-    <div className="c-form-group">
-      <label className="c-form-label">{label}</label>
-      {children}
+    <div className="c-cofrinhos-v2-progress" aria-label={label || `Progresso ${pct.toFixed(0)}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.round(pct))}>
+      <span style={{ width: `${Math.min(100, pct)}%`, background: color || 'var(--v2-color-success)' }} />
     </div>
   )
 }
 
-function Bar({ pct, color }) {
-  return (
-    <div style={{ height: 6, borderRadius: 3, background: '#e2e8f0', overflow: 'hidden' }}>
-      <div style={{ height: '100%', width: `${Math.min(100, pct)}%`, borderRadius: 3, background: color || '#10b981', transition: 'width .4s' }} />
-    </div>
-  )
-}
-
-/* ══ Main Component ═══════════════════════════════════════════════ */
 export default function Cofrinhos() {
   const [cofrinhos, setCofrinhos]     = useState([])
   const [loading, setLoading]         = useState(true)
@@ -122,7 +145,6 @@ export default function Cofrinhos() {
     setALoading(false)
   }
 
-  /* ── Derived ──────────────────────────────────────────────────── */
   const filtered = useMemo(() => {
     if (filterTipo === 'all') return cofrinhos
     return cofrinhos.filter(c => c.tipo === filterTipo)
@@ -135,7 +157,6 @@ export default function Cofrinhos() {
     return { total, count: cofrinhos.length, comMeta: comMeta.length, totalMeta }
   }, [cofrinhos])
 
-  /* ── Form helpers ─────────────────────────────────────────────── */
   function openAdd() {
     setForm(BLANK); setEditingId(null); setShowForm(true)
   }
@@ -175,7 +196,6 @@ export default function Cofrinhos() {
     load()
   }
 
-  /* ── Aporte helpers ───────────────────────────────────────────── */
   function openDetail(c) {
     setDetail(c); loadAportes(c.id)
     setShowAporte(false)
@@ -214,327 +234,245 @@ export default function Cofrinhos() {
     loadAportes(detailCofrinho.id)
   }
 
-  if (loading) return <div className="c-loading-screen"><div className="c-loading-spinner" /></div>
-
-  /* ══ RENDER ═════════════════════════════════════════════════════ */
-  return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '16px 16px 80px' }}>
-
-      <div className="c-page-header">
-        <h2>🐷 Cofrinhos</h2>
-        <p>Controle onde está guardado o seu dinheiro</p>
-      </div>
-
-      {/* ── SUMMARY CARDS ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, marginBottom: 24 }}>
-        {[
-          { icon: '💰', value: fmtBRL(stats.total),     label: 'Total guardado',   color: '#10b981', sm: true },
-          { icon: '🐷', value: stats.count,              label: 'Cofrinhos',        color: '#6366f1' },
-          { icon: '🎯', value: fmtBRL(stats.totalMeta),  label: 'Soma das metas',   color: '#3b82f6', sm: true },
-          { icon: '📊', value: stats.comMeta,            label: 'Com meta',         color: '#f59e0b' },
-        ].map((c, i) => (
-          <div key={i} style={{
-            background: 'var(--c-surface)', border: '1px solid var(--c-border, #e2e8f0)',
-            borderRadius: 12, padding: '14px 16px', flexShrink: 0, minWidth: c.sm ? 140 : 110, textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 20, marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: c.sm ? 14 : 22, fontWeight: 800, color: c.color, lineHeight: 1 }}>{c.value}</div>
-            <div style={{ fontSize: 11, color: 'var(--c-text-muted, #64748b)', marginTop: 4 }}>{c.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── FILTERS + ADD ─────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
-        <select className="c-form-select" value={filterTipo} onChange={e => setFilterTipo(e.target.value)} style={{ flex: '1 1 160px', minWidth: 160 }}>
-          <option value="all">Todos os tipos</option>
-          {TIPOS.map(t => <option key={t.value} value={t.value}>{t.icon} {t.label}</option>)}
-        </select>
-        <button className="c-btn c-btn-primary" onClick={openAdd} style={{ whiteSpace: 'nowrap' }}>+ Novo Cofrinho</button>
-      </div>
-
-      {/* ── GRID DE COFRINHOS ─────────────────────────────────── */}
-      {filtered.length === 0 ? (
-        <div className="c-empty-state">
-          <div className="c-empty-icon">🐷</div>
-          <h3>{cofrinhos.length === 0 ? 'Nenhum cofrinho ainda' : 'Nenhum cofrinho encontrado'}</h3>
-          <p>{cofrinhos.length === 0 ? 'Crie seu primeiro cofrinho!' : 'Ajuste o filtro acima.'}</p>
-          {cofrinhos.length === 0 && <button className="c-btn c-btn-primary c-mt-3" onClick={openAdd}>+ Novo Cofrinho</button>}
+  if (loading) {
+    return (
+      <div className="c-cofrinhos-v2-page" aria-busy="true">
+        <PageHeader eyebrow="Família" title="Cofrinhos" description="Carregando seus objetivos financeiros." />
+        <div className="c-cofrinhos-v2-metrics">
+          <Skeleton variant="card" />
+          <Skeleton variant="card" />
+          <Skeleton variant="card" />
+          <Skeleton variant="card" />
         </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
-          {filtered.map(c => {
-            const tipo = TIPOS.find(t => t.value === c.tipo)
-            const pct  = c.valor_meta > 0 ? Math.min(100, (c.valor_atual / c.valor_meta) * 100) : null
-            const cor  = c.cor || '#10b981'
-            return (
-              <div
-                key={c.id}
-                className="c-card"
-                style={{ padding: '16px 18px', cursor: 'pointer', borderTop: `4px solid ${cor}` }}
-                onClick={() => openDetail(c)}
-              >
-                {/* Top row */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 14,
-                    background: cor + '20', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 24, flexShrink: 0,
-                  }}>
-                    {c.icone || '🐷'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {c.nome}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>
-                      {c.onde_guardado && <span style={{ marginRight: 6 }}>{c.onde_guardado}</span>}
-                      {tipo && (
-                        <span style={{
-                          background: cor + '18', color: cor, border: `1px solid ${cor}40`,
-                          borderRadius: 5, padding: '1px 7px', fontSize: 11, fontWeight: 600,
-                        }}>
-                          {tipo.icon} {tipo.label}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }} onClick={e => e.stopPropagation()}>
-                    <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => openEdit(c)}>✏️</button>
-                    <button className="c-btn c-btn-danger c-btn-sm"    onClick={() => deleteCofrinho(c.id)}>🗑️</button>
-                  </div>
-                </div>
+        <SectionCard padding="lg"><Skeleton variant="text" lines={6} /></SectionCard>
+      </div>
+    )
+  }
 
-                {/* Amount */}
-                <div style={{ marginBottom: pct !== null ? 10 : 0 }}>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: cor, lineHeight: 1 }}>
-                    {fmtBRL(c.valor_atual)}
+  const tipoOptions = [{ value: 'all', label: 'Todos os tipos' }, ...TIPOS.map(t => ({ value: t.value, label: t.label }))]
+
+  return (
+    <div className="c-cofrinhos-v2-page">
+      <PageHeader
+        eyebrow="Família"
+        title="Cofrinhos"
+        description="Controle onde está guardado o seu dinheiro e acompanhe o avanço das metas."
+        actions={<Button icon={<Plus size={16} />} onClick={openAdd}>Novo Cofrinho</Button>}
+      />
+
+      <div className="c-cofrinhos-v2-metrics">
+        <MetricCard label="Total guardado" value={fmtBRL(stats.total)} tone="success" icon={<CircleDollarSign size={18} />} description="Somando todos os cofrinhos" />
+        <MetricCard label="Cofrinhos" value={stats.count} icon={<PiggyBank size={18} />} description="Registros cadastrados" />
+        <MetricCard label="Soma das metas" value={fmtBRL(stats.totalMeta)} tone="accent" icon={<Target size={18} />} description="Objetivos com valor definido" />
+        <MetricCard label="Com meta" value={stats.comMeta} icon={<CheckCircle2 size={18} />} description="Cofrinhos com meta ativa" />
+      </div>
+
+      <SectionCard
+        title="Objetivos"
+        description={`${filtered.length} cofrinho${filtered.length !== 1 ? 's' : ''} exibido${filtered.length !== 1 ? 's' : ''}.`}
+        actions={
+          <div className="c-cofrinhos-v2-filter">
+            <SelectField
+              label="Tipo"
+              value={filterTipo}
+              options={tipoOptions}
+              onChange={e => setFilterTipo(e.target.value)}
+            />
+          </div>
+        }
+      >
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={<PiggyBank size={24} />}
+            title={cofrinhos.length === 0 ? 'Nenhum cofrinho ainda' : 'Nenhum cofrinho encontrado'}
+            description={cofrinhos.length === 0 ? 'Crie seu primeiro cofrinho para acompanhar suas metas.' : 'Ajuste o filtro acima para visualizar outros tipos.'}
+            action={cofrinhos.length === 0 ? <Button icon={<Plus size={16} />} onClick={openAdd}>Novo Cofrinho</Button> : null}
+          />
+        ) : (
+          <div className="c-cofrinhos-v2-grid">
+            {filtered.map(c => {
+              const tipo = TIPOS.find(t => t.value === c.tipo)
+              const pct  = c.valor_meta > 0 ? Math.min(100, (c.valor_atual / c.valor_meta) * 100) : null
+              const cor  = c.cor || '#10b981'
+              return (
+                <article key={c.id} className="c-cofrinhos-v2-card" style={{ '--cofrinho-color': cor }}>
+                  <button type="button" className="c-cofrinhos-v2-card__body" onClick={() => openDetail(c)}>
+                    <span className="c-cofrinhos-v2-card__icon">{tipoIcon(c.tipo)}</span>
+                    <span className="c-cofrinhos-v2-card__content">
+                      <span className="c-cofrinhos-v2-card__name">{c.nome}</span>
+                      <span className="c-cofrinhos-v2-card__meta">
+                        {c.onde_guardado || 'Local não informado'}
+                        {tipo && ` · ${tipo.label}`}
+                      </span>
+                    </span>
+                    <span className="c-cofrinhos-v2-card__emoji" aria-label="Ícone salvo">{c.icone || '🐷'}</span>
+                  </button>
+
+                  <div className="c-cofrinhos-v2-card__amounts">
+                    <strong>{fmtBRL(c.valor_atual)}</strong>
+                    {c.valor_meta > 0 && <span>meta: {fmtBRL(c.valor_meta)}</span>}
                   </div>
-                  {c.valor_meta > 0 && (
-                    <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>
-                      meta: {fmtBRL(c.valor_meta)}
+
+                  {pct !== null && (
+                    <div className="c-cofrinhos-v2-progress-block">
+                      <ProgressBar pct={pct} color={cor} label={`Progresso de ${c.nome}: ${pct.toFixed(0)}%`} />
+                      <div>
+                        <strong>{pct.toFixed(0)}%</strong>
+                        <span>falta {fmtBRL(Math.max(0, c.valor_meta - c.valor_atual))}</span>
+                      </div>
                     </div>
                   )}
-                </div>
 
-                {/* Progress bar (only if has meta) */}
-                {pct !== null && (
-                  <div style={{ marginTop: 10 }}>
-                    <Bar pct={pct} color={cor} />
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 11, color: 'var(--c-text-muted)' }}>
-                      <span style={{ fontWeight: 700, color: cor }}>{pct.toFixed(0)}%</span>
-                      <span>falta {fmtBRL(Math.max(0, c.valor_meta - c.valor_atual))}</span>
-                    </div>
+                  {c.observacoes && <p className="c-cofrinhos-v2-card__notes">{c.observacoes}</p>}
+
+                  <div className="c-cofrinhos-v2-card__actions">
+                    <IconButton icon={<Edit3 size={16} />} label={`Editar ${c.nome}`} variant="secondary" size="sm" onClick={() => openEdit(c)} />
+                    <IconButton icon={<Trash2 size={16} />} label={`Excluir ${c.nome}`} variant="danger" size="sm" onClick={() => deleteCofrinho(c.id)} />
                   </div>
-                )}
-
-                {c.observacoes && (
-                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--c-border, #e2e8f0)', fontSize: 12, color: 'var(--c-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {c.observacoes}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {/* ── FAB (mobile) ──────────────────────────────────────── */}
-      <button onClick={openAdd} aria-label="Novo Cofrinho" className="c-fab-nova"
-        style={{
-          position: 'fixed', bottom: 24, right: 20, zIndex: 300,
-          width: 56, height: 56, borderRadius: '50%',
-          background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontSize: 26,
-          border: 'none', cursor: 'pointer', display: 'none',
-          alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(16,185,129,.5)',
-        }}>
-        +
-      </button>
-
-      {/* ══ FORM MODAL ══════════════════════════════════════════ */}
-      {showForm && (
-        <ModalShell
-          title={editingId ? 'Editar Cofrinho' : '🐷 Novo Cofrinho'}
-          onClose={() => setShowForm(false)}
-          onSave={save}
-          saving={saving}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <Field label="Nome do cofrinho *">
-              <input type="text" className="c-form-input" value={form.nome}
-                onChange={e => set('nome', e.target.value)}
-                placeholder="Ex: Reserva de Emergência" autoFocus />
-            </Field>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Onde está guardado">
-                <input type="text" className="c-form-input" value={form.onde_guardado}
-                  onChange={e => set('onde_guardado', e.target.value)}
-                  placeholder="Ex: Nubank, XP, Binance" />
-              </Field>
-              <Field label="Tipo">
-                <select className="c-form-select" value={form.tipo} onChange={e => set('tipo', e.target.value)}>
-                  {TIPOS.map(t => <option key={t.value} value={t.value}>{t.icon} {t.label}</option>)}
-                </select>
-              </Field>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Valor atual (R$) *">
-                <input type="text" className="c-form-input" value={form.valor_atual}
-                  onChange={e => set('valor_atual', e.target.value)} placeholder="0,00" />
-              </Field>
-              <Field label="Meta (R$) — opcional">
-                <input type="text" className="c-form-input" value={form.valor_meta}
-                  onChange={e => set('valor_meta', e.target.value)} placeholder="0,00" />
-              </Field>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <Field label="Ícone">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {ICONES.map(ic => (
-                    <span key={ic} onClick={() => set('icone', ic)}
-                      style={{
-                        fontSize: 20, cursor: 'pointer', padding: 4, borderRadius: 6,
-                        background: form.icone === ic ? '#f1f5f9' : 'transparent',
-                        border: form.icone === ic ? '2px solid var(--c-accent,#6366f1)' : '2px solid transparent',
-                      }}>
-                      {ic}
-                    </span>
-                  ))}
-                </div>
-              </Field>
-              <Field label="Cor">
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {CORES.map(cor => (
-                    <div key={cor} onClick={() => set('cor', cor)}
-                      style={{
-                        width: 28, height: 28, borderRadius: '50%', background: cor, cursor: 'pointer',
-                        border: form.cor === cor ? '3px solid #0f172a' : '2px solid transparent',
-                      }} />
-                  ))}
-                </div>
-              </Field>
-            </div>
-
-            <Field label="Observações">
-              <textarea className="c-form-textarea" value={form.observacoes}
-                onChange={e => set('observacoes', e.target.value)}
-                placeholder="Ex: CDB com liquidez diária, rendimento 110% CDI..." rows={2} />
-            </Field>
+                </article>
+              )
+            })}
           </div>
-        </ModalShell>
+        )}
+      </SectionCard>
+
+      {showForm && (
+        <CofrinhoModal
+          title={editingId ? 'Editar Cofrinho' : 'Novo Cofrinho'}
+          description={editingId ? 'Atualize os dados já cadastrados.' : 'Cadastre um novo objetivo ou local onde o dinheiro está guardado.'}
+          onClose={() => setShowForm(false)}
+          actions={
+            <>
+              <Button variant="secondary" onClick={() => setShowForm(false)}>Cancelar</Button>
+              <Button onClick={save} loading={saving}>Salvar</Button>
+            </>
+          }
+        >
+          <div className="c-cofrinhos-v2-form">
+            <FormField label="Nome do cofrinho *">
+              <input type="text" className="c-cofrinhos-v2-input" value={form.nome} onChange={e => set('nome', e.target.value)} placeholder="Ex: Reserva de Emergência" autoFocus />
+            </FormField>
+
+            <div className="c-cofrinhos-v2-form-grid">
+              <FormField label="Onde está guardado">
+                <input type="text" className="c-cofrinhos-v2-input" value={form.onde_guardado} onChange={e => set('onde_guardado', e.target.value)} placeholder="Ex: Nubank, XP, Binance" />
+              </FormField>
+              <SelectField label="Tipo" value={form.tipo} options={TIPOS.map(t => ({ value: t.value, label: t.label }))} onChange={e => set('tipo', e.target.value)} />
+            </div>
+
+            <div className="c-cofrinhos-v2-form-grid">
+              <FormField label="Valor atual (R$) *">
+                <input type="text" className="c-cofrinhos-v2-input" value={form.valor_atual} onChange={e => set('valor_atual', e.target.value)} placeholder="0,00" />
+              </FormField>
+              <FormField label="Meta (R$) - opcional">
+                <input type="text" className="c-cofrinhos-v2-input" value={form.valor_meta} onChange={e => set('valor_meta', e.target.value)} placeholder="0,00" />
+              </FormField>
+            </div>
+
+            <div className="c-cofrinhos-v2-form-grid">
+              <FormField label="Ícone">
+                <div className="c-cofrinhos-v2-icon-picker">
+                  {ICONES.map(ic => (
+                    <button key={ic} type="button" className={form.icone === ic ? 'is-active' : ''} onClick={() => set('icone', ic)}>{ic}</button>
+                  ))}
+                </div>
+              </FormField>
+              <FormField label="Cor">
+                <div className="c-cofrinhos-v2-color-picker">
+                  {CORES.map(cor => (
+                    <button key={cor} type="button" className={form.cor === cor ? 'is-active' : ''} style={{ background: cor }} onClick={() => set('cor', cor)} aria-label={`Selecionar cor ${cor}`} />
+                  ))}
+                </div>
+              </FormField>
+            </div>
+
+            <FormField label="Observações">
+              <textarea className="c-cofrinhos-v2-input c-cofrinhos-v2-textarea" value={form.observacoes} onChange={e => set('observacoes', e.target.value)} placeholder="Ex: CDB com liquidez diária, rendimento 110% CDI..." rows={3} />
+            </FormField>
+          </div>
+        </CofrinhoModal>
       )}
 
-      {/* ══ DETAIL MODAL ════════════════════════════════════════ */}
       {detailCofrinho && (() => {
         const c    = detailCofrinho
         const cor  = c.cor || '#10b981'
         const pct  = c.valor_meta > 0 ? Math.min(100, (c.valor_atual / c.valor_meta) * 100) : null
         const tipo = TIPOS.find(t => t.value === c.tipo)
         return (
-          <ModalShell title={`${c.icone || '🐷'} ${c.nome}`} onClose={() => setDetail(null)}>
-
-            {/* Amount hero */}
-            <div style={{ textAlign: 'center', padding: '12px 0 20px', borderBottom: '1px solid var(--c-border, #e2e8f0)', marginBottom: 20 }}>
-              <div style={{ fontSize: 32, fontWeight: 800, color: cor }}>{fmtBRL(c.valor_atual)}</div>
-              {c.onde_guardado && (
-                <div style={{ fontSize: 13, color: 'var(--c-text-muted)', marginTop: 4 }}>
-                  {tipo?.icon} {c.onde_guardado} · {tipo?.label}
+          <CofrinhoModal title={`${c.icone || '🐷'} ${c.nome}`} description={tipo?.label || 'Cofrinho'} onClose={() => setDetail(null)} size="lg">
+            <div className="c-cofrinhos-v2-detail" style={{ '--cofrinho-color': cor }}>
+              <section className="c-cofrinhos-v2-detail-hero">
+                <span className="c-cofrinhos-v2-detail-hero__icon">{tipoIcon(c.tipo)}</span>
+                <div>
+                  <strong>{fmtBRL(c.valor_atual)}</strong>
+                  <span>{c.onde_guardado ? `${c.onde_guardado} · ${tipo?.label || 'Tipo não informado'}` : tipo?.label || 'Tipo não informado'}</span>
                 </div>
-              )}
+              </section>
+
               {pct !== null && (
-                <div style={{ marginTop: 14, padding: '0 8px' }}>
-                  <Bar pct={pct} color={cor} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12 }}>
-                    <span style={{ fontWeight: 700, color: cor }}>{pct.toFixed(1)}% da meta</span>
-                    <span style={{ color: 'var(--c-text-muted)' }}>meta: {fmtBRL(c.valor_meta)}</span>
+                <section className="c-cofrinhos-v2-detail-progress">
+                  <ProgressBar pct={pct} color={cor} label={`Progresso de ${c.nome}: ${pct.toFixed(1)}%`} />
+                  <div>
+                    <strong>{pct.toFixed(1)}% da meta</strong>
+                    <span>meta: {fmtBRL(c.valor_meta)}</span>
                   </div>
-                </div>
+                </section>
               )}
-            </div>
 
-            {c.observacoes && (
-              <div style={{ marginBottom: 16, padding: '12px 14px', background: 'var(--c-bg,#f8fafc)', borderRadius: 8, fontSize: 14 }}>
-                {c.observacoes}
+              {c.observacoes && <p className="c-cofrinhos-v2-detail-notes">{c.observacoes}</p>}
+
+              <div className="c-cofrinhos-v2-detail-actions">
+                <Button icon={<Plus size={16} />} onClick={() => setShowAporte(a => !a)}>{showAporte ? 'Cancelar movimentação' : 'Registrar Movimentação'}</Button>
+                <Button variant="secondary" icon={<Edit3 size={16} />} onClick={() => openEdit(c)}>Editar</Button>
               </div>
-            )}
 
-            {/* Action buttons */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-              <button className="c-btn c-btn-primary" style={{ flex: 1 }} onClick={() => setShowAporte(a => !a)}>
-                {showAporte ? '✕ Cancelar' : '+ Registrar Movimentação'}
-              </button>
-              <button className="c-btn c-btn-secondary" onClick={() => openEdit(c)}>✏️ Editar</button>
-            </div>
-
-            {/* Aporte form */}
-            {showAporte && (
-              <div style={{ border: '1.5px solid var(--c-border)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
-                <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 14 }}>Nova Movimentação</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div className="c-form-group">
-                    <label className="c-form-label">Valor (R$) *</label>
-                    <input type="text" className="c-form-input" value={aForm.valor}
-                      onChange={e => setAForm(f => ({ ...f, valor: e.target.value }))}
-                      placeholder="0,00 — use negativo para retirada" autoFocus />
+              {showAporte && (
+                <SectionCard title="Nova movimentação" description="Use valor negativo para retirada." className="c-cofrinhos-v2-aporte-form">
+                  <div className="c-cofrinhos-v2-form">
+                    <FormField label="Valor (R$) *">
+                      <input type="text" className="c-cofrinhos-v2-input" value={aForm.valor} onChange={e => setAForm(f => ({ ...f, valor: e.target.value }))} placeholder="0,00" autoFocus />
+                    </FormField>
+                    <FormField label="Data">
+                      <input type="date" className="c-cofrinhos-v2-input" value={aForm.data} onChange={e => setAForm(f => ({ ...f, data: e.target.value }))} />
+                    </FormField>
+                    <FormField label="Observação">
+                      <input type="text" className="c-cofrinhos-v2-input" value={aForm.observacao} onChange={e => setAForm(f => ({ ...f, observacao: e.target.value }))} placeholder="Ex: depósito mensal, rendimento de junho..." />
+                    </FormField>
+                    <Button onClick={saveAporte} loading={saving}>Confirmar</Button>
                   </div>
-                  <div className="c-form-group">
-                    <label className="c-form-label">Data</label>
-                    <input type="date" value={aForm.data}
-                      onChange={e => setAForm(f => ({ ...f, data: e.target.value }))}
-                      style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1.5px solid var(--c-border)', borderRadius: 8, fontSize: 16, color: 'var(--c-text)', background: 'var(--c-surface)', fontFamily: 'inherit' }} />
-                  </div>
-                  <div className="c-form-group">
-                    <label className="c-form-label">Observação</label>
-                    <input type="text" className="c-form-input" value={aForm.observacao}
-                      onChange={e => setAForm(f => ({ ...f, observacao: e.target.value }))}
-                      placeholder="Ex: depósito mensal, rendimento de junho..." />
-                  </div>
-                  <button className="c-btn c-btn-primary" onClick={saveAporte} disabled={saving}>
-                    {saving ? 'Salvando...' : 'Confirmar'}
-                  </button>
-                </div>
-              </div>
-            )}
+                </SectionCard>
+              )}
 
-            {/* History */}
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Histórico</div>
-            {aLoading ? (
-              <div style={{ textAlign: 'center', padding: 16 }}>
-                <div className="c-loading-spinner" style={{ width: 24, height: 24 }} />
-              </div>
-            ) : aportes.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '12px 0', color: 'var(--c-text-muted)', fontSize: 14 }}>
-                Nenhuma movimentação registrada.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {aportes.map(a => {
-                  const isNeg = Number(a.valor) < 0
-                  return (
-                    <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'var(--c-bg,#f8fafc)', borderRadius: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, color: isNeg ? '#dc2626' : '#16a34a' }}>
-                          {isNeg ? '' : '+'}{fmtBRL(a.valor)}
+              <SectionCard title="Histórico" description="Movimentações cadastradas para este cofrinho." className="c-cofrinhos-v2-history">
+                {aLoading ? (
+                  <Skeleton variant="text" lines={4} />
+                ) : aportes.length === 0 ? (
+                  <EmptyState compact icon={<Banknote size={22} />} title="Nenhuma movimentação registrada" description="Os depósitos e retiradas aparecerão aqui." />
+                ) : (
+                  <div className="c-cofrinhos-v2-history-list">
+                    {aportes.map(a => {
+                      const isNeg = Number(a.valor) < 0
+                      return (
+                        <div key={a.id} className="c-cofrinhos-v2-history-row">
+                          <span className={isNeg ? 'is-negative' : 'is-positive'}>{isNeg ? <Banknote size={16} /> : <Coins size={16} />}</span>
+                          <div>
+                            <strong>{isNeg ? '' : '+'}{fmtBRL(a.valor)}</strong>
+                            <small>
+                              {format(parseISO(a.data), 'dd/MM/yyyy', { locale: ptBR })}
+                              {a.observacao && ` · ${a.observacao}`}
+                            </small>
+                          </div>
+                          <IconButton icon={<Trash2 size={16} />} label="Excluir movimentação" variant="danger" size="sm" onClick={() => deleteAporte(a)} />
                         </div>
-                        <div style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>
-                          {format(parseISO(a.data), 'dd/MM/yyyy', { locale: ptBR })}
-                          {a.observacao && ` · ${a.observacao}`}
-                        </div>
-                      </div>
-                      <button className="c-btn c-btn-danger c-btn-sm" onClick={() => deleteAporte(a)}>🗑️</button>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-          </ModalShell>
+                      )
+                    })}
+                  </div>
+                )}
+              </SectionCard>
+            </div>
+          </CofrinhoModal>
         )
       })()}
-
     </div>
   )
 }

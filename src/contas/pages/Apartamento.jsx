@@ -1,6 +1,26 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, parseISO, differenceInDays } from 'date-fns'
+import {
+  Banknote,
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  FileText,
+  Image,
+  Receipt,
+  ShieldCheck,
+  Wrench,
+  X,
+} from 'lucide-react'
+import {
+  EmptyState as V2EmptyState,
+  IconButton,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge as V2StatusBadge,
+} from '../components/ui'
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const ALBUNS = ['Compra do Imóvel','Reforma','Sala','Cozinha','Quartos','Banheiros','Decoração','Antes e Depois','Área Externa','Outros']
@@ -40,26 +60,23 @@ async function deleteFile(path) {
 /* ── Shared UI ─────────────────────────────────────────────────────────── */
 function Loading() {
   return (
-    <div className="c-loading-screen">
-      <div className="c-loading-spinner" />
+    <div className="c-apartamento-v2-loading" aria-busy="true">
+      <Skeleton variant="card" />
+      <Skeleton variant="text" lines={4} />
     </div>
   )
 }
 
 function EmptyState({ icon, title, desc }) {
   return (
-    <div className="c-empty-state">
-      <div className="c-empty-icon">{icon}</div>
-      <h3>{title}</h3>
-      <p>{desc}</p>
-    </div>
+    <V2EmptyState compact icon={<Building2 size={22} />} title={title} description={desc || icon} />
   )
 }
 
 function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
   return (
-    <div className="c-modal-overlay" onClick={onClose}>
-      <div className="c-modal-sheet" style={{maxWidth:560}} onClick={e=>e.stopPropagation()}>
+    <div className="c-apartamento-v2-modal-backdrop" onClick={onClose}>
+      <div className="c-apartamento-v2-modal" onClick={e=>e.stopPropagation()} role="dialog" aria-modal="true">
         <div style={{display:'flex',justifyContent:'center',padding:'12px 0 4px'}}>
           <div style={{width:40,height:4,borderRadius:99,background:'var(--c-border)'}}/>
         </div>
@@ -68,10 +85,10 @@ function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',fontSize:20,color:'var(--c-text-muted)',lineHeight:1}}>✕</button>
         </div>
         <form onSubmit={onSubmit}>
-          <div style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:14,maxHeight:'65vh',overflowY:'auto',overflowX:'hidden'}}>
+          <div className="c-apartamento-v2-modal__body">
             {children}
           </div>
-          <div style={{padding:'12px 20px 24px',borderTop:'1px solid var(--c-border)',display:'flex',gap:10}}>
+          <div className="c-apartamento-v2-modal__footer">
             <button type="button" className="c-btn c-btn-secondary" style={{flex:1}} onClick={onClose}>Cancelar</button>
             <button type="submit" className="c-btn c-btn-primary" style={{flex:2}} disabled={saving}>{saveLabel ?? (saving?'Salvando...':'Salvar')}</button>
           </div>
@@ -83,7 +100,7 @@ function ModalShell({ title, onClose, onSubmit, saving, saveLabel, children }) {
 
 function Field({ label, children }) {
   return (
-    <div>
+    <div className="c-apartamento-v2-field">
       <label className="c-form-label">{label}</label>
       {children}
     </div>
@@ -128,7 +145,7 @@ function StatusBadge({ status }) {
 /* ══════════════════════════════════════════════════════════════════════════
    DASHBOARD TAB
 ══════════════════════════════════════════════════════════════════════════ */
-function DashboardTab() {
+function DashboardTab({ onNavigate }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const today = new Date().toISOString().split('T')[0]
@@ -152,7 +169,7 @@ function DashboardTab() {
       const garantiasAtivas = (garantias.data||[]).filter(g=>g.fim_garantia && g.fim_garantia > today).length
       const fotoCount = (fotos.data||[]).length
       const proxManut = manutData.find(m=>m.status==='agendado' && m.data_proxima)
-      setData({totalInvestido,boletosPendentes,docCount,manutAgendadas,garantiasAtivas,fotoCount,proxManut})
+      setData({totalInvestido,boletosPendentes,docCount,manutAgendadas,garantiasAtivas,fotoCount,proxManut,manutencoes:manutData,garantias:garantias.data||[]})
     } finally {
       setLoading(false)
     }
@@ -163,33 +180,153 @@ function DashboardTab() {
   if (loading) return <Loading />
   if (!data) return null
 
-  const cards = [
-    { icon:'💰', label:'Total Investido', value:fmt(data.totalInvestido), color:'#6366f1' },
-    { icon:'💸', label:'Boletos Pendentes', value:data.boletosPendentes, color: data.boletosPendentes>0?'#dc2626':'#15803d' },
-    { icon:'📁', label:'Documentos', value:data.docCount, color:'#3b82f6' },
-    { icon:'🔧', label:'Manutenções Agendadas', value:data.manutAgendadas, color: data.manutAgendadas>0?'#d97706':'#15803d' },
-    { icon:'📑', label:'Garantias Ativas', value:data.garantiasAtivas, color:'#10b981' },
-    { icon:'📸', label:'Fotos', value:data.fotoCount, color:'#8b5cf6' },
+  const garantiasData = data.garantias || []
+  const manutData = data.manutencoes || []
+  const garantiaStatus = garantiasData.reduce((acc, item) => {
+    if (!item.fim_garantia) {
+      acc.semData += 1
+      return acc
+    }
+    const days = differenceInDays(parseISO(item.fim_garantia), new Date())
+    if (days < 0) acc.expiradas += 1
+    else if (days <= 30) acc.vencendo += 1
+    else acc.ativas += 1
+    return acc
+  }, { ativas: 0, vencendo: 0, expiradas: 0, semData: 0 })
+  const manutEmAndamento = manutData.filter(m=>m.status==='em_andamento').length
+  const attentionItems = [
+    data.boletosPendentes > 0 ? {
+      icon: Receipt,
+      title: 'Boletos pendentes',
+      context: 'Contas do imóvel ainda em aberto.',
+      value: `${data.boletosPendentes} pendente${data.boletosPendentes !== 1 ? 's' : ''}`,
+      tone: 'danger',
+      target: 'boletos',
+    } : null,
+    garantiaStatus.expiradas > 0 ? {
+      icon: ShieldCheck,
+      title: 'Garantias expiradas',
+      context: 'Garantias fora do prazo cadastrado.',
+      value: `${garantiaStatus.expiradas} expirada${garantiaStatus.expiradas !== 1 ? 's' : ''}`,
+      tone: 'danger',
+      target: 'garantias',
+    } : null,
+    garantiaStatus.vencendo > 0 ? {
+      icon: ShieldCheck,
+      title: 'Garantias vencendo',
+      context: 'Regra existente: vencimento em até 30 dias.',
+      value: `${garantiaStatus.vencendo} vencendo`,
+      tone: 'warning',
+      target: 'garantias',
+    } : null,
+    manutEmAndamento > 0 ? {
+      icon: Wrench,
+      title: 'Manutenções em andamento',
+      context: 'Serviços marcados como em andamento.',
+      value: `${manutEmAndamento} em andamento`,
+      tone: 'warning',
+      target: 'manutencoes',
+    } : null,
+    data.proxManut ? {
+      icon: CalendarClock,
+      title: data.proxManut.titulo,
+      context: `${data.proxManut.tipo}${data.proxManut.status ? ` · ${data.proxManut.status}` : ''}`,
+      value: fmtDate(data.proxManut.data_proxima),
+      tone: 'info',
+      target: 'manutencoes',
+    } : null,
+  ].filter(Boolean)
+
+  const financialCards = [
+    { icon: Banknote, label:'Total investido', value:fmt(data.totalInvestido), description:'Soma dos gastos registrados.', target:'gastos', tone:'accent', featured:true },
+    { icon: Receipt, label:'Boletos pendentes', value:data.boletosPendentes, description:'Contas com status diferente de pago.', target:'boletos', tone:data.boletosPendentes > 0 ? 'danger' : 'success' },
+  ]
+
+  const operationCards = [
+    { icon: CalendarClock, label:'Próxima manutenção', value:data.proxManut ? fmtDate(data.proxManut.data_proxima) : '—', description:data.proxManut ? data.proxManut.titulo : 'Sem próxima manutenção agendada.', target:'manutencoes', tone:data.proxManut ? 'warning' : 'success' },
+    { icon: Wrench, label:'Manutenções agendadas', value:data.manutAgendadas, description:'Serviços com status agendado.', target:'manutencoes', tone:data.manutAgendadas > 0 ? 'warning' : 'success' },
+    { icon: Wrench, label:'Em andamento', value:manutEmAndamento, description:'Serviços em execução.', target:'manutencoes', tone:manutEmAndamento > 0 ? 'warning' : 'success' },
+  ]
+
+  const protectionCards = [
+    { icon: FileText, label:'Documentos', value:data.docCount, description:'Registros cadastrados no imóvel.', target:'documentos', tone:'info' },
+    { icon: ShieldCheck, label:'Garantias ativas', value:garantiaStatus.ativas, description:'Garantias com vencimento futuro.', target:'garantias', tone:'success' },
+    { icon: ShieldCheck, label:'Garantias vencendo', value:garantiaStatus.vencendo, description:'Vencimento em até 30 dias.', target:'garantias', tone:garantiaStatus.vencendo > 0 ? 'warning' : 'success' },
   ]
 
   return (
-    <div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12,marginBottom:24}}>
-        {cards.map(c=>(
-          <div key={c.label} style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:12,padding:'16px 20px'}}>
-            <div style={{fontSize:28,marginBottom:6}}>{c.icon}</div>
-            <div style={{fontSize:22,fontWeight:700,color:c.color}}>{c.value}</div>
-            <div style={{fontSize:13,color:'var(--c-text-muted)',marginTop:2}}>{c.label}</div>
+    <div className="c-apartamento-v2-overview">
+      <SectionCard title="Atenção agora" description="Pendências e próximos passos do imóvel." padding="lg">
+        {attentionItems.length > 0 ? (
+          <div className="c-apartamento-v2-attention-list">
+            {attentionItems.map(item => (
+              <button key={`${item.title}-${item.value}`} type="button" className={`c-apartamento-v2-attention-item is-${item.tone}`} onClick={()=>onNavigate(item.target)} aria-label={`Abrir ${item.title}`}>
+                <span className="c-apartamento-v2-attention-icon"><item.icon size={18} /></span>
+                <span className="c-apartamento-v2-attention-copy">
+                  <strong>{item.title}</strong>
+                  <small>{item.context}</small>
+                </span>
+                <span className="c-apartamento-v2-attention-value">{item.value}</span>
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-      {data.proxManut && (
-        <div style={{background:'#fef9c3',border:'1px solid #fde68a',borderRadius:12,padding:'14px 18px'}}>
-          <div style={{fontWeight:700,color:'#854d0e',marginBottom:4}}>🔔 Próxima Manutenção</div>
-          <div style={{fontWeight:600}}>{data.proxManut.titulo}</div>
-          <div style={{fontSize:13,color:'#92400e'}}>{data.proxManut.tipo} · {fmtDate(data.proxManut.data_proxima)}</div>
+        ) : (
+          <div className="c-apartamento-v2-positive-state">
+            <CheckCircle2 size={18} />
+            <span>Nenhuma pendência urgente no momento.</span>
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Resumo financeiro do imóvel" description="Valores e pendências financeiras já carregadas nesta visão." padding="lg">
+        <div className="c-apartamento-v2-hub-grid c-apartamento-v2-hub-grid--finance">
+          {financialCards.map(card => (
+            <button key={card.label} type="button" className={`c-apartamento-v2-hub-card is-${card.tone} ${card.featured ? 'is-featured' : ''}`} onClick={()=>onNavigate(card.target)} aria-label={`Abrir ${card.label}`}>
+              <span className="c-apartamento-v2-hub-icon"><card.icon size={18} /></span>
+              <span className="c-apartamento-v2-hub-value">{card.value}</span>
+              <span className="c-apartamento-v2-hub-label">{card.label}</span>
+              <small>{card.description}</small>
+            </button>
+          ))}
         </div>
-      )}
+      </SectionCard>
+
+      <SectionCard title="Operação da casa" description="Manutenções e serviços acompanhados no imóvel." padding="lg">
+        <div className="c-apartamento-v2-hub-grid">
+          {operationCards.map(card => (
+            <button key={card.label} type="button" className={`c-apartamento-v2-hub-card is-${card.tone}`} onClick={()=>onNavigate(card.target)} aria-label={`Abrir ${card.label}`}>
+              <span className="c-apartamento-v2-hub-icon"><card.icon size={18} /></span>
+              <span className="c-apartamento-v2-hub-value">{card.value}</span>
+              <span className="c-apartamento-v2-hub-label">{card.label}</span>
+              <small>{card.description}</small>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Patrimônio e proteção" description="Documentos e garantias disponíveis no dashboard atual." padding="lg">
+        <div className="c-apartamento-v2-hub-grid">
+          {protectionCards.map(card => (
+            <button key={card.label} type="button" className={`c-apartamento-v2-hub-card is-${card.tone}`} onClick={()=>onNavigate(card.target)} aria-label={`Abrir ${card.label}`}>
+              <span className="c-apartamento-v2-hub-icon"><card.icon size={18} /></span>
+              <span className="c-apartamento-v2-hub-value">{card.value}</span>
+              <span className="c-apartamento-v2-hub-label">{card.label}</span>
+              <small>{card.description}</small>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Galeria do imóvel" description="Fotos cadastradas no acervo do apartamento." padding="lg">
+        <button type="button" className="c-apartamento-v2-gallery-summary" onClick={()=>onNavigate('galeria')} aria-label="Abrir galeria do imóvel">
+          <span className="c-apartamento-v2-hub-icon"><Image size={18} /></span>
+          <span>
+            <strong>{data.fotoCount}</strong>
+            <small>{data.fotoCount === 1 ? 'foto cadastrada' : 'fotos cadastradas'}</small>
+          </span>
+          <span>Abrir galeria</span>
+        </button>
+      </SectionCard>
     </div>
   )
 }
@@ -1565,36 +1702,37 @@ export default function Apartamento() {
     { key:'projetos',    icon:'🎨', label:'Projetos'     },
   ]
 
+  const activeTab = TABS.find(t => t.key === tab)
+
   return (
-    <div>
-      {/* Tab bar - horizontal scroll */}
-      <div style={{display:'flex',gap:4,overflowX:'auto',paddingBottom:8,marginBottom:20,scrollbarWidth:'none'}}>
+    <div className="c-apartamento-v2-page">
+      <PageHeader
+        eyebrow="Casa"
+        title="Apartamento"
+        description="Central do imóvel: gastos, boletos, documentos, manutenções, garantias, inventário e projetos."
+        meta={<V2StatusBadge tone="accent" icon={<Building2 size={14} />}>{activeTab?.label}</V2StatusBadge>}
+      />
+
+      <div className="c-apartamento-v2-tabs" role="tablist" aria-label="Módulos do apartamento">
         {TABS.map(t=>(
-          <button key={t.key} onClick={()=>setTab(t.key)}
-            style={{
-              flexShrink:0, padding:'7px 14px', borderRadius:99, fontSize:13, fontWeight:600,
-              border:'none', cursor:'pointer', whiteSpace:'nowrap',
-              background: tab===t.key ? '#6366f1' : 'var(--c-surface)',
-              color: tab===t.key ? '#fff' : 'var(--c-text-muted)',
-              boxShadow: tab===t.key ? '0 2px 8px rgba(99,102,241,.3)' : 'none',
-              transition:'all .15s',
-            }}>
+          <button key={t.key} onClick={()=>setTab(t.key)} className={tab===t.key ? 'is-active' : ''} role="tab" aria-selected={tab===t.key}>
             {t.icon} {t.label}
           </button>
         ))}
       </div>
 
-      {/* Tab content */}
-      {tab === 'dashboard'   && <DashboardTab />}
-      {tab === 'galeria'     && <GaleriaTab />}
-      {tab === 'boletos'     && <BoletosTab />}
-      {tab === 'gastos'      && <GastosTab />}
-      {tab === 'documentos'  && <DocumentosTab />}
-      {tab === 'manutencoes' && <ManutencoesTab />}
-      {tab === 'inventario'  && <InventarioTab />}
-      {tab === 'garantias'   && <GarantiasTab />}
-      {tab === 'prestadores' && <PrestadoresTab />}
-      {tab === 'projetos'    && <ProjetosTab />}
+      <SectionCard className="c-apartamento-v2-content" padding="lg">
+        {tab === 'dashboard'   && <DashboardTab onNavigate={setTab} />}
+        {tab === 'galeria'     && <GaleriaTab />}
+        {tab === 'boletos'     && <BoletosTab />}
+        {tab === 'gastos'      && <GastosTab />}
+        {tab === 'documentos'  && <DocumentosTab />}
+        {tab === 'manutencoes' && <ManutencoesTab />}
+        {tab === 'inventario'  && <InventarioTab />}
+        {tab === 'garantias'   && <GarantiasTab />}
+        {tab === 'prestadores' && <PrestadoresTab />}
+        {tab === 'projetos'    && <ProjetosTab />}
+      </SectionCard>
     </div>
   )
 }

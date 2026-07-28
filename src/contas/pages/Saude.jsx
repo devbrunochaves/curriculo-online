@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, parseISO, differenceInDays, addDays } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { Plus, Syringe, Users, FileText, Pill, Stethoscope } from 'lucide-react'
+import {
+  Button as V2Button,
+  MetricCard as V2MetricCard,
+  PageHeader,
+  Skeleton as V2Skeleton,
+} from '../components/ui'
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
@@ -47,8 +54,9 @@ const dateInputStyle = {
 
 function Loading() {
   return (
-    <div className="c-loading-screen">
-      <div className="c-loading-spinner" />
+    <div className="c-saude-v2-loading" aria-label="Carregando saúde">
+      <V2Skeleton height={120} />
+      <V2Skeleton height={280} />
     </div>
   )
 }
@@ -198,41 +206,41 @@ function SaudeDashboard({ onSelect }) {
   }
 
   const summaryCards = [
-    { icon: '❤️', label: 'Membros', value: summary.membros, color: '#ec4899' },
-    { icon: '🏥', label: 'Próximas consultas', value: summary.consultas, color: '#6366f1' },
-    { icon: '💊', label: 'Medicamentos ativos', value: summary.medicamentos, color: '#f97316' },
-    { icon: '📄', label: 'Exames', value: summary.exames, color: '#3b82f6' },
-    { icon: '💉', label: 'Vacinas vencendo', value: summary.vacinas, color: summary.vacinas > 0 ? '#d97706' : '#10b981' },
+    { icon: <Users size={18} />, label: 'Membros', value: summary.membros, tone: 'accent', description: 'Perfis acompanhados' },
+    { icon: <Stethoscope size={18} />, label: 'Próximas consultas', value: summary.consultas, tone: 'info', description: 'Nos próximos 7 dias' },
+    { icon: <Pill size={18} />, label: 'Medicamentos ativos', value: summary.medicamentos, tone: 'warning', description: 'Tratamentos ativos' },
+    { icon: <FileText size={18} />, label: 'Exames', value: summary.exames, tone: 'neutral', description: 'Registros salvos' },
+    { icon: <Syringe size={18} />, label: 'Vacinas vencendo', value: summary.vacinas, tone: summary.vacinas > 0 ? 'warning' : 'success', description: 'Próximos 30 dias' },
   ]
 
   if (loading) return <Loading />
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800 }}>❤️ Saúde</h2>
-        <button className="c-btn c-btn-primary" onClick={openNew}>+ Pessoa</button>
-      </div>
+    <div className="c-saude-v2-page">
+      <PageHeader
+        title="Saúde"
+        eyebrow="Família"
+        description="Perfis, consultas, exames, medicamentos, documentos e histórico de saúde."
+        actions={(
+          <V2Button icon={<Plus size={16} />} onClick={openNew}>Nova pessoa</V2Button>
+        )}
+      />
 
       {/* Summary cards */}
-      <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, marginBottom: 24 }}>
+      <div className="c-saude-v2-metrics">
         {summaryCards.map(c => (
-          <div key={c.label} style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, padding: '14px 18px', minWidth: 130, flexShrink: 0 }}>
-            <div style={{ fontSize: 24, marginBottom: 4 }}>{c.icon}</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: c.color }}>{c.value}</div>
-            <div style={{ fontSize: 12, color: 'var(--c-text-muted)', marginTop: 2 }}>{c.label}</div>
-          </div>
+          <V2MetricCard key={c.label} label={c.label} value={c.value} description={c.description} tone={c.tone} icon={c.icon} />
         ))}
       </div>
 
       {pessoas.length === 0 ? (
         <EmptyState icon="❤️" title="Nenhum membro cadastrado" desc="Adicione um membro da família para começar." />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="c-saude-v2-people-list">
           {pessoas.map(p => {
             const age = calcAge(p.data_nascimento)
             return (
-              <div key={p.id} className="c-card"
+              <div key={p.id} className="c-card c-saude-v2-person-card"
                 style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', cursor: 'pointer' }}
                 onClick={() => onSelect(p)}>
                 <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#a855f7,#ec4899)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 800, color: '#fff', flexShrink: 0 }}>
@@ -1658,35 +1666,28 @@ function PessoaDetail({ pessoa, onBack, onUpdated }) {
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-        <button className="c-btn c-btn-secondary" onClick={onBack}>← Saúde</button>
-      </div>
-
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg,#ec4899,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 800, color: '#fff', flexShrink: 0 }}>
-          {pessoa.nome.charAt(0).toUpperCase()}
-        </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800 }}>{pessoa.nome}</h2>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-            {pessoa.data_nascimento && (
-              <span style={{ fontSize: 13, color: 'var(--c-text-muted)' }}>{calcAge(pessoa.data_nascimento)} anos</span>
-            )}
-            {pessoa.tipo_sanguineo && (
-              <span style={{ background: '#fef2f2', color: '#dc2626', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700 }}>{pessoa.tipo_sanguineo}</span>
-            )}
-            {pessoa.convenio && (
-              <span style={{ fontSize: 12, color: 'var(--c-text-muted)' }}>🏥 {pessoa.convenio}</span>
-            )}
+    <div className="c-saude-v2-page c-saude-v2-detail-page">
+      <PageHeader
+        title={pessoa.nome}
+        eyebrow="Saúde"
+        description="Histórico, exames, medicamentos, vacinas e documentos vinculados a este perfil."
+        meta={(
+          <div className="c-saude-v2-profile-meta">
+            {pessoa.data_nascimento && <span>{calcAge(pessoa.data_nascimento)} anos</span>}
+            {pessoa.tipo_sanguineo && <span>{pessoa.tipo_sanguineo}</span>}
+            {pessoa.convenio && <span>{pessoa.convenio}</span>}
           </div>
-          {pessoa.alergias && (
-            <div style={{ marginTop: 4, fontSize: 12, color: '#dc2626' }}>⚠️ Alergias: {pessoa.alergias}</div>
-          )}
-        </div>
-      </div>
+        )}
+        actions={(
+          <V2Button variant="secondary" onClick={onBack}>Voltar</V2Button>
+        )}
+      >
+        {pessoa.alergias && (
+          <div className="c-saude-v2-alert">⚠️ Alergias: {pessoa.alergias}</div>
+        )}
+      </PageHeader>
 
-      <div style={{ display: 'flex', gap: 4, overflowX: 'auto', paddingBottom: 4, marginBottom: 20, borderBottom: '2px solid var(--c-border)' }}>
+      <div className="c-saude-v2-tabs">
         {tabs.map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)}
             style={{ whiteSpace: 'nowrap', padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: tab === key ? 700 : 500, fontSize: 13, background: tab === key ? '#6366f1' : 'transparent', color: tab === key ? '#fff' : 'var(--c-text-muted)' }}>

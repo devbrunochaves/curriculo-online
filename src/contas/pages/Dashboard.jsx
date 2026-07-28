@@ -7,8 +7,34 @@ import {
   PieChart, Pie, Cell, LineChart, Line,
   BarChart, Bar, Cell as BarCell
 } from 'recharts'
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  CreditCard,
+  Download,
+  FileText,
+  Home,
+  PieChart as PieChartIcon,
+  ReceiptText,
+  UserRound,
+  UsersRound,
+  WalletCards,
+  X,
+} from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import {
+  Button,
+  EmptyState,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
@@ -281,6 +307,340 @@ export default function Dashboard() {
   }))
 
   const alerts = cardTotals.filter(c => c.pct !== null && c.pct >= 80)
+  const latestExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6)
+
+  if (data) {
+    return (
+      <div className="c-dashboard-v2-page">
+        <PageHeader
+          eyebrow="Financeiro"
+          title="Dashboard"
+          description={`Narrativa financeira de ${monthLabel}.`}
+          meta={<StatusBadge tone={alerts.length ? 'warning' : 'success'}>{alerts.length ? `${alerts.length} alerta${alerts.length !== 1 ? 's' : ''}` : 'Tudo ok'}</StatusBadge>}
+          actions={(
+            <div className="c-dashboard-v2-month-nav" aria-label="Navegação mensal">
+              <IconButton icon={<ArrowLeft />} label="Mês anterior" variant="secondary" size="sm" onClick={() => setCurrentDate(d => subMonths(d, 1))} />
+              <span>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
+              <IconButton icon={<ArrowRight />} label="Mês seguinte" variant="secondary" size="sm" onClick={() => setCurrentDate(d => addMonths(d, 1))} />
+            </div>
+          )}
+        />
+
+        <section className="c-dashboard-v2-metrics" aria-label="Resumo financeiro do mês">
+          <MetricCard label="Total geral" value={fmt(totalGasto)} tone="accent" icon={<WalletCards />} description={`${expenses.length} lançamentos em cartão`} />
+          <MetricCard label="Cartões" value={fmt(totalCartoes)} tone="neutral" icon={<CreditCard />} description="Compras do mês selecionado" />
+          <MetricCard label="Contas fixas" value={fmt(totalFixas)} tone="accent" icon={<Home />} description={`${billEntries.length} ocorrência${billEntries.length !== 1 ? 's' : ''} mensa${billEntries.length !== 1 ? 'is' : 'l'}`} />
+          <MetricCard label="Variável" value={fmt(totalVariavel)} tone={totalVariavel > 0 ? 'warning' : 'success'} icon={<ArrowDownRight />} description={`Fixo em cartão: ${fmt(totalFixo)}`} />
+        </section>
+
+        {alerts.length > 0 && (
+          <section className="c-dashboard-v2-alerts" aria-label="Alertas financeiros">
+            {alerts.map(c => (
+              <div key={c.id} className={`c-dashboard-v2-alert c-dashboard-v2-alert--${c.pct >= 100 ? 'danger' : 'warning'}`}>
+                <span className="c-dashboard-v2-alert-icon" aria-hidden="true"><AlertTriangle /></span>
+                <div>
+                  <strong>{c.name}</strong>
+                  <span>{fmt(c.spent)} de {fmt(c.limit_amount)} ({c.pct.toFixed(0)}%){c.pct >= 100 ? ' — LIMITE EXCEDIDO!' : ''}</span>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        <div className="c-dashboard-v2-grid c-dashboard-v2-grid--people">
+          <SectionCard
+            title="Pessoas"
+            description="Responsabilidade individual considerando cartões e contas fixas."
+            actions={<StatusBadge tone="neutral">{personData.length} pessoa{personData.length !== 1 ? 's' : ''}</StatusBadge>}
+          >
+            {personData.length === 0 ? (
+              <EmptyState compact icon={<UsersRound />} title="Nenhum gasto registrado" description="Ainda não há valores para dividir neste mês." />
+            ) : (
+              <div className="c-dashboard-v2-person-grid">
+                {personData.map(p => (
+                  <button key={p.id} type="button" className="c-dashboard-v2-person-card" onClick={() => setPersonModal(p)} style={{ '--person-color': p.color }}>
+                    <span className="c-dashboard-v2-person-top">
+                      <span className="c-dashboard-v2-avatar">{p.name?.[0]}</span>
+                      <span>
+                        <strong>{p.name}</strong>
+                        <small>{totalGasto > 0 ? ((p.total / totalGasto) * 100).toFixed(0) : 0}% do total</small>
+                      </span>
+                    </span>
+                    <span className="c-dashboard-v2-person-value">{fmt(p.total)}</span>
+                    <span className="c-dashboard-v2-progress"><span style={{ width: `${totalGasto > 0 ? Math.min((p.total / totalGasto) * 100, 100) : 0}%`, background: p.color }} /></span>
+                    {p.fixasTotal > 0 && (
+                      <span className="c-dashboard-v2-breakdown">
+                        <span><CreditCard aria-hidden="true" /> Cartões <strong>{fmt(p.total - p.fixasTotal)}</strong></span>
+                        <span><Home aria-hidden="true" /> Contas fixas <strong>{fmt(p.fixasTotal)}</strong></span>
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="Resumo do mês"
+            description="Composição atual do gasto total."
+            className="c-dashboard-v2-summary-card"
+          >
+            <div className="c-dashboard-v2-summary-list">
+              <div><span>Total geral</span><strong>{fmt(totalGasto)}</strong></div>
+              <div><span>Cartões</span><strong>{fmt(totalCartoes)}</strong></div>
+              <div><span>Fixo em cartão</span><strong>{fmt(totalFixo)}</strong></div>
+              <div><span>Variável</span><strong>{fmt(totalVariavel)}</strong></div>
+              <div><span>Contas fixas</span><strong>{fmt(totalFixas)}</strong></div>
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="c-dashboard-v2-grid">
+          <SectionCard title="Utilização dos cartões" description="Uso de limite e consumo por cartão.">
+            {cardTotals.length === 0 ? (
+              <EmptyState compact icon={<CreditCard />} title="Nenhum gasto no mês" description="Nenhum cartão possui consumo no mês selecionado." />
+            ) : (
+              <div className="c-dashboard-v2-card-list">
+                {cardTotals.map(c => (
+                  <div key={c.id} className="c-dashboard-v2-card-row">
+                    <div className="c-dashboard-v2-row-head">
+                      <span className="c-dashboard-v2-dot" style={{ background: c.color }} />
+                      <strong>{c.name}</strong>
+                      {c.pct !== null && <StatusBadge tone={c.pct >= 100 ? 'danger' : c.pct >= 80 ? 'warning' : 'success'} size="sm">{c.pct.toFixed(0)}%</StatusBadge>}
+                    </div>
+                    <div className="c-dashboard-v2-row-value">
+                      <strong>{fmt(c.spent)}</strong>
+                      {c.limit_amount && <span>/ {fmt(c.limit_amount)}</span>}
+                    </div>
+                    {c.limit_amount && (
+                      <span className="c-dashboard-v2-progress">
+                        <span style={{
+                          width: `${Math.min(c.pct, 100)}%`,
+                          background: c.pct >= 100 ? 'var(--v2-color-danger)' : c.pct >= 80 ? 'var(--v2-color-warning)' : c.color
+                        }} />
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Gastos por pessoa" description="Totais agrupados pelas divisões atuais.">
+            {personData.length === 0 ? (
+              <EmptyState compact icon={<UserRound />} title="Nenhum dado" description="Sem divisão por pessoa neste mês." />
+            ) : (
+              <div className="c-dashboard-v2-chart">
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={personData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--v2-chart-grid)" />
+                    <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
+                    <YAxis tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
+                    <Tooltip formatter={v => fmt(v)} />
+                    <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                      {personData.map((p, i) => <BarCell key={i} fill={p.color} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        <div className="c-dashboard-v2-grid">
+          <SectionCard title="Histórico de 6 meses" description="Mesma janela histórica do dashboard atual." actions={<StatusBadge tone="accent">6 meses</StatusBadge>}>
+            <div className="c-dashboard-v2-chart">
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={historyData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--v2-chart-grid)" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
+                  <YAxis tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
+                  <Tooltip formatter={v => fmt(v)} />
+                  <Line type="monotone" dataKey="total" stroke="var(--v2-color-accent)" strokeWidth={2.5} dot={{ r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </SectionCard>
+
+          <SectionCard title="Por categoria" description="Clique em uma fatia para ver os lançamentos." actions={<StatusBadge tone="neutral">{catData.length} categoria{catData.length !== 1 ? 's' : ''}</StatusBadge>}>
+            {catData.length === 0 ? (
+              <EmptyState compact icon={<PieChartIcon />} title="Nenhum dado" description="Sem categorias para o mês selecionado." />
+            ) : (
+              <div className="c-dashboard-v2-category-wrap">
+                <div className="c-dashboard-v2-chart c-dashboard-v2-chart--donut">
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={catData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={86}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                        fontSize={10}
+                        onClick={(item) => setCatModal(item)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {catData.map((c, i) => <Cell key={i} fill={c.color} />)}
+                      </Pie>
+                      <Tooltip formatter={v => fmt(v)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="c-dashboard-v2-legend">
+                  {catData.map(cat => (
+                    <button key={cat.name} type="button" onClick={() => setCatModal(cat)} className="c-dashboard-v2-legend-row">
+                      <span><span className="c-dashboard-v2-dot" style={{ background: cat.color }} />{cat.name}</span>
+                      <strong>{fmt(cat.value)}</strong>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+        <SectionCard title="Últimos lançamentos" description="Recorte dos lançamentos em cartão do mês selecionado." actions={<StatusBadge tone="neutral">{expenses.length} no mês</StatusBadge>}>
+          {latestExpenses.length === 0 ? (
+            <EmptyState compact icon={<ReceiptText />} title="Nenhum lançamento" description="Não há compras registradas neste mês." />
+          ) : (
+            <div className="c-dashboard-v2-transactions">
+              {latestExpenses.map(e => {
+                const [, mo, da] = (e.date || '').split('-')
+                return (
+                  <div key={e.id} className="c-dashboard-v2-transaction-row">
+                    <span className="c-dashboard-v2-item-icon" aria-hidden="true"><ReceiptText /></span>
+                    <span className="c-dashboard-v2-transaction-copy">
+                      <strong>{e.description || 'Lançamento'}</strong>
+                      <small>{da ? `${da}/${mo}` : 'Sem data'}{e.card?.name ? ` · ${e.card.name}` : ''}{e.category?.name ? ` · ${e.category.name}` : ''}</small>
+                    </span>
+                    <strong className="c-dashboard-v2-transaction-value">{fmt(e.total_amount)}</strong>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </SectionCard>
+
+        {personModal && (() => {
+          const p = personModal
+          const personExpenses = expenses
+            .filter(e => e.splits?.some(s => s.person?.id === p.id))
+            .map(e => ({ ...e, myAmount: e.splits.find(s => s.person?.id === p.id)?.amount || 0 }))
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+          const personBills = billEntries
+            .filter(e => e.splits?.some(s => s.person?.id === p.id) || e.bill?.person_id === p.id)
+            .map(e => ({
+              ...e,
+              myAmount: e.splits?.find(s => s.person?.id === p.id)?.amount ??
+                        (e.bill?.person_id === p.id ? Number(e.amount) : 0)
+            }))
+          const subtotalCartoes = personExpenses.reduce((s, e) => s + Number(e.myAmount), 0)
+          const subtotalFixas   = personBills.reduce((s, b) => s + Number(b.myAmount), 0)
+
+          return (
+            <div className="c-dashboard-v2-modal" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setPersonModal(null) }}>
+              <section className="c-dashboard-v2-modal-dialog c-dashboard-v2-modal-dialog--lg" role="dialog" aria-modal="true" aria-label={`Despesas de ${p.name}`}>
+                <header className="c-dashboard-v2-modal-header" style={{ '--person-color': p.color }}>
+                  <div className="c-dashboard-v2-modal-title-row">
+                    <span className="c-dashboard-v2-modal-avatar">{p.name[0]}</span>
+                    <div>
+                      <h2>{p.name}</h2>
+                      <p>Total: <strong>{fmt(p.total)}</strong> · {personExpenses.length} lançamentos · {personBills.length} contas fixas</p>
+                    </div>
+                  </div>
+                  <div className="c-dashboard-v2-modal-actions">
+                    <Button size="sm" icon={<Download />} onClick={() => gerarPDF(p, personExpenses, personBills, monthLabel)}>Baixar PDF</Button>
+                    <IconButton icon={<X />} label="Fechar modal de pessoa" variant="ghost" size="sm" onClick={() => setPersonModal(null)} />
+                  </div>
+                </header>
+                <div className="c-dashboard-v2-modal-body">
+                  {personExpenses.length > 0 && (
+                    <section className="c-dashboard-v2-modal-section">
+                      <div className="c-dashboard-v2-modal-section-head"><strong><CreditCard aria-hidden="true" /> Lançamentos em cartão</strong><span>{fmt(subtotalCartoes)}</span></div>
+                      {personExpenses.map(e => {
+                        const [, mo, da] = (e.date || '').split('-')
+                        return (
+                          <div key={e.id} className="c-dashboard-v2-modal-row">
+                            <span className="c-dashboard-v2-dot" style={{ background: e.card?.color || '#94a3b8' }} />
+                            <span><strong>{e.description}</strong><small>{da && `${da}/${mo}`}{e.card && ` · ${e.card.name}`}</small></span>
+                            <span><strong>{fmt(e.myAmount)}</strong>{Number(e.myAmount) !== Number(e.total_amount) && <small>total {fmt(e.total_amount)}</small>}</span>
+                          </div>
+                        )
+                      })}
+                    </section>
+                  )}
+                  {personBills.length > 0 && (
+                    <section className="c-dashboard-v2-modal-section">
+                      <div className="c-dashboard-v2-modal-section-head"><strong><Home aria-hidden="true" /> Contas fixas</strong><span>{fmt(subtotalFixas)}</span></div>
+                      {personBills.map(b => (
+                        <div key={b.id} className="c-dashboard-v2-modal-row">
+                          <span className="c-dashboard-v2-dot" style={{ background: p.color }} />
+                          <span><strong>{b.bill?.name || '—'}</strong>{b.bill?.due_day && <small>Vence dia {b.bill.due_day}</small>}</span>
+                          <span><strong>{fmt(b.myAmount)}</strong></span>
+                        </div>
+                      ))}
+                    </section>
+                  )}
+                  {personExpenses.length === 0 && personBills.length === 0 && (
+                    <EmptyState compact icon={<FileText />} title="Nenhum lançamento encontrado" description="Não existem despesas para esta pessoa no mês selecionado." />
+                  )}
+                </div>
+                <footer className="c-dashboard-v2-modal-footer" style={{ '--person-color': p.color }}>
+                  <span>Total geral</span>
+                  <strong>{fmt(p.total)}</strong>
+                </footer>
+              </section>
+            </div>
+          )
+        })()}
+
+        {catModal && (() => {
+          const catExpenses = expenses
+            .filter(e => e.category?.name === catModal.name)
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+          const total = catExpenses.reduce((s, e) => s + Number(e.total_amount), 0)
+
+          return (
+            <div className="c-dashboard-v2-modal" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setCatModal(null) }}>
+              <section className="c-dashboard-v2-modal-dialog" role="dialog" aria-modal="true" aria-label={`Lançamentos da categoria ${catModal.name}`}>
+                <header className="c-dashboard-v2-modal-header">
+                  <div className="c-dashboard-v2-modal-title-row">
+                    <span className="c-dashboard-v2-category-mark" style={{ '--category-color': catModal.color }}>{catModal.icon}</span>
+                    <div>
+                      <h2>{catModal.name}</h2>
+                      <p>{catExpenses.length} lançamento{catExpenses.length !== 1 ? 's' : ''} · <strong style={{ color: catModal.color }}>{fmt(total)}</strong></p>
+                    </div>
+                  </div>
+                  <IconButton icon={<X />} label="Fechar modal de categoria" variant="ghost" size="sm" onClick={() => setCatModal(null)} />
+                </header>
+                <div className="c-dashboard-v2-modal-body">
+                  {catExpenses.length === 0 ? (
+                    <EmptyState compact icon={<PieChartIcon />} title="Nenhum lançamento encontrado" description="Não existem despesas nesta categoria para o mês selecionado." />
+                  ) : catExpenses.map(e => {
+                    const [, m, d] = (e.date || '').split('-')
+                    const dateStr = d ? `${d}/${m}` : '—'
+                    return (
+                      <div key={e.id} className="c-dashboard-v2-modal-row">
+                        <span className="c-dashboard-v2-dot" style={{ background: e.card?.color || '#94a3b8' }} />
+                        <span>
+                          <strong>{e.description}</strong>
+                          <small>{dateStr}{e.card && ` · ${e.card.name}`}{e.splits?.length > 0 && ` · ${e.splits.map(s => s.person?.name).filter(Boolean).join(', ')}`}</small>
+                        </span>
+                        <span><strong>{fmt(e.total_amount)}</strong></span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            </div>
+          )
+        })()}
+      </div>
+    )
+  }
 
   return (
     <div>

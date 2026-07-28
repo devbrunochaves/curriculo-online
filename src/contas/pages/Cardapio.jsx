@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import ListaCompras from './ListaCompras'
+import { CalendarDays, ShoppingCart, Utensils } from 'lucide-react'
+import { PageHeader, SectionCard, StatusBadge } from '../components/ui'
 
 // ── Dados do cardápio ────────────────────────────────────────────────────────
 const REFEICOES = [
@@ -146,61 +148,69 @@ export default function Cardapio() {
   const dias = SEMANAS[semana]
 
   return (
-    <div>
-      {/* ── Tabs (sem título externo) ── */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ display: 'flex', gap: 4, background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 10, padding: 3 }}>
-          <button
-            onClick={() => setTab('cardapio')}
-            className={`c-btn c-btn-sm ${tab === 'cardapio' ? 'c-btn-primary' : 'c-btn-secondary'}`}
-            style={{ border: 'none' }}
-          >
-            🥗 Cardápio
-          </button>
-          <button
-            onClick={() => setTab('lista')}
-            className={`c-btn c-btn-sm ${tab === 'lista' ? 'c-btn-primary' : 'c-btn-secondary'}`}
-            style={{ border: 'none' }}
-          >
-            🛒 Lista
-          </button>
-        </div>
+    <div className="c-alimentacao-v2-page">
+      <PageHeader
+        title="Alimentação"
+        eyebrow="Família"
+        description="Planejamento alimentar e compras da família."
+      />
 
-        {/* Seletor de semana — só no cardápio */}
-        {tab === 'cardapio' && ['Semana 1', 'Semana 2'].map((s, i) => (
+      <div className="c-alimentacao-v2-tabs" role="tablist" aria-label="Áreas de alimentação">
           <button
-            key={i}
-            onClick={() => setSemana(i)}
-            className={`c-btn c-btn-sm ${semana === i ? 'c-btn-primary' : 'c-btn-secondary'}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === 'cardapio'}
+            onClick={() => setTab('cardapio')}
+            className={tab === 'cardapio' ? 'is-active' : ''}
           >
-            {s}
+            <Utensils size={16} aria-hidden="true" />
+            Cardápio
           </button>
-        ))}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'lista'}
+            onClick={() => setTab('lista')}
+            className={tab === 'lista' ? 'is-active' : ''}
+          >
+            <ShoppingCart size={16} aria-hidden="true" />
+            Lista de Compras
+          </button>
       </div>
 
+      {/* Seletor de semana — só no cardápio */}
+      {tab === 'cardapio' && (
+        <SectionCard
+          className="c-alimentacao-v2-plan"
+          title="Plano Bianca Calil"
+          description="2 semanas de refeições planejadas para Gabriela e Bruno."
+          actions={(
+            <div className="c-alimentacao-v2-week-toggle" aria-label="Selecionar semana">
+              {['Semana 1', 'Semana 2'].map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSemana(i)}
+                  className={semana === i ? 'is-active' : ''}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+        >
+          <div className="c-alimentacao-v2-people">
+            <StatusBadge tone="success" icon={<Utensils size={14} />}>Gabriela · 1.400 kcal · 62,35 kg</StatusBadge>
+            <StatusBadge tone="accent" icon={<CalendarDays size={14} />}>Bruno · 2.900 kcal · 110 kg</StatusBadge>
+          </div>
+        </SectionCard>
+      )}
+
       {/* ── Aba Lista de Compras ── */}
-      {tab === 'lista' && <ListaCompras />}
+      {tab === 'lista' && <ListaCompras embedded />}
 
       {/* ── Aba Cardápio ── */}
       {tab === 'cardapio' && <>
-
-      {/* Título dentro da aba */}
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-          🥗 Cardápio
-        </h2>
-        <p style={{ margin: '3px 0 0', fontSize: 13, color: 'var(--c-text-muted)' }}>
-          Plano Bianca Calil · 2 semanas
-        </p>
-        <div style={{ display: 'flex', gap: 12, marginTop: 10, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '5px 12px', borderRadius: 99, background: '#fce7f3', color: '#9d174d', fontWeight: 700 }}>
-            🌿 Gabriela · 1.400 kcal · 62,35 kg
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '5px 12px', borderRadius: 99, background: '#dbeafe', color: '#1e40af', fontWeight: 700 }}>
-            💪 Bruno · 2.900 kcal · 110 kg
-          </div>
-        </div>
-      </div>
 
       {/* ── Colunas Trello ── */}
       <div

@@ -1,0 +1,371 @@
+.contas-root .c-pessoas-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+  width: 100%;
+}
+
+.contas-root .c-pessoas-v2-month-nav {
+  align-items: center;
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-full);
+  box-shadow: var(--v2-shadow-xs);
+  display: inline-flex;
+  gap: var(--v2-space-2);
+  min-height: 42px;
+  padding: var(--v2-space-1);
+}
+
+.contas-root .c-pessoas-v2-month-nav span {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  min-width: 132px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.contas-root .c-pessoas-v2-metrics {
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.contas-root .c-pessoas-v2-insights {
+  align-items: stretch;
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.75fr);
+}
+
+.contas-root .c-pessoas-v2-section {
+  min-width: 0;
+}
+
+.contas-root .c-pessoas-v2-chart {
+  min-height: 180px;
+}
+
+.contas-root .c-pessoas-v2-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-pessoas-v2-ranking-row {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--v2-radius-lg);
+  color: var(--v2-color-text);
+  cursor: pointer;
+  display: grid;
+  gap: var(--v2-space-3);
+  grid-template-columns: 28px 36px minmax(0, 1fr) auto;
+  min-height: 54px;
+  padding: var(--v2-space-2);
+  text-align: left;
+  transition: background var(--v2-duration-fast) var(--v2-ease-standard), border-color var(--v2-duration-fast) var(--v2-ease-standard);
+  width: 100%;
+}
+
+.contas-root .c-pessoas-v2-ranking-row:hover,
+.contas-root .c-pessoas-v2-ranking-row.is-active {
+  background: var(--v2-color-surface-muted);
+  border-color: var(--v2-color-border);
+}
+
+.contas-root .c-pessoas-v2-ranking-row:focus-visible,
+.contas-root .c-pessoas-v2-person-card:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-pessoas-v2-rank {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+}
+
+.contas-root .c-pessoas-v2-avatar {
+  align-items: center;
+  background: color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 14%, var(--v2-color-surface));
+  border: 1px solid color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 26%, var(--v2-color-border));
+  border-radius: var(--v2-radius-full);
+  color: var(--person-color, var(--v2-color-accent));
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-bold);
+  height: 36px;
+  justify-content: center;
+  text-transform: uppercase;
+  width: 36px;
+}
+
+.contas-root .c-pessoas-v2-ranking-name {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-pessoas-v2-ranking-row strong,
+.contas-root .c-pessoas-v2-person-card__value,
+.contas-root .c-pessoas-v2-breakdown-row strong,
+.contas-root .c-pessoas-v2-detail-row__side strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.contas-root .c-pessoas-v2-grid {
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.contas-root .c-pessoas-v2-person-card {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  box-shadow: var(--v2-shadow-xs);
+  color: var(--v2-color-text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+  min-width: 0;
+  padding: var(--v2-space-5);
+  text-align: left;
+  transition: border-color var(--v2-duration-fast) var(--v2-ease-standard), box-shadow var(--v2-duration-fast) var(--v2-ease-standard), transform var(--v2-duration-fast) var(--v2-ease-standard);
+  width: 100%;
+}
+
+.contas-root .c-pessoas-v2-person-card:hover,
+.contas-root .c-pessoas-v2-person-card.is-active {
+  border-color: color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 38%, var(--v2-color-border));
+  box-shadow: var(--v2-shadow-md);
+  transform: translateY(-1px);
+}
+
+.contas-root .c-pessoas-v2-person-card.is-active {
+  background: color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 7%, var(--v2-color-surface));
+}
+
+.contas-root .c-pessoas-v2-person-card__top {
+  align-items: center;
+  display: flex;
+  gap: var(--v2-space-3);
+  min-width: 0;
+}
+
+.contas-root .c-pessoas-v2-person-card__name {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-pessoas-v2-person-card__value {
+  color: var(--person-color, var(--v2-color-accent));
+  font-size: var(--v2-font-size-display);
+  font-weight: var(--v2-font-weight-bold);
+  letter-spacing: var(--v2-letter-spacing-display);
+  line-height: var(--v2-line-height-display);
+}
+
+.contas-root .c-pessoas-v2-person-card__meta {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+  line-height: var(--v2-line-height-body);
+  margin: 0;
+}
+
+.contas-root .c-pessoas-v2-card-breakdown {
+  border-top: 1px solid var(--v2-color-border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-2);
+  padding-top: var(--v2-space-3);
+}
+
+.contas-root .c-pessoas-v2-breakdown-row {
+  align-items: center;
+  display: flex;
+  gap: var(--v2-space-3);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.contas-root .c-pessoas-v2-breakdown-row span {
+  align-items: center;
+  color: var(--v2-color-text-muted);
+  display: inline-flex;
+  font-size: var(--v2-font-size-caption);
+  gap: var(--v2-space-2);
+  min-width: 0;
+}
+
+.contas-root .c-pessoas-v2-breakdown-row span i {
+  background: var(--v2-color-success);
+  border-radius: var(--v2-radius-full);
+  flex: 0 0 auto;
+  height: 8px;
+  width: 8px;
+}
+
+.contas-root .c-pessoas-v2-breakdown-row strong {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-bold);
+}
+
+.contas-root .c-pessoas-v2-detail {
+  overflow: visible;
+}
+
+.contas-root .c-pessoas-v2-detail-group + .c-pessoas-v2-detail-group {
+  margin-top: var(--v2-space-6);
+}
+
+.contas-root .c-pessoas-v2-detail-group__title {
+  align-items: center;
+  color: var(--v2-color-text-muted);
+  display: flex;
+  font-size: var(--v2-font-size-label);
+  font-weight: var(--v2-font-weight-bold);
+  gap: var(--v2-space-2);
+  letter-spacing: var(--v2-letter-spacing-label);
+  margin-bottom: var(--v2-space-3);
+  text-transform: uppercase;
+}
+
+.contas-root .c-pessoas-v2-detail-list {
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  overflow: hidden;
+}
+
+.contas-root .c-pessoas-v2-detail-row {
+  align-items: center;
+  background: var(--v2-color-surface);
+  border-bottom: 1px solid var(--v2-color-border-soft);
+  display: grid;
+  gap: var(--v2-space-4);
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: var(--v2-space-4);
+}
+
+.contas-root .c-pessoas-v2-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.contas-root .c-pessoas-v2-detail-row strong,
+.contas-root .c-pessoas-v2-detail-row span {
+  display: block;
+}
+
+.contas-root .c-pessoas-v2-detail-row > div:first-child {
+  min-width: 0;
+}
+
+.contas-root .c-pessoas-v2-detail-row > div:first-child strong {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-pessoas-v2-detail-row > div:first-child span {
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  margin-top: 2px;
+}
+
+.contas-root .c-pessoas-v2-detail-row__side {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-2);
+  text-align: right;
+}
+
+.contas-root .c-pessoas-v2-detail-row__side strong {
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-bold);
+}
+
+@media (max-width: 1180px) {
+  .contas-root .c-pessoas-v2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-root .c-pessoas-v2-insights {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-pessoas-v2-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .contas-root .c-pessoas-v2-month-nav {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .contas-root .c-pessoas-v2-month-nav span {
+    min-width: 0;
+  }
+
+  .contas-root .c-pessoas-v2-grid,
+  .contas-root .c-pessoas-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-pessoas-v2-person-card {
+    padding: var(--v2-space-4);
+  }
+
+  .contas-root .c-pessoas-v2-detail-row {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-pessoas-v2-detail-row__side {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 430px) {
+  .contas-root .c-pessoas-v2-ranking-row {
+    grid-template-columns: 24px 34px minmax(0, 1fr);
+  }
+
+  .contas-root .c-pessoas-v2-ranking-row strong {
+    grid-column: 3;
+  }
+
+  .contas-root .c-pessoas-v2-person-card__value {
+    font-size: var(--v2-font-size-heading-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-pessoas-v2-ranking-row,
+  .contas-root .c-pessoas-v2-person-card {
+    transition: none;
+  }
+}

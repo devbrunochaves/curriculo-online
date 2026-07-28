@@ -4,6 +4,35 @@ import { format, subMonths, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import NovaCompra from './NovaCompra'
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ExternalLink,
+  FileText,
+  Filter,
+  Inbox,
+  Minus,
+  Paperclip,
+  Pencil,
+  Plus,
+  ReceiptText,
+  Search,
+  Trash2,
+  WalletCards,
+  X,
+} from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  SelectField,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 
@@ -20,6 +49,97 @@ function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
 
   const isImage = e.receipt_url && !e.receipt_url.toLowerCase().endsWith('.pdf')
   const isPdf   = e.receipt_url && e.receipt_url.toLowerCase().endsWith('.pdf')
+
+  return (
+    <div className="c-lanc-v2-modal" role="presentation" onMouseDown={ev => { if (ev.target === ev.currentTarget) onClose() }}>
+      <section className="c-lanc-v2-modal-dialog" role="dialog" aria-modal="true" aria-label={`Detalhes de ${e.description}`}>
+        <header className="c-lanc-v2-modal-header">
+          <div className="c-lanc-v2-modal-title">
+            <span className="c-lanc-v2-modal-icon" aria-hidden="true"><ReceiptText /></span>
+            <div>
+              <h2>{e.description}</h2>
+              <p>{format(new Date(e.date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+            </div>
+          </div>
+          <div className="c-lanc-v2-modal-total">
+            <strong>{fmt(e.total_amount)}</strong>
+            {e.is_fixed && <StatusBadge tone="info" size="sm">Fixo</StatusBadge>}
+          </div>
+          <IconButton icon={<X />} label="Fechar detalhes" variant="ghost" size="sm" onClick={onClose} />
+        </header>
+
+        <div className="c-lanc-v2-modal-body">
+          <div className="c-lanc-v2-detail-grid">
+            <div className="c-lanc-v2-detail-box">
+              <span>Cartão</span>
+              {e.card
+                ? <strong style={{ color: e.card.color }}><span className="c-lanc-v2-dot" style={{ background: e.card.color }} />{e.card.name}</strong>
+                : <strong>—</strong>
+              }
+            </div>
+            <div className="c-lanc-v2-detail-box">
+              <span>Categoria</span>
+              {e.category ? <strong>{e.category.icon} {e.category.name}</strong> : <strong>—</strong>}
+            </div>
+          </div>
+
+          {e.splits?.length > 0 && (
+            <section className="c-lanc-v2-detail-section">
+              <h3>Divisão</h3>
+              <div className="c-lanc-v2-splits">
+                {e.splits.map(s => (
+                  <div key={s.id} className="c-lanc-v2-split-row" style={{ '--split-color': s.person.color }}>
+                    <span><span className="c-lanc-v2-dot" style={{ background: s.person.color }} />{s.person.name}</span>
+                    <strong>{fmt(s.amount)}</strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {e.notes && (
+            <section className="c-lanc-v2-detail-section">
+              <h3>Observações</h3>
+              <p className="c-lanc-v2-note">{e.notes}</p>
+            </section>
+          )}
+
+          <section className="c-lanc-v2-detail-section">
+            <h3>Comprovante</h3>
+            {e.receipt_url ? (
+              <>
+                {isImage && (
+                  <a href={e.receipt_url} target="_blank" rel="noopener noreferrer" className="c-lanc-v2-receipt-image">
+                    <img src={e.receipt_url} alt="Comprovante" />
+                    <span>Toque para ver em tamanho completo</span>
+                  </a>
+                )}
+                {isPdf && (
+                  <a href={e.receipt_url} target="_blank" rel="noopener noreferrer" className="c-lanc-v2-receipt-link">
+                    <FileText aria-hidden="true" />
+                    <span><strong>Abrir comprovante PDF</strong><small>Abre em nova aba</small></span>
+                    <ExternalLink aria-hidden="true" />
+                  </a>
+                )}
+              </>
+            ) : (
+              <div className="c-lanc-v2-empty-receipt">
+                <Paperclip aria-hidden="true" />
+                <span>Nenhum comprovante anexado</span>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <footer className="c-lanc-v2-modal-footer">
+          <Button variant="secondary" icon={<Pencil />} onClick={() => { onClose(); onEdit(e.id) }}>Editar</Button>
+          <Button variant="danger" icon={<Trash2 />} onClick={() => onDelete(e.id)} loading={deleting === e.id}>
+            {deleting === e.id ? 'Excluindo...' : 'Excluir'}
+          </Button>
+        </footer>
+      </section>
+    </div>
+  )
 
   return (
     <div className="c-modal-overlay" onClick={onClose}>
@@ -250,6 +370,235 @@ export default function Lancamentos() {
   const lancamentosPessoa = filterPerson
     ? baseParaPessoa.filter(e => e.splits?.some(s => s.person_id === filterPerson)).length
     : 0
+  const reconciledCount = filtered.filter(e => e.reconciled).length
+  const pendingCount = filtered.length - reconciledCount
+  const activeFilters = [filterCard, filterPerson, filterFixed, search].filter(Boolean).length
+
+  return (
+    <div className="c-lanc-v2-page">
+      <PageHeader
+        eyebrow="Financeiro"
+        title="Lançamentos"
+        description={`${filtered.length} registros — ${fmt(total)}`}
+        meta={<StatusBadge tone={allReconciled ? 'success' : someReconciled ? 'warning' : 'neutral'}>{allReconciled ? 'Conciliado' : someReconciled ? 'Parcial' : 'Pendente'}</StatusBadge>}
+        actions={(
+          <div className="c-lanc-v2-header-actions">
+            <div className="c-dashboard-v2-month-nav" aria-label="Navegação mensal">
+              <IconButton icon={<ArrowLeft />} label="Mês anterior" variant="secondary" size="sm" onClick={() => setCurrentDate(d => subMonths(d, 1))} />
+              <span>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
+              <IconButton icon={<ArrowRight />} label="Mês seguinte" variant="secondary" size="sm" onClick={() => setCurrentDate(d => addMonths(d, 1))} />
+            </div>
+            <Button icon={<Plus />} onClick={() => { setEditingId(null); setShowForm(true) }}>Nova compra</Button>
+          </div>
+        )}
+      />
+
+      <section className="c-lanc-v2-metrics" aria-label="Resumo dos lançamentos">
+        <MetricCard label="Total do mês" value={fmt(totalMes)} tone="accent" icon={<WalletCards />} description={`${expenses.length} lançamento${expenses.length !== 1 ? 's' : ''}`} />
+        <MetricCard label="Total filtrado" value={fmt(total)} tone="neutral" icon={<Filter />} description={`${filtered.length} registro${filtered.length !== 1 ? 's' : ''} visível${filtered.length !== 1 ? 'is' : ''}`} />
+        <MetricCard label="Conciliados" value={String(reconciledCount)} tone={reconciledCount ? 'success' : 'neutral'} icon={<Check />} description={`${pendingCount} pendente${pendingCount !== 1 ? 's' : ''}`} />
+        <MetricCard label="Filtros ativos" value={String(activeFilters)} tone={activeFilters ? 'warning' : 'neutral'} icon={<Search />} description="Busca, cartão, pessoa e tipo" />
+      </section>
+
+      {(totalPorCartao.length > 0 || cartaoSelecionado || pessoaSelecionada) && (
+        <section className="c-lanc-v2-context">
+          {!filterCard && totalPorCartao.length > 0 && totalPorCartao.map(c => (
+            <button key={c.id} type="button" className="c-lanc-v2-context-card" onClick={() => setFilterCard(c.id)} style={{ '--context-color': c.color }}>
+              <span><span className="c-lanc-v2-dot" style={{ background: c.color }} />{c.name}</span>
+              <strong>{fmt(c.total)}</strong>
+              <small>{totalMes > 0 ? ((c.total / totalMes) * 100).toFixed(0) : 0}% do total</small>
+            </button>
+          ))}
+
+          {cartaoSelecionado && (
+            <div className="c-lanc-v2-context-card is-selected" style={{ '--context-color': cartaoSelecionado.color }}>
+              <span><span className="c-lanc-v2-dot" style={{ background: cartaoSelecionado.color }} />{cartaoSelecionado.name}</span>
+              <strong>{fmt(totalCartaoSelecionado)}</strong>
+              <small>{expenses.filter(e => e.card_id === filterCard).length} lançamento{expenses.filter(e => e.card_id === filterCard).length !== 1 ? 's' : ''}</small>
+            </div>
+          )}
+
+          {pessoaSelecionada && (
+            <div className="c-lanc-v2-context-card is-selected" style={{ '--context-color': pessoaSelecionada.color }}>
+              <span><span className="c-lanc-v2-dot" style={{ background: pessoaSelecionada.color }} />{pessoaSelecionada.name}{cartaoSelecionado ? ` · ${cartaoSelecionado.name}` : ''}</span>
+              <strong>{fmt(totalPessoa)}</strong>
+              <small>{lancamentosPessoa} lançamento{lancamentosPessoa !== 1 ? 's' : ''}{totalCartaoSelecionado > 0 ? ` · ${((totalPessoa / totalCartaoSelecionado) * 100).toFixed(0)}% do cartão` : ''}</small>
+            </div>
+          )}
+        </section>
+      )}
+
+      <SectionCard title="Filtros" description="Combine os filtros atuais sem alterar a lógica da lista." actions={<StatusBadge tone={activeFilters ? 'warning' : 'neutral'}>{activeFilters} ativo{activeFilters !== 1 ? 's' : ''}</StatusBadge>}>
+        <div className="c-lanc-v2-filter-grid">
+          <label className="c-lanc-v2-field">
+            <span>Buscar</span>
+            <div className="c-lanc-v2-search">
+              <Search aria-hidden="true" />
+              <input type="text" placeholder="Descrição..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+          </label>
+          <SelectField label="Cartão" value={filterCard} onChange={e => setFilterCard(e.target.value)} options={[{ value: '', label: 'Todos' }, ...cards.map(c => ({ value: c.id, label: c.name }))]} />
+          <SelectField label="Pessoa" value={filterPerson} onChange={e => setFilterPerson(e.target.value)} options={[{ value: '', label: 'Todas' }, ...people.map(p => ({ value: p.id, label: p.name }))]} />
+          <SelectField label="Tipo" value={filterFixed} onChange={e => setFilterFixed(e.target.value)} options={[{ value: '', label: 'Todos' }, { value: 'fixed', label: 'Fixos' }, { value: 'variable', label: 'Variáveis' }]} />
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Lista de lançamentos"
+        description={loading ? 'Carregando dados reais do mês selecionado.' : `${filtered.length} lançamento${filtered.length !== 1 ? 's' : ''} na visualização atual.`}
+        actions={!loading && filtered.length > 0 ? (
+          <Button variant="secondary" size="sm" icon={allReconciled ? <Minus /> : <Check />} onClick={toggleAll}>
+            {allReconciled ? 'Desmarcar todos' : someReconciled ? 'Conciliação parcial' : 'Conciliar todos'}
+          </Button>
+        ) : null}
+      >
+        {loading ? (
+          <div className="c-lanc-v2-loading">
+            {[0, 1, 2, 3, 4].map(item => <Skeleton key={item} variant="table-row" />)}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<Inbox />}
+            title="Nenhum lançamento encontrado"
+            description="Tente ajustar os filtros ou adicione uma nova compra."
+            action={<Button icon={<Plus />} onClick={() => { setEditingId(null); setShowForm(true) }}>Nova compra</Button>}
+          />
+        ) : (
+          <>
+            <div className="c-lanc-v2-table-wrap">
+              <table className="c-lanc-v2-table">
+                <thead>
+                  <tr>
+                    <th className="is-check">
+                      <button className={`c-lanc-v2-check ${allReconciled ? 'is-checked' : someReconciled ? 'is-partial' : ''}`} onClick={toggleAll} title={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'} aria-label={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'}>
+                        {allReconciled ? <Check /> : someReconciled ? <Minus /> : null}
+                      </button>
+                    </th>
+                    <th>Data</th>
+                    <th>Lançamento</th>
+                    <th>Cartão</th>
+                    <th>Categoria</th>
+                    <th>Pessoas</th>
+                    <th className="is-money">Total</th>
+                    <th className="is-actions">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(e => (
+                    <tr key={e.id} onClick={() => setSelected(e)} className={e.reconciled ? 'is-reconciled' : ''}>
+                      <td onClick={ev => ev.stopPropagation()} className="is-check">
+                        <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={() => toggleReconciled(e.id, e.reconciled)} title={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} aria-label={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
+                          {e.reconciled ? <Check /> : null}
+                        </button>
+                      </td>
+                      <td className="c-lanc-v2-date">{format(new Date(e.date + 'T12:00:00'), 'dd/MM/yy')}</td>
+                      <td>
+                        <div className="c-lanc-v2-title-cell">
+                          <strong>{e.description}</strong>
+                          {e.notes && <small>{e.notes}</small>}
+                          <span>
+                            {e.is_fixed && <StatusBadge tone="info" size="sm">Fixo</StatusBadge>}
+                            {e.receipt_url && <StatusBadge tone="success" size="sm" icon={<Paperclip />}>Comprovante</StatusBadge>}
+                            {e.reconciled && <StatusBadge tone="success" size="sm">Conciliado</StatusBadge>}
+                          </span>
+                        </div>
+                      </td>
+                      <td>{e.card && <span className="c-lanc-v2-pill" style={{ '--pill-color': e.card.color }}>{e.card.name}</span>}</td>
+                      <td>{e.category && <span className="c-lanc-v2-category">{e.category.icon} {e.category.name}</span>}</td>
+                      <td>
+                        <div className="c-lanc-v2-split-pills">
+                          {e.splits?.map(s => (
+                            <span key={s.id} className="c-lanc-v2-pill" style={{ '--pill-color': s.person.color }}>{s.person.name} {fmt(s.amount)}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="is-money">{fmt(e.total_amount)}</td>
+                      <td onClick={ev => ev.stopPropagation()} className="is-actions">
+                        <IconButton icon={<Pencil />} label={`Editar ${e.description}`} variant="secondary" size="sm" onClick={() => { setEditingId(e.id); setShowForm(true) }} />
+                        <IconButton icon={<Trash2 />} label={`Excluir ${e.description}`} variant="danger" size="sm" onClick={() => handleDelete(e.id)} disabled={deleting === e.id} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="c-lanc-v2-mobile-list">
+              {filtered.map(e => (
+                <article
+                  key={e.id}
+                  className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelected(e)}
+                  onKeyDown={ev => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                      ev.preventDefault()
+                      setSelected(e)
+                    }
+                  }}
+                >
+                  <div className="c-lanc-v2-mobile-top">
+                    <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={ev => { ev.stopPropagation(); toggleReconciled(e.id, e.reconciled) }} aria-label={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
+                      {e.reconciled ? <Check /> : null}
+                    </button>
+                    <div>
+                      <strong>{e.description}</strong>
+                      <small>{format(new Date(e.date + 'T12:00:00'), 'dd/MM/yyyy')}{e.card?.name ? ` · ${e.card.name}` : ''}</small>
+                    </div>
+                    <span>{fmt(e.total_amount)}</span>
+                  </div>
+                  <div className="c-lanc-v2-mobile-meta">
+                    {e.is_fixed && <StatusBadge tone="info" size="sm">Fixo</StatusBadge>}
+                    {e.category && <span>{e.category.icon} {e.category.name}</span>}
+                    {e.receipt_url && (
+                      <a
+                        href={e.receipt_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="c-lanc-v2-mobile-receipt"
+                        onClick={ev => ev.stopPropagation()}
+                      >
+                        <StatusBadge tone="success" size="sm" icon={<Paperclip />}>Comprovante</StatusBadge>
+                      </a>
+                    )}
+                  </div>
+                  {e.splits?.length > 0 && (
+                    <div className="c-lanc-v2-split-pills">
+                      {e.splits.map(s => <span key={s.id} className="c-lanc-v2-pill" style={{ '--pill-color': s.person.color }}>{s.person.name} {fmt(s.amount)}</span>)}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </>
+        )}
+      </SectionCard>
+
+      {showForm && (
+        <div className="c-lanc-v2-modal" role="presentation" onMouseDown={ev => { if (ev.target === ev.currentTarget) setShowForm(false) }}>
+          <section className="c-lanc-v2-modal-dialog c-lanc-v2-form-dialog" role="dialog" aria-modal="true" aria-label={editingId ? 'Editar lançamento' : 'Nova compra'}>
+            <IconButton className="c-lanc-v2-form-close" icon={<X />} label="Fechar formulário" variant="ghost" size="sm" onClick={() => setShowForm(false)} />
+            <NovaCompra
+              editId={editingId}
+              onSuccess={() => { setShowForm(false); load() }}
+              onCancel={() => setShowForm(false)}
+            />
+          </section>
+        </div>
+      )}
+
+      {selected && (
+        <ExpenseModal
+          expense={selected}
+          onClose={() => setSelected(null)}
+          onEdit={id => { setSelected(null); setEditingId(id); setShowForm(true) }}
+          onDelete={handleDelete}
+          deleting={deleting}
+        />
+      )}
+    </div>
+  )
 
   return (
     <div>

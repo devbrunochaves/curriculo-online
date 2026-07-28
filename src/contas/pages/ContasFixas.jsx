@@ -2,6 +2,36 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, addMonths, subMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  Check,
+  CircleDollarSign,
+  Clock3,
+  FileText,
+  Home,
+  Layers3,
+  Pencil,
+  Plus,
+  ReceiptText,
+  Settings,
+  Trash2,
+  UsersRound,
+  X,
+} from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  FormField,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt      = v => v != null ? Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
@@ -64,6 +94,148 @@ function BillModal({ open, onClose, onSave, people, categories, initialData, ini
     catch (e) { setError(e.message); setSaving(false); return }
     setSaving(false)
   }
+
+  return (
+    <div
+      className="c-fixas-v2-modal-backdrop"
+      onClick={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <section className="c-fixas-v2-modal" role="dialog" aria-modal="true" aria-labelledby="fixas-modal-title">
+        <header className="c-fixas-v2-modal__header">
+          <div>
+            <p className="c-fixas-v2-modal__eyebrow">{showSplits ? 'Nova recorrencia' : 'Template recorrente'}</p>
+            <h2 id="fixas-modal-title" className="c-fixas-v2-modal__title">{title || 'Nova Conta Fixa'}</h2>
+          </div>
+          <IconButton icon={<X size={18} />} label="Fechar modal" variant="ghost" size="sm" onClick={onClose} />
+        </header>
+
+        <div className="c-fixas-v2-modal__body">
+          {error && (
+            <div className="c-fixas-v2-alert c-fixas-v2-alert--danger">
+              <AlertTriangle size={16} />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <SectionCard title="Dados da conta" description="Defina a recorrencia, vencimento e categoria." padding="sm" className="c-fixas-v2-modal-card">
+            <div className="c-fixas-v2-form-grid c-fixas-v2-form-grid--2">
+              <FormField label="Nome" required>
+                <input type="text" className="c-v2-input" placeholder="Ex: Condominio" value={form.name} onChange={e => set('name', e.target.value)} autoFocus />
+              </FormField>
+              <FormField label="Valor padrao" help="Deixe vazio para contas de valor variavel.">
+                <input type="text" className="c-v2-input" placeholder="0,00" value={form.default_amount} onChange={e => set('default_amount', e.target.value)} />
+              </FormField>
+              <FormField label="Dia do vencimento">
+                <input type="number" className="c-v2-input" placeholder="Ex: 10" min={1} max={31} value={form.due_day} onChange={e => set('due_day', e.target.value)} />
+              </FormField>
+              <FormField label="Categoria">
+                <select className="c-v2-input c-v2-select" value={form.category_id} onChange={e => set('category_id', e.target.value)}>
+                  <option value="">Sem categoria</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                </select>
+              </FormField>
+            </div>
+
+            <FormField label="Observacoes" className="c-fixas-v2-field-spaced">
+              <input type="text" className="c-v2-input" placeholder="Opcional" value={form.notes || ''} onChange={e => set('notes', e.target.value)} />
+            </FormField>
+          </SectionCard>
+
+          <SectionCard title="Parcelamento" description="Use quando a conta fixa possui fim previsto." padding="sm" className="c-fixas-v2-modal-card">
+            <label className={`c-fixas-v2-toggle-card ${form.total_installments ? 'is-active' : ''}`} htmlFor="modalIsInstV2">
+              <input
+                type="checkbox"
+                id="modalIsInstV2"
+                checked={!!form.total_installments}
+                onChange={e => {
+                  set('total_installments', e.target.checked ? '12' : '')
+                  if (e.target.checked) set('start_month', format(new Date(), 'yyyy-MM'))
+                  else set('start_month', '')
+                }}
+              />
+              <span className="c-fixas-v2-toggle-card__icon"><Layers3 size={18} /></span>
+              <span>
+                <strong>Conta parcelada</strong>
+                <small>{form.total_installments ? 'Parcelas configuradas para a recorrencia.' : 'Ative para controlar numero e inicio.'}</small>
+              </span>
+            </label>
+
+            {!!form.total_installments && (
+              <div className="c-fixas-v2-form-grid c-fixas-v2-form-grid--2 c-fixas-v2-field-spaced">
+                <FormField label="Total de parcelas">
+                  <div className="c-fixas-v2-stepper">
+                    <button type="button" onClick={() => set('total_installments', String(Math.max(2, Number(form.total_installments) - 1)))} aria-label="Reduzir parcelas">-</button>
+                    <input type="number" min={2} className="c-v2-input" value={form.total_installments} onChange={e => set('total_installments', e.target.value)} />
+                    <button type="button" onClick={() => set('total_installments', String(Number(form.total_installments) + 1))} aria-label="Aumentar parcelas">+</button>
+                  </div>
+                </FormField>
+                <FormField label="Mes da primeira parcela">
+                  <input type="month" className="c-v2-input" value={form.start_month || ''} onChange={e => set('start_month', e.target.value)} />
+                </FormField>
+              </div>
+            )}
+          </SectionCard>
+
+          {showSplits && people.length > 0 && (
+            <SectionCard
+              title="Divisao entre pessoas"
+              description="A soma deve fechar com o valor padrao quando houver divisao."
+              padding="sm"
+              className="c-fixas-v2-modal-card"
+              actions={Object.keys(splits).length > 0 && (
+                <StatusBadge tone={Math.abs(diff) < 0.01 ? 'success' : 'danger'} size="sm">
+                  {Math.abs(diff) < 0.01 ? 'Conferido' : `Falta ${fmt(diff)}`}
+                </StatusBadge>
+              )}
+            >
+              <div className="c-fixas-v2-split-actions">
+                <Button variant="secondary" size="sm" onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setSplits(n) }}>Todos</Button>
+                <Button variant="secondary" size="sm" onClick={() => setSplits({})}>Limpar</Button>
+                {Object.keys(splits).length > 0 && editAmt > 0 && (
+                  <Button variant="secondary" size="sm" onClick={splitEqually}>Dividir igualmente</Button>
+                )}
+              </div>
+
+              <div className="c-fixas-v2-people-list">
+                {people.map(person => {
+                  const isSel = splits[person.id] !== undefined
+                  return (
+                    <div
+                      key={person.id}
+                      className={`c-fixas-v2-person-row ${isSel ? 'is-selected' : ''}`}
+                      style={{ '--person-color': person.color }}
+                      onClick={() => togglePerson(person.id)}
+                    >
+                      <span className="c-fixas-v2-person-check" aria-hidden="true">{isSel && <Check size={13} />}</span>
+                      <span className="c-fixas-v2-person-dot" />
+                      <span className="c-fixas-v2-person-name">{person.name}</span>
+                      {isSel && (
+                        <input
+                          type="text"
+                          className="c-v2-input c-fixas-v2-split-input"
+                          placeholder="0,00"
+                          value={splits[person.id]}
+                          onClick={e => e.stopPropagation()}
+                          onChange={e => setSplits(prev => ({ ...prev, [person.id]: e.target.value }))}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </SectionCard>
+          )}
+        </div>
+
+        <footer className="c-fixas-v2-modal__footer">
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button variant="primary" loading={saving} onClick={handleSave} icon={<Check size={16} />}>
+            Salvar
+          </Button>
+        </footer>
+      </section>
+    </div>
+  )
 
   return (
     <div
@@ -422,7 +594,311 @@ export default function ContasFixas() {
     return Object.values(map)
   }, [entries, people])
 
+  const installmentEntries = entries.filter(entry => {
+    const current = getInstallmentNumber(entry.bill?.start_month, currentMonth)
+    return current && entry.bill?.total_installments
+  })
+
   // ── Render ─────────────────────────────────────────────────────────────────
+  return (
+    <div className="c-fixas-v2-page">
+      <BillModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSave={handleAddBill}
+        people={people}
+        categories={categories}
+        title="Nova Conta Fixa"
+        showSplits
+      />
+
+      <BillModal
+        open={!!editModalBill}
+        onClose={() => setEditModalBill(null)}
+        onSave={handleEditBill}
+        people={people}
+        categories={categories}
+        initialData={editModalBill ? {
+          name:               editModalBill.name,
+          default_amount:     editModalBill.default_amount != null ? String(editModalBill.default_amount).replace('.', ',') : '',
+          due_day:            editModalBill.due_day != null ? String(editModalBill.due_day) : '',
+          category_id:        editModalBill.category_id || '',
+          person_id:          editModalBill.person_id || '',
+          total_installments: editModalBill.total_installments != null ? String(editModalBill.total_installments) : '',
+          start_month:        editModalBill.start_month || '',
+          notes:              editModalBill.notes || '',
+        } : null}
+        title="Editar Conta Fixa"
+        showSplits={false}
+      />
+
+      {confirmDelete && (
+        <div
+          className="c-fixas-v2-modal-backdrop c-fixas-v2-modal-backdrop--confirm"
+          onClick={e => { if (e.target === e.currentTarget) setConfirmDelete(null) }}
+        >
+          <section className="c-fixas-v2-confirm" role="dialog" aria-modal="true" aria-labelledby="fixas-delete-title">
+            <div className="c-fixas-v2-confirm__icon">
+              <Trash2 size={22} />
+            </div>
+            <h2 id="fixas-delete-title">Excluir "{confirmDelete.name}"?</h2>
+            <p>Isso vai remover a conta fixa e todos os lancamentos vinculados. Nao pode ser desfeito.</p>
+            <div className="c-fixas-v2-confirm__actions">
+              <Button variant="secondary" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+              <Button variant="danger" onClick={() => deleteBill(confirmDelete)} icon={<Trash2 size={16} />}>
+                Sim, excluir
+              </Button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      <PageHeader
+        eyebrow="Financeiro"
+        title="Contas Fixas"
+        description="Despesas recorrentes fora do cartao de credito, com divisao mensal e controle por pessoa."
+        meta={<StatusBadge tone="accent" icon={<CalendarDays size={14} />}>{monthLabelCap}</StatusBadge>}
+        actions={(
+          <div className="c-fixas-v2-header-actions">
+            <div className="c-fixas-v2-month-nav" aria-label="Navegacao mensal">
+              <IconButton icon={<ArrowLeft size={17} />} label="Mes anterior" variant="secondary" size="sm" onClick={() => setMonthDate(d => subMonths(d, 1))} />
+              <span>{monthLabelCap}</span>
+              <IconButton icon={<ArrowRight size={17} />} label="Proximo mes" variant="secondary" size="sm" onClick={() => setMonthDate(d => addMonths(d, 1))} />
+            </div>
+            <Button icon={<Plus size={16} />} onClick={() => setShowAddModal(true)}>
+              Nova conta fixa
+            </Button>
+          </div>
+        )}
+      />
+
+      <div className="c-fixas-v2-metrics">
+        <MetricCard
+          label="Total do mes"
+          value={loading ? <Skeleton variant="text" width="120px" /> : fmt(total)}
+          description={loading ? 'Carregando recorrencias' : `${entries.length} conta${entries.length !== 1 ? 's' : ''} no mes`}
+          tone="accent"
+          icon={<CircleDollarSign size={18} />}
+        />
+        <MetricCard
+          label="Pessoas"
+          value={loading ? <Skeleton variant="text" width="64px" /> : totalByPerson.length}
+          description="Com valor atribuido por split ou responsavel"
+          tone="neutral"
+          icon={<UsersRound size={18} />}
+        />
+        <MetricCard
+          label="Parcelas ativas"
+          value={loading ? <Skeleton variant="text" width="64px" /> : installmentEntries.length}
+          description="Recorrencias com numero de parcelas"
+          tone="warning"
+          icon={<Layers3 size={18} />}
+        />
+        <MetricCard
+          label="Referencia"
+          value={monthLabelCap}
+          description={currentMonth}
+          tone="neutral"
+          icon={<Clock3 size={18} />}
+        />
+      </div>
+
+      {!loading && totalByPerson.length > 0 && (
+        <SectionCard
+          title="Total por pessoa"
+          description="Valores calculados pela divisao mensal ou pelo responsavel da conta."
+          className="c-fixas-v2-section"
+        >
+          <div className="c-fixas-v2-person-summary">
+            {totalByPerson.map(person => (
+              <article key={person.name} className="c-fixas-v2-person-card" style={{ '--person-color': person.color }}>
+                <span className="c-fixas-v2-person-card__dot" />
+                <div>
+                  <strong>{person.name}</strong>
+                  <span>{fmt(person.total)}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      )}
+
+      <SectionCard
+        title="Lancamentos recorrentes"
+        description="Ocorrencias geradas para o mes selecionado."
+        actions={!loading && entries.length > 0 && <StatusBadge tone="info">{entries.length} registros</StatusBadge>}
+        className="c-fixas-v2-section"
+      >
+        {loading ? (
+          <div className="c-fixas-v2-loading">
+            <Skeleton variant="card" height="96px" />
+            <Skeleton variant="card" height="96px" />
+            <Skeleton variant="card" height="96px" />
+          </div>
+        ) : entries.length === 0 ? (
+          <EmptyState
+            icon={<ReceiptText size={28} />}
+            title="Nenhuma conta fixa cadastrada"
+            description="Crie a primeira recorrencia para este mes."
+            action={<Button size="sm" icon={<Plus size={15} />} onClick={() => setShowAddModal(true)}>Adicionar primeira conta</Button>}
+          />
+        ) : (
+          <div className="c-fixas-v2-list">
+            {entries.map(entry => {
+              const isEditing  = editingId === entry.id
+              const editAmt    = parseBRL(editAmount)
+              const splitTotal = Object.values(editSplits).reduce((s, v) => s + parseBRL(v), 0)
+              const diff       = editAmt - splitTotal
+              const cat        = categories.find(c => c.id === entry.bill?.category_id)
+              const installmentNumber = getInstallmentNumber(entry.bill?.start_month, currentMonth)
+              const totalInstallments = entry.bill?.total_installments
+              const remainingInstallments = totalInstallments && installmentNumber ? totalInstallments - installmentNumber : null
+
+              return (
+                <article key={entry.id} className={`c-fixas-v2-bill ${isEditing ? 'is-editing' : ''}`}>
+                  {!isEditing ? (
+                    <>
+                      <div className="c-fixas-v2-bill__main">
+                        <div className="c-fixas-v2-bill__icon">
+                          <Home size={18} />
+                        </div>
+                        <div className="c-fixas-v2-bill__content">
+                          <div className="c-fixas-v2-bill__title-row">
+                            <h3>{entry.bill?.name}</h3>
+                            {entry.bill?.default_amount === null && <StatusBadge tone="warning" size="sm">Variavel</StatusBadge>}
+                          </div>
+                          <div className="c-fixas-v2-bill__meta">
+                            {cat && (
+                              <span>
+                                <FileText size={13} />
+                                {cat.icon} {cat.name}
+                              </span>
+                            )}
+                            {entry.bill?.due_day && (
+                              <span>
+                                <CalendarDays size={13} />
+                                Vence dia {entry.bill.due_day}
+                              </span>
+                            )}
+                            {installmentNumber && totalInstallments && (
+                              <span>
+                                <Layers3 size={13} />
+                                {installmentNumber}/{totalInstallments}x{remainingInstallments >= 0 ? ` - ${remainingInstallments} restantes` : ''}
+                              </span>
+                            )}
+                          </div>
+
+                          {entry.splits?.length > 0 ? (
+                            <div className="c-fixas-v2-split-chips">
+                              {entry.splits.map(split => (
+                                <span key={split.id} className="c-fixas-v2-split-chip" style={{ '--person-color': split.person?.color }}>
+                                  {split.person?.name} - {fmt(split.amount)}
+                                </span>
+                              ))}
+                            </div>
+                          ) : entry.bill?.person_id ? (() => {
+                            const responsible = people.find(p => p.id === entry.bill.person_id)
+                            return responsible ? (
+                              <div className="c-fixas-v2-split-chips">
+                                <span className="c-fixas-v2-split-chip" style={{ '--person-color': responsible.color }}>
+                                  {responsible.name}
+                                </span>
+                              </div>
+                            ) : null
+                          })() : null}
+                        </div>
+                      </div>
+
+                      <div className="c-fixas-v2-bill__side">
+                        <strong>{fmt(entry.amount)}</strong>
+                        <div className="c-fixas-v2-bill__actions">
+                          <IconButton icon={<Pencil size={15} />} label="Editar valor e divisao deste mes" variant="secondary" size="sm" onClick={() => startEdit(entry)} />
+                          <IconButton icon={<Settings size={15} />} label="Editar dados da conta fixa" variant="secondary" size="sm" onClick={() => setEditModalBill(entry.bill)} />
+                          <IconButton icon={<Trash2 size={15} />} label="Excluir conta fixa" variant="danger" size="sm" onClick={() => setConfirmDelete(entry.bill)} />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="c-fixas-v2-edit">
+                      <div className="c-fixas-v2-edit__header">
+                        <div>
+                          <p>Edicao mensal</p>
+                          <h3>{entry.bill?.name}</h3>
+                        </div>
+                        <StatusBadge tone="info">Altera somente {monthLabelCap}</StatusBadge>
+                      </div>
+
+                      <FormField label="Valor do mes">
+                        <input
+                          type="text"
+                          className="c-v2-input c-fixas-v2-edit-amount"
+                          value={editAmount}
+                          onChange={e => setEditAmount(e.target.value)}
+                          placeholder="0,00"
+                          autoFocus
+                        />
+                      </FormField>
+
+                      <div className="c-fixas-v2-edit-splits">
+                        <div className="c-fixas-v2-edit-splits__top">
+                          <div>
+                            <h4>Divisao entre pessoas</h4>
+                            <p>Total dividido: {fmt(splitTotal)}</p>
+                          </div>
+                          <div className="c-fixas-v2-split-actions">
+                            <Button variant="secondary" size="sm" onClick={() => { const n = {}; people.forEach(p => { n[p.id] = '' }); setEditSplits(n) }}>Todos</Button>
+                            <Button variant="secondary" size="sm" onClick={() => setEditSplits({})}>Limpar</Button>
+                            {Object.keys(editSplits).length > 0 && editAmt > 0 && (
+                              <Button variant="secondary" size="sm" onClick={() => splitEqually(editAmt)}>Dividir igualmente</Button>
+                            )}
+                            {Object.keys(editSplits).length > 0 && (
+                              <StatusBadge tone={Math.abs(diff) < 0.01 ? 'success' : 'danger'} size="sm">
+                                {Math.abs(diff) < 0.01 ? 'Conferido' : `Falta ${fmt(diff)}`}
+                              </StatusBadge>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="c-fixas-v2-people-list">
+                          {people.map(person => {
+                            const isSel = editSplits[person.id] !== undefined
+                            return (
+                              <div key={person.id} className={`c-fixas-v2-person-row ${isSel ? 'is-selected' : ''}`} style={{ '--person-color': person.color }}>
+                                <input type="checkbox" checked={isSel} onChange={() => togglePersonEdit(person.id)} aria-label={`Selecionar ${person.name}`} />
+                                <span className="c-fixas-v2-person-dot" />
+                                <span className="c-fixas-v2-person-name">{person.name}</span>
+                                {isSel && (
+                                  <input
+                                    type="text"
+                                    className="c-v2-input c-fixas-v2-split-input"
+                                    placeholder="0,00"
+                                    value={editSplits[person.id]}
+                                    onChange={e => setEditSplits(prev => ({ ...prev, [person.id]: e.target.value }))}
+                                  />
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="c-fixas-v2-edit__actions">
+                        <Button variant="primary" size="sm" disabled={saving || editAmt <= 0} loading={saving} onClick={() => saveEntry(entry.id)} icon={<Check size={15} />}>
+                          Salvar mes
+                        </Button>
+                        <Button variant="secondary" size="sm" onClick={cancelEdit}>Cancelar</Button>
+                      </div>
+                    </div>
+                  )}
+                </article>
+              )
+            })}
+          </div>
+        )}
+      </SectionCard>
+    </div>
+  )
+
   return (
     <div style={{ maxWidth: 720 }}>
 

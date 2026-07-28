@@ -1,0 +1,318 @@
+.contas-root .c-config-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+}
+
+.contas-root .c-config-v2-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: var(--v2-space-2);
+  padding-bottom: var(--v2-space-1);
+  scrollbar-width: none;
+}
+
+.contas-root .c-config-v2-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.contas-root .c-config-v2-tabs button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: var(--v2-space-2);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-full);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: 0 var(--v2-space-4);
+  transition:
+    background var(--v2-duration-fast) var(--v2-ease-standard),
+    border-color var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard),
+    color var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-config-v2-tabs button:hover {
+  border-color: var(--v2-color-border-strong);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-config-v2-tabs button.is-active {
+  border-color: var(--v2-color-accent);
+  background: var(--v2-color-accent-subtle);
+  color: var(--v2-color-accent);
+}
+
+.contas-root .c-config-v2-tabs button:focus-visible,
+.contas-root .c-config-v2-colors button:focus-visible,
+.contas-root .c-config-v2-icons button:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-config-v2-section {
+  max-width: 720px;
+}
+
+.contas-root .c-config-v2-profile {
+  max-width: 620px;
+}
+
+.contas-root .c-config-v2-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-5);
+}
+
+.contas-root .c-config-v2-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-config-v2-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-config-v2-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-config-v2-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-config-v2-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-config-v2-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--v2-space-3);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-config-v2-item.is-muted {
+  opacity: 0.62;
+}
+
+.contas-root .c-config-v2-item-main {
+  min-width: 0;
+}
+
+.contas-root .c-config-v2-item-main strong {
+  display: block;
+  overflow: hidden;
+  color: var(--v2-color-text);
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-config-v2-item-main span {
+  display: block;
+  overflow: hidden;
+  margin-top: var(--v2-space-1);
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-body-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-config-v2-item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-config-v2-avatar {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--v2-radius-lg);
+  background: var(--item-color, var(--v2-color-accent));
+  color: var(--v2-color-text-inverse);
+  flex-shrink: 0;
+}
+
+.contas-root .c-config-v2-avatar.is-success {
+  background: var(--v2-color-success-soft);
+  color: var(--v2-color-success-text);
+}
+
+.contas-root .c-config-v2-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--v2-radius-full);
+  box-shadow: inset 0 0 0 1px rgba(15, 18, 25, 0.1);
+  flex-shrink: 0;
+}
+
+.contas-root .c-config-v2-colors,
+.contas-root .c-config-v2-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-config-v2-colors button {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--v2-color-surface);
+  border-radius: var(--v2-radius-full);
+  box-shadow: 0 0 0 1px var(--v2-color-border);
+  cursor: pointer;
+}
+
+.contas-root .c-config-v2-colors button.is-active {
+  box-shadow: 0 0 0 3px var(--v2-color-accent-soft);
+}
+
+.contas-root .c-config-v2-icons button {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.contas-root .c-config-v2-icons button.is-active {
+  border-color: var(--v2-color-accent);
+  background: var(--v2-color-accent-subtle);
+}
+
+.contas-root .c-config-v2-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-config-v2-category {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--v2-space-3);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  padding: var(--v2-space-3);
+}
+
+.contas-root .c-config-v2-category-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.contas-root .c-config-v2-category strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contas-root .c-config-v2-income-actions {
+  display: flex;
+  align-items: end;
+  gap: var(--v2-space-3);
+  flex-wrap: wrap;
+}
+
+.contas-root .c-config-v2-income-actions .c-v2-form-field {
+  min-width: 170px;
+}
+
+.contas-root .c-config-v2-income-form {
+  margin-bottom: var(--v2-space-4);
+  border-bottom: 1px solid var(--v2-color-border);
+  padding-bottom: var(--v2-space-4);
+}
+
+.contas-root .c-config-v2-money {
+  color: var(--v2-color-success-text);
+  font-size: var(--v2-font-size-body);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .contas-root .c-config-v2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .contas-root .c-config-v2-page {
+    gap: var(--v2-space-4);
+    padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .contas-root .c-config-v2-grid,
+  .contas-root .c-config-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-config-v2-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .contas-root .c-config-v2-item-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .contas-root .c-config-v2-category-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-config-v2-income-actions,
+  .contas-root .c-config-v2-income-actions .c-v2-form-field,
+  .contas-root .c-config-v2-income-actions .c-v2-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .contas-root .c-config-v2-tabs button {
+    padding: 0 var(--v2-space-3);
+  }
+
+  .contas-root .c-config-v2-item-actions .c-v2-status-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-config-v2-tabs button {
+    transition: none;
+  }
+}

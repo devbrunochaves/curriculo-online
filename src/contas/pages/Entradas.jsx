@@ -2,6 +2,29 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, subMonths, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarDays,
+  CircleDollarSign,
+  LineChart,
+  Plus,
+  ReceiptText,
+  Trash2,
+  TrendingUp,
+  WalletCards,
+} from 'lucide-react'
+import {
+  Button,
+  EmptyState,
+  FormField,
+  IconButton,
+  MetricCard,
+  PageHeader,
+  SectionCard,
+  Skeleton,
+  StatusBadge,
+} from '../components/ui'
 
 const fmt  = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const fmtK = v => v >= 1000 ? `R$ ${(v / 1000).toFixed(1)}k` : fmt(v)
@@ -193,6 +216,210 @@ export default function Entradas() {
   const variation      = prevTotal > 0 ? ((total - prevTotal) / prevTotal) * 100 : null
   const accumulated    = chartData.reduce((s, d) => s + d.total, 0)
   const monthsWithData = Math.max(chartData.filter(d => d.total > 0).length, 1)
+
+  return (
+    <div className="c-entradas-v2-page">
+      <PageHeader
+        eyebrow="Receitas"
+        title="Entradas"
+        description="Recebimentos do mes, historico recente e registro rapido de novas receitas."
+        meta={<StatusBadge tone="success" icon={<CalendarDays size={14} />}>{format(currentDate, 'MMMM yyyy', { locale: ptBR })}</StatusBadge>}
+        actions={(
+          <div className="c-entradas-v2-header-actions">
+            <div className="c-entradas-v2-month-nav" aria-label="Navegacao mensal">
+              <IconButton icon={<ArrowLeft size={17} />} label="Mes anterior" variant="secondary" size="sm" onClick={() => setCurrentDate(d => subMonths(d, 1))} />
+              <span>{format(currentDate, 'MMM yyyy', { locale: ptBR })}</span>
+              <IconButton icon={<ArrowRight size={17} />} label="Proximo mes" variant="secondary" size="sm" onClick={() => setCurrentDate(d => addMonths(d, 1))} />
+            </div>
+            <Button
+              variant="primary"
+              icon={<Plus size={16} />}
+              onClick={() => descRef.current?.focus()}
+            >
+              Nova Entrada
+            </Button>
+          </div>
+        )}
+      />
+
+      <div className="c-entradas-v2-metrics">
+        <MetricCard
+          label="Este mes"
+          value={loading ? <Skeleton variant="text" width="132px" /> : fmt(total)}
+          description={loading ? 'Carregando receitas' : `${entries.length} recebimento${entries.length !== 1 ? 's' : ''}`}
+          tone="success"
+          icon={<CircleDollarSign size={18} />}
+        />
+        <MetricCard
+          label="Mes anterior"
+          value={fmt(prevTotal)}
+          description={variation === null ? 'Sem registro anterior' : `${variation >= 0 ? '+' : '-'}${Math.abs(variation).toFixed(1)}% vs mes anterior`}
+          tone={variation === null ? 'neutral' : variation >= 0 ? 'success' : 'danger'}
+          icon={<TrendingUp size={18} />}
+        />
+        <MetricCard
+          label="Acumulado 7 meses"
+          value={fmt(accumulated)}
+          description={`Media mensal ${fmt(accumulated / monthsWithData)}`}
+          tone="neutral"
+          icon={<LineChart size={18} />}
+        />
+      </div>
+
+      <div className="c-entradas-v2-grid">
+        <SectionCard
+          title="Evolucao"
+          description="Receita mensal dos ultimos sete meses."
+          actions={<StatusBadge tone="success">Receita mensal</StatusBadge>}
+          className="c-entradas-v2-chart-card"
+        >
+          <canvas ref={canvasRef} className="c-entradas-v2-chart" />
+        </SectionCard>
+
+        <SectionCard
+          title="Nova entrada"
+          description="Registro rapido para o mes selecionado."
+          className="c-entradas-v2-form-card"
+        >
+          <div className="c-entradas-v2-form">
+            <FormField label="Descricao / Cliente">
+              <input
+                ref={descRef}
+                type="text"
+                className="c-entradas-v2-input"
+                placeholder="Ex: Projeto Website - Cliente..."
+                value={desc}
+                onChange={e => setDesc(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addEntry()}
+              />
+            </FormField>
+
+            <FormField label="Valor">
+              <input
+                type="text"
+                className="c-entradas-v2-input"
+                placeholder="0,00"
+                value={amount}
+                onChange={e => setAmount(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addEntry()}
+              />
+            </FormField>
+
+            <Button
+              variant="primary"
+              icon={<Plus size={16} />}
+              loading={saving}
+              disabled={saving || !desc.trim() || !amount}
+              onClick={addEntry}
+              className="c-entradas-v2-submit"
+            >
+              Adicionar
+            </Button>
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard
+        title={`Recebimentos de ${format(currentDate, 'MMMM yyyy', { locale: ptBR })}`}
+        description="Lista ordenada por data, do mais recente para o mais antigo."
+        actions={!loading && entries.length > 0 && <StatusBadge tone="info">{entries.length} registros</StatusBadge>}
+        className="c-entradas-v2-list-card"
+      >
+        {loading ? (
+          <div className="c-entradas-v2-loading">
+            <Skeleton variant="table-row" />
+            <Skeleton variant="table-row" />
+            <Skeleton variant="table-row" />
+          </div>
+        ) : entries.length === 0 ? (
+          <EmptyState
+            icon={<WalletCards size={28} />}
+            title="Nenhum recebimento registrado"
+            description="Use o formulario acima para registrar suas entradas do mes."
+            action={<Button size="sm" icon={<Plus size={15} />} onClick={() => descRef.current?.focus()}>Registrar entrada</Button>}
+          />
+        ) : (
+          <>
+            <div className="c-entradas-v2-table-wrap">
+              <table className="c-entradas-v2-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Descricao</th>
+                    <th>Valor</th>
+                    <th aria-label="Acoes"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map(entry => (
+                    <tr key={entry.id}>
+                      <td>
+                        <span className="c-entradas-v2-date">
+                          <CalendarDays size={13} />
+                          {format(new Date(entry.date + 'T12:00:00'), 'dd/MM/yy')}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="c-entradas-v2-description">
+                          <ReceiptText size={15} />
+                          <span>{entry.description}</span>
+                        </div>
+                      </td>
+                      <td className="c-entradas-v2-value">{fmt(entry.amount)}</td>
+                      <td>
+                        <IconButton
+                          icon={<Trash2 size={15} />}
+                          label="Excluir entrada"
+                          variant="danger"
+                          size="sm"
+                          disabled={deleting === entry.id}
+                          onClick={() => deleteEntry(entry.id)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="c-entradas-v2-total-row">
+                    <td colSpan={2}>Total do mes</td>
+                    <td>{fmt(total)}</td>
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="c-entradas-v2-mobile-list">
+              {entries.map(entry => (
+                <article key={entry.id} className="c-entradas-v2-mobile-card">
+                  <div>
+                    <h3>{entry.description}</h3>
+                    <span>
+                      <CalendarDays size={13} />
+                      {format(new Date(entry.date + 'T12:00:00'), 'dd/MM/yy')}
+                    </span>
+                  </div>
+                  <div className="c-entradas-v2-mobile-card__side">
+                    <strong>{fmt(entry.amount)}</strong>
+                    <IconButton
+                      icon={<Trash2 size={15} />}
+                      label="Excluir entrada"
+                      variant="danger"
+                      size="sm"
+                      disabled={deleting === entry.id}
+                      onClick={() => deleteEntry(entry.id)}
+                    />
+                  </div>
+                </article>
+              ))}
+              <div className="c-entradas-v2-mobile-total">
+                <span>Total do mes</span>
+                <strong>{fmt(total)}</strong>
+              </div>
+            </div>
+          </>
+        )}
+      </SectionCard>
+    </div>
+  )
 
   return (
     <div>
