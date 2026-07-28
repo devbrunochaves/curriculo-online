@@ -1,0 +1,193 @@
+.contas-root .c-saude-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+}
+
+.contas-root .c-saude-v2-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-saude-v2-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--v2-space-4);
+}
+
+.contas-root .c-saude-v2-people-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-saude-v2-person-card {
+  border-color: var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xs);
+  transition:
+    border-color var(--v2-duration-fast) var(--v2-ease-standard),
+    box-shadow var(--v2-duration-fast) var(--v2-ease-standard),
+    transform var(--v2-duration-fast) var(--v2-ease-standard);
+}
+
+.contas-root .c-saude-v2-person-card:hover {
+  border-color: var(--v2-color-border-strong);
+  box-shadow: var(--v2-shadow-sm);
+  transform: translateY(-1px);
+}
+
+.contas-root .c-saude-v2-person-card:focus-within {
+  box-shadow: var(--v2-shadow-focus);
+}
+
+.contas-root .c-saude-v2-profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-saude-v2-profile-meta span {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-pill);
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text-muted);
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: 0 var(--v2-space-3);
+}
+
+.contas-root .c-saude-v2-alert {
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid var(--v2-color-danger);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-danger-soft);
+  color: var(--v2-color-danger-text);
+  font-size: var(--v2-font-size-body-sm);
+  font-weight: var(--v2-font-weight-semibold);
+  margin-top: var(--v2-space-3);
+  padding: var(--v2-space-2) var(--v2-space-3);
+}
+
+.contas-root .c-saude-v2-tabs {
+  display: flex;
+  gap: var(--v2-space-1);
+  overflow-x: auto;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface-muted);
+  padding: var(--v2-space-1);
+}
+
+.contas-root .c-saude-v2-tabs button {
+  min-height: 36px;
+  flex: 0 0 auto;
+}
+
+.contas-root .c-saude-v2-page .c-card,
+.contas-root .c-saude-v2-page [style*="background: var(--c-surface)"] {
+  border-color: var(--v2-color-border);
+}
+
+.contas-root .c-saude-v2-page .c-modal-sheet {
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-xl);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-xl);
+}
+
+.contas-root .c-saude-v2-page .c-modal-body {
+  max-height: min(68dvh, 680px);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.contas-root .c-saude-v2-page .c-btn,
+.contas-root .c-saude-v2-page .c-modal-close {
+  min-height: 36px;
+  border-radius: var(--v2-radius-md);
+}
+
+.contas-root .c-saude-v2-page .c-form-input,
+.contas-root .c-saude-v2-page .c-form-select,
+.contas-root .c-saude-v2-page .c-form-textarea {
+  border-color: var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-saude-v2-page .c-btn:focus-visible,
+.contas-root .c-saude-v2-page .c-modal-close:focus-visible,
+.contas-root .c-saude-v2-page .c-form-input:focus-visible,
+.contas-root .c-saude-v2-page .c-form-select:focus-visible,
+.contas-root .c-saude-v2-page .c-form-textarea:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+@media (max-width: 1180px) {
+  .contas-root .c-saude-v2-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px) {
+  .contas-root .c-saude-v2-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-root .c-saude-v2-person-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .contas-root .c-saude-v2-person-card > div:last-child {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 520px) {
+  .contas-root .c-saude-v2-page {
+    gap: var(--v2-space-4);
+    padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .contas-root .c-saude-v2-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-saude-v2-person-card {
+    padding: var(--v2-space-4);
+  }
+
+  .contas-root .c-saude-v2-person-card > div:last-child {
+    justify-content: stretch;
+  }
+
+  .contas-root .c-saude-v2-person-card > div:last-child .c-btn {
+    flex: 1 1 0;
+  }
+
+  .contas-root .c-saude-v2-tabs {
+    margin-inline: calc(var(--v2-space-1) * -1);
+  }
+
+  .contas-root .c-saude-v2-page .c-modal-sheet {
+    width: min(100% - var(--v2-space-4), 640px);
+    max-height: calc(100dvh - var(--v2-space-6));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contas-root .c-saude-v2-person-card {
+    transition: none;
+  }
+}
