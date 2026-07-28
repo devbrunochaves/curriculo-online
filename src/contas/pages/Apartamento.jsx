@@ -2,7 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import {
+  Banknote,
   Building2,
+  CalendarClock,
+  CheckCircle2,
+  FileText,
+  Image,
+  Receipt,
+  ShieldCheck,
+  Wrench,
   X,
 } from 'lucide-react'
 import {
@@ -161,7 +169,7 @@ function DashboardTab({ onNavigate }) {
       const garantiasAtivas = (garantias.data||[]).filter(g=>g.fim_garantia && g.fim_garantia > today).length
       const fotoCount = (fotos.data||[]).length
       const proxManut = manutData.find(m=>m.status==='agendado' && m.data_proxima)
-      setData({totalInvestido,boletosPendentes,docCount,manutAgendadas,garantiasAtivas,fotoCount,proxManut})
+      setData({totalInvestido,boletosPendentes,docCount,manutAgendadas,garantiasAtivas,fotoCount,proxManut,manutencoes:manutData,garantias:garantias.data||[]})
     } finally {
       setLoading(false)
     }
@@ -172,43 +180,153 @@ function DashboardTab({ onNavigate }) {
   if (loading) return <Loading />
   if (!data) return null
 
-  const cards = [
-    { icon:'💰', label:'Total Investido', value:fmt(data.totalInvestido), color:'#6366f1' },
-    { icon:'💸', label:'Boletos Pendentes', value:data.boletosPendentes, color: data.boletosPendentes>0?'#dc2626':'#15803d' },
-    { icon:'📁', label:'Documentos', value:data.docCount, color:'#3b82f6' },
-    { icon:'🔧', label:'Manutenções Agendadas', value:data.manutAgendadas, color: data.manutAgendadas>0?'#d97706':'#15803d' },
-    { icon:'📑', label:'Garantias Ativas', value:data.garantiasAtivas, color:'#10b981' },
-    { icon:'📸', label:'Fotos', value:data.fotoCount, color:'#8b5cf6' },
+  const garantiasData = data.garantias || []
+  const manutData = data.manutencoes || []
+  const garantiaStatus = garantiasData.reduce((acc, item) => {
+    if (!item.fim_garantia) {
+      acc.semData += 1
+      return acc
+    }
+    const days = differenceInDays(parseISO(item.fim_garantia), new Date())
+    if (days < 0) acc.expiradas += 1
+    else if (days <= 30) acc.vencendo += 1
+    else acc.ativas += 1
+    return acc
+  }, { ativas: 0, vencendo: 0, expiradas: 0, semData: 0 })
+  const manutEmAndamento = manutData.filter(m=>m.status==='em_andamento').length
+  const attentionItems = [
+    data.boletosPendentes > 0 ? {
+      icon: Receipt,
+      title: 'Boletos pendentes',
+      context: 'Contas do imóvel ainda em aberto.',
+      value: `${data.boletosPendentes} pendente${data.boletosPendentes !== 1 ? 's' : ''}`,
+      tone: 'danger',
+      target: 'boletos',
+    } : null,
+    garantiaStatus.expiradas > 0 ? {
+      icon: ShieldCheck,
+      title: 'Garantias expiradas',
+      context: 'Garantias fora do prazo cadastrado.',
+      value: `${garantiaStatus.expiradas} expirada${garantiaStatus.expiradas !== 1 ? 's' : ''}`,
+      tone: 'danger',
+      target: 'garantias',
+    } : null,
+    garantiaStatus.vencendo > 0 ? {
+      icon: ShieldCheck,
+      title: 'Garantias vencendo',
+      context: 'Regra existente: vencimento em até 30 dias.',
+      value: `${garantiaStatus.vencendo} vencendo`,
+      tone: 'warning',
+      target: 'garantias',
+    } : null,
+    manutEmAndamento > 0 ? {
+      icon: Wrench,
+      title: 'Manutenções em andamento',
+      context: 'Serviços marcados como em andamento.',
+      value: `${manutEmAndamento} em andamento`,
+      tone: 'warning',
+      target: 'manutencoes',
+    } : null,
+    data.proxManut ? {
+      icon: CalendarClock,
+      title: data.proxManut.titulo,
+      context: `${data.proxManut.tipo}${data.proxManut.status ? ` · ${data.proxManut.status}` : ''}`,
+      value: fmtDate(data.proxManut.data_proxima),
+      tone: 'info',
+      target: 'manutencoes',
+    } : null,
+  ].filter(Boolean)
+
+  const financialCards = [
+    { icon: Banknote, label:'Total investido', value:fmt(data.totalInvestido), description:'Soma dos gastos registrados.', target:'gastos', tone:'accent', featured:true },
+    { icon: Receipt, label:'Boletos pendentes', value:data.boletosPendentes, description:'Contas com status diferente de pago.', target:'boletos', tone:data.boletosPendentes > 0 ? 'danger' : 'success' },
   ]
 
-  const cardTargets = ['gastos', 'boletos', 'documentos', 'manutencoes', 'garantias', 'galeria']
-  const cardActions = ['Ver gastos', 'Ver boletos', 'Ver documentos', 'Ver manutenÃ§Ãµes', 'Ver garantias', 'Abrir galeria']
+  const operationCards = [
+    { icon: CalendarClock, label:'Próxima manutenção', value:data.proxManut ? fmtDate(data.proxManut.data_proxima) : '—', description:data.proxManut ? data.proxManut.titulo : 'Sem próxima manutenção agendada.', target:'manutencoes', tone:data.proxManut ? 'warning' : 'success' },
+    { icon: Wrench, label:'Manutenções agendadas', value:data.manutAgendadas, description:'Serviços com status agendado.', target:'manutencoes', tone:data.manutAgendadas > 0 ? 'warning' : 'success' },
+    { icon: Wrench, label:'Em andamento', value:manutEmAndamento, description:'Serviços em execução.', target:'manutencoes', tone:manutEmAndamento > 0 ? 'warning' : 'success' },
+  ]
+
+  const protectionCards = [
+    { icon: FileText, label:'Documentos', value:data.docCount, description:'Registros cadastrados no imóvel.', target:'documentos', tone:'info' },
+    { icon: ShieldCheck, label:'Garantias ativas', value:garantiaStatus.ativas, description:'Garantias com vencimento futuro.', target:'garantias', tone:'success' },
+    { icon: ShieldCheck, label:'Garantias vencendo', value:garantiaStatus.vencendo, description:'Vencimento em até 30 dias.', target:'garantias', tone:garantiaStatus.vencendo > 0 ? 'warning' : 'success' },
+  ]
 
   return (
     <div className="c-apartamento-v2-overview">
-      <div className="c-apartamento-v2-overview-grid">
-        {cards.map((c, index)=>(
-          <button
-            key={c.label}
-            type="button"
-            className="c-apartamento-v2-overview-card"
-            onClick={()=>onNavigate(cardTargets[index])}
-            aria-label={`${cardActions[index]}: ${c.label}`}
-          >
-            <span className="c-apartamento-v2-overview-icon" aria-hidden="true">{c.icon}</span>
-            <span className="c-apartamento-v2-overview-value" style={{color:c.color}}>{c.value}</span>
-            <span className="c-apartamento-v2-overview-label">{c.label}</span>
-            <span className="c-apartamento-v2-overview-action">{cardActions[index]}</span>
-          </button>
-        ))}
-      </div>
-      {data.proxManut && (
-        <div style={{background:'#fef9c3',border:'1px solid #fde68a',borderRadius:12,padding:'14px 18px'}}>
-          <div style={{fontWeight:700,color:'#854d0e',marginBottom:4}}>🔔 Próxima Manutenção</div>
-          <div style={{fontWeight:600}}>{data.proxManut.titulo}</div>
-          <div style={{fontSize:13,color:'#92400e'}}>{data.proxManut.tipo} · {fmtDate(data.proxManut.data_proxima)}</div>
+      <SectionCard title="Atenção agora" description="Pendências e próximos passos do imóvel." padding="lg">
+        {attentionItems.length > 0 ? (
+          <div className="c-apartamento-v2-attention-list">
+            {attentionItems.map(item => (
+              <button key={`${item.title}-${item.value}`} type="button" className={`c-apartamento-v2-attention-item is-${item.tone}`} onClick={()=>onNavigate(item.target)} aria-label={`Abrir ${item.title}`}>
+                <span className="c-apartamento-v2-attention-icon"><item.icon size={18} /></span>
+                <span className="c-apartamento-v2-attention-copy">
+                  <strong>{item.title}</strong>
+                  <small>{item.context}</small>
+                </span>
+                <span className="c-apartamento-v2-attention-value">{item.value}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="c-apartamento-v2-positive-state">
+            <CheckCircle2 size={18} />
+            <span>Nenhuma pendência urgente no momento.</span>
+          </div>
+        )}
+      </SectionCard>
+
+      <SectionCard title="Resumo financeiro do imóvel" description="Valores e pendências financeiras já carregadas nesta visão." padding="lg">
+        <div className="c-apartamento-v2-hub-grid c-apartamento-v2-hub-grid--finance">
+          {financialCards.map(card => (
+            <button key={card.label} type="button" className={`c-apartamento-v2-hub-card is-${card.tone} ${card.featured ? 'is-featured' : ''}`} onClick={()=>onNavigate(card.target)} aria-label={`Abrir ${card.label}`}>
+              <span className="c-apartamento-v2-hub-icon"><card.icon size={18} /></span>
+              <span className="c-apartamento-v2-hub-value">{card.value}</span>
+              <span className="c-apartamento-v2-hub-label">{card.label}</span>
+              <small>{card.description}</small>
+            </button>
+          ))}
         </div>
-      )}
+      </SectionCard>
+
+      <SectionCard title="Operação da casa" description="Manutenções e serviços acompanhados no imóvel." padding="lg">
+        <div className="c-apartamento-v2-hub-grid">
+          {operationCards.map(card => (
+            <button key={card.label} type="button" className={`c-apartamento-v2-hub-card is-${card.tone}`} onClick={()=>onNavigate(card.target)} aria-label={`Abrir ${card.label}`}>
+              <span className="c-apartamento-v2-hub-icon"><card.icon size={18} /></span>
+              <span className="c-apartamento-v2-hub-value">{card.value}</span>
+              <span className="c-apartamento-v2-hub-label">{card.label}</span>
+              <small>{card.description}</small>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Patrimônio e proteção" description="Documentos e garantias disponíveis no dashboard atual." padding="lg">
+        <div className="c-apartamento-v2-hub-grid">
+          {protectionCards.map(card => (
+            <button key={card.label} type="button" className={`c-apartamento-v2-hub-card is-${card.tone}`} onClick={()=>onNavigate(card.target)} aria-label={`Abrir ${card.label}`}>
+              <span className="c-apartamento-v2-hub-icon"><card.icon size={18} /></span>
+              <span className="c-apartamento-v2-hub-value">{card.value}</span>
+              <span className="c-apartamento-v2-hub-label">{card.label}</span>
+              <small>{card.description}</small>
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Galeria do imóvel" description="Fotos cadastradas no acervo do apartamento." padding="lg">
+        <button type="button" className="c-apartamento-v2-gallery-summary" onClick={()=>onNavigate('galeria')} aria-label="Abrir galeria do imóvel">
+          <span className="c-apartamento-v2-hub-icon"><Image size={18} /></span>
+          <span>
+            <strong>{data.fotoCount}</strong>
+            <small>{data.fotoCount === 1 ? 'foto cadastrada' : 'fotos cadastradas'}</small>
+          </span>
+          <span>Abrir galeria</span>
+        </button>
+      </SectionCard>
     </div>
   )
 }
