@@ -12,7 +12,6 @@ import {
   HeartPulse,
   Home,
   Landmark,
-  ListChecks,
   LogOut,
   Menu,
   MoreHorizontal,
@@ -20,6 +19,7 @@ import {
   Plus,
   ReceiptText,
   Settings,
+  Utensils,
   Users,
   X,
 } from 'lucide-react'
@@ -50,6 +50,7 @@ const navGroups = [
     items: [
       { to: '/contas/agenda', icon: CalendarDays, label: 'Agenda' },
       { to: '/contas/saude', icon: HeartPulse, label: 'Saúde' },
+      { to: '/contas/cardapio', icon: Utensils, label: 'Alimentação' },
       { to: '/contas/metas', icon: PiggyBank, label: 'Cofrinhos' },
     ],
   },
@@ -58,7 +59,6 @@ const navGroups = [
     items: [
       { to: '/contas/apartamento', icon: Home, label: 'Apartamento' },
       { to: '/contas/veiculos', icon: Car, label: 'Veículos' },
-      { to: '/contas/cardapio', icon: ListChecks, label: 'Compras' },
       { to: '/contas/documentos', icon: FileText, label: 'Documentos' },
     ],
   },

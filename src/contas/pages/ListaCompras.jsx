@@ -12,7 +12,7 @@ import {
   StatusBadge,
 } from '../components/ui'
 
-export default function ListaCompras() {
+export default function ListaCompras({ embedded = false }) {
   const [items, setItems]       = useState([])
   const [loading, setLoading]   = useState(true)
   const [text, setText]         = useState('')
@@ -83,20 +83,27 @@ export default function ListaCompras() {
   const pending = items.filter(i => !i.is_done)
   const done    = items.filter(i =>  i.is_done)
   const visible = filter === 'all' ? items : filter === 'pending' ? pending : done
+  const progress = items.length ? Math.round((done.length / items.length) * 100) : 0
+  const groups = [
+    { key: 'pending', title: 'Pendentes', items: filter === 'done' ? [] : pending },
+    { key: 'done', title: 'Comprados', items: filter === 'pending' ? [] : done },
+  ].filter(group => group.items.length > 0)
 
   return (
-    <div className="c-compras-v2-page">
-      <PageHeader
-        eyebrow="Casa"
-        title="Compras"
-        description="Organize os itens da lista e acompanhe o que ainda precisa ser comprado."
-        meta={<StatusBadge tone="accent" icon={<ListChecks size={14} />}>{items.length} item{items.length !== 1 ? 's' : ''}</StatusBadge>}
-        actions={done.length > 0 ? (
-          <Button variant="danger" size="sm" icon={<Trash2 size={16} />} onClick={clearDone}>
-            Limpar comprados
-          </Button>
-        ) : null}
-      />
+    <div className={`c-compras-v2-page ${embedded ? 'c-compras-v2-page--embedded' : ''}`}>
+      {!embedded && (
+        <PageHeader
+          eyebrow="Alimentação"
+          title="Lista de Compras"
+          description="Organize os itens da lista e acompanhe o que ainda precisa ser comprado."
+          meta={<StatusBadge tone="accent" icon={<ListChecks size={14} />}>{items.length} item{items.length !== 1 ? 's' : ''}</StatusBadge>}
+          actions={done.length > 0 ? (
+            <Button variant="danger" size="sm" icon={<Trash2 size={16} />} onClick={clearDone}>
+              Limpar comprados
+            </Button>
+          ) : null}
+        />
+      )}
 
       <div className="c-compras-v2-metrics">
         <MetricCard
@@ -121,6 +128,22 @@ export default function ListaCompras() {
           icon={<ShoppingBag size={18} />}
         />
       </div>
+
+      <SectionCard
+        title="Progresso"
+        description={`${progress}% concluído a partir dos itens já carregados.`}
+        padding="md"
+        className="c-compras-v2-progress-card"
+        actions={done.length > 0 ? (
+          <Button variant="danger" size="sm" icon={<Trash2 size={16} />} onClick={clearDone}>
+            Limpar comprados
+          </Button>
+        ) : null}
+      >
+        <div className="c-compras-v2-progress" aria-label={`${progress}% dos itens comprados`}>
+          <span style={{ width: `${progress}%` }} />
+        </div>
+      </SectionCard>
 
       <SectionCard
         title="Novo item"
@@ -206,39 +229,46 @@ export default function ListaCompras() {
             description={filter === 'pending' ? 'Adicione itens acima para comecar.' : 'Nao ha itens para este filtro.'}
           />
         ) : (
-          <ul className="c-compras-v2-list">
-            {visible.map(item => (
-              <li key={item.id} className={`c-compras-v2-item ${item.is_done ? 'is-done' : ''}`}>
-                <button
-                  type="button"
-                  className="c-compras-v2-check"
-                  onClick={() => toggleItem(item)}
-                  aria-label={item.is_done ? `Marcar ${item.name} como pendente` : `Marcar ${item.name} como comprado`}
-                  aria-pressed={item.is_done}
-                >
-                  {item.is_done ? <Check size={16} /> : null}
-                </button>
+          <div className="c-compras-v2-groups">
+            {groups.map(group => (
+              <section key={group.key} className="c-compras-v2-group">
+                <h3>{group.title}</h3>
+                <ul className="c-compras-v2-list">
+                  {group.items.map(item => (
+                    <li key={item.id} className={`c-compras-v2-item ${item.is_done ? 'is-done' : ''}`}>
+                      <button
+                        type="button"
+                        className="c-compras-v2-check"
+                        onClick={() => toggleItem(item)}
+                        aria-label={item.is_done ? `Marcar ${item.name} como pendente` : `Marcar ${item.name} como comprado`}
+                        aria-pressed={item.is_done}
+                      >
+                        {item.is_done ? <Check size={16} /> : null}
+                      </button>
 
-                <div className="c-compras-v2-item-content">
-                  <span className="c-compras-v2-item-name">{item.name}</span>
-                  {item.quantity && (
-                    <StatusBadge tone="accent" size="sm">
-                      {item.quantity}
-                    </StatusBadge>
-                  )}
-                </div>
+                      <div className="c-compras-v2-item-content">
+                        <span className="c-compras-v2-item-name">{item.name}</span>
+                        {item.quantity && (
+                          <StatusBadge tone="accent" size="sm">
+                            {item.quantity}
+                          </StatusBadge>
+                        )}
+                      </div>
 
-                <IconButton
-                  icon={<Trash2 size={16} />}
-                  label={`Remover ${item.name}`}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteItem(item.id)}
-                  className="c-compras-v2-delete"
-                />
-              </li>
+                      <IconButton
+                        icon={<Trash2 size={16} />}
+                        label={`Remover ${item.name}`}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteItem(item.id)}
+                        className="c-compras-v2-delete"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
       </SectionCard>
     </div>
