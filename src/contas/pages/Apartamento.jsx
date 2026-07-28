@@ -137,7 +137,7 @@ function StatusBadge({ status }) {
 /* ══════════════════════════════════════════════════════════════════════════
    DASHBOARD TAB
 ══════════════════════════════════════════════════════════════════════════ */
-function DashboardTab() {
+function DashboardTab({ onNavigate }) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const today = new Date().toISOString().split('T')[0]
@@ -181,15 +181,25 @@ function DashboardTab() {
     { icon:'📸', label:'Fotos', value:data.fotoCount, color:'#8b5cf6' },
   ]
 
+  const cardTargets = ['gastos', 'boletos', 'documentos', 'manutencoes', 'garantias', 'galeria']
+  const cardActions = ['Ver gastos', 'Ver boletos', 'Ver documentos', 'Ver manutenÃ§Ãµes', 'Ver garantias', 'Abrir galeria']
+
   return (
-    <div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12,marginBottom:24}}>
-        {cards.map(c=>(
-          <div key={c.label} style={{background:'var(--c-surface)',border:'1px solid var(--c-border)',borderRadius:12,padding:'16px 20px'}}>
-            <div style={{fontSize:28,marginBottom:6}}>{c.icon}</div>
-            <div style={{fontSize:22,fontWeight:700,color:c.color}}>{c.value}</div>
-            <div style={{fontSize:13,color:'var(--c-text-muted)',marginTop:2}}>{c.label}</div>
-          </div>
+    <div className="c-apartamento-v2-overview">
+      <div className="c-apartamento-v2-overview-grid">
+        {cards.map((c, index)=>(
+          <button
+            key={c.label}
+            type="button"
+            className="c-apartamento-v2-overview-card"
+            onClick={()=>onNavigate(cardTargets[index])}
+            aria-label={`${cardActions[index]}: ${c.label}`}
+          >
+            <span className="c-apartamento-v2-overview-icon" aria-hidden="true">{c.icon}</span>
+            <span className="c-apartamento-v2-overview-value" style={{color:c.color}}>{c.value}</span>
+            <span className="c-apartamento-v2-overview-label">{c.label}</span>
+            <span className="c-apartamento-v2-overview-action">{cardActions[index]}</span>
+          </button>
         ))}
       </div>
       {data.proxManut && (
@@ -1594,7 +1604,7 @@ export default function Apartamento() {
       </div>
 
       <SectionCard className="c-apartamento-v2-content" padding="lg">
-        {tab === 'dashboard'   && <DashboardTab />}
+        {tab === 'dashboard'   && <DashboardTab onNavigate={setTab} />}
         {tab === 'galeria'     && <GaleriaTab />}
         {tab === 'boletos'     && <BoletosTab />}
         {tab === 'gastos'      && <GastosTab />}
