@@ -254,29 +254,37 @@ function VeiculosList({ onSelect }) {
         <SectionCard title="Veículos cadastrados" description="Toque em um veículo para abrir documentos, custos, manutenções e histórico." className="c-veiculos-v2-list-card" padding="lg">
           <div className="c-veiculos-v2-list">
           {veiculos.map(v => (
-            <div key={v.id} className="c-card"
+            <div key={v.id} className="c-card c-veiculos-v2-card"
               style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', cursor: 'pointer' }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onSelect(v)
+                }
+              }}
               onClick={() => onSelect(v)}>
-              <div style={{ width: 80, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#6366f120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
+              <div className="c-veiculos-v2-card__cover" style={{ width: 80, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: '#6366f120', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32 }}>
                 {fotoUrls[v.id]
-                  ? <img src={fotoUrls[v.id]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={v.modelo} />
+                  ? <img src={fotoUrls[v.id]} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={`${v.marca} ${v.modelo}`} />
                   : '🚗'}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{v.marca} {v.modelo}</div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+              <div className="c-veiculos-v2-card__content" style={{ flex: 1, minWidth: 0 }}>
+                <div className="c-veiculos-v2-card__title" style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>{v.marca} {v.modelo}</div>
+                <div className="c-veiculos-v2-card__badges" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                   {v.ano && <span style={{ background: '#6366f120', color: '#6366f1', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 600 }}>{v.ano}</span>}
                   {v.placa && <span style={{ background: '#f8fafc', border: '1px solid var(--c-border)', borderRadius: 6, padding: '2px 8px', fontSize: 12, fontWeight: 700, letterSpacing: 1 }}>{v.placa}</span>}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div className="c-veiculos-v2-card__facts" style={{ fontSize: 12, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {v.cor && <span>● {v.cor}</span>}
                   {v.combustivel && <span>⛽ {v.combustivel}</span>}
                   {v.quilometragem && <span>🛣️ {Number(v.quilometragem).toLocaleString('pt-BR')} km</span>}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
-                <button className="c-btn c-btn-secondary c-btn-sm" onClick={() => openEdit(v)}>Editar</button>
-                <button className="c-btn c-btn-danger c-btn-sm" onClick={() => handleDelete(v)}>✕</button>
+              <div className="c-veiculos-v2-card__actions" style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
+                <button className="c-btn c-btn-secondary c-btn-sm" aria-label={`Editar ${v.marca} ${v.modelo}`} onClick={() => openEdit(v)}>Editar</button>
+                <button className="c-btn c-btn-danger c-btn-sm" aria-label={`Excluir ${v.marca} ${v.modelo}`} onClick={() => handleDelete(v)}>✕</button>
               </div>
             </div>
           ))}

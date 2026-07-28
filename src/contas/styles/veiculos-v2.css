@@ -45,6 +45,11 @@
   transform: translateY(-1px);
 }
 
+.contas-root .c-veiculos-v2-card:focus-visible {
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
 .contas-root .c-veiculos-v2-hero {
   align-items: center;
   background: color-mix(in srgb, var(--v2-color-surface) 92%, transparent);
@@ -295,6 +300,81 @@
   .contas-root .c-veiculos-v2-content,
   .contas-root .c-veiculos-v2-list-card {
     padding: var(--v2-space-4);
+  }
+
+  .contas-root .c-veiculos-v2-card {
+    align-items: stretch !important;
+    border-radius: var(--v2-radius-xl) !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    overflow: hidden;
+    padding: 0 !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__cover {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--v2-radius-xl) var(--v2-radius-xl) 0 0 !important;
+    font-size: 42px !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__cover img {
+    display: block;
+    height: 100% !important;
+    object-fit: cover;
+    width: 100% !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__content {
+    padding: var(--v2-space-4) var(--v2-space-4) var(--v2-space-3);
+    width: 100%;
+  }
+
+  .contas-root .c-veiculos-v2-card__title {
+    color: var(--v2-color-text);
+    font-size: var(--v2-font-size-heading-2) !important;
+    line-height: var(--v2-line-height-heading);
+    margin-bottom: var(--v2-space-3) !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__badges {
+    gap: var(--v2-space-2) !important;
+    margin-bottom: var(--v2-space-4) !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__badges span {
+    min-height: 26px;
+    padding: var(--v2-space-1) var(--v2-space-3) !important;
+  }
+
+  .contas-root .c-veiculos-v2-card__facts {
+    display: grid !important;
+    gap: var(--v2-space-2) !important;
+    grid-template-columns: 1fr;
+  }
+
+  .contas-root .c-veiculos-v2-card__facts span {
+    background: var(--v2-color-surface-muted);
+    border: 1px solid var(--v2-color-border-soft);
+    border-radius: var(--v2-radius-md);
+    color: var(--v2-color-text-muted);
+    min-width: 0;
+    padding: var(--v2-space-2) var(--v2-space-3);
+  }
+
+  .contas-root .c-veiculos-v2-card__actions {
+    border-top: 1px solid var(--v2-color-border-soft);
+    display: flex !important;
+    gap: var(--v2-space-2) !important;
+    justify-content: space-between;
+    padding: var(--v2-space-3) var(--v2-space-4) var(--v2-space-4);
+    width: 100%;
+  }
+
+  .contas-root .c-veiculos-v2-card__actions .c-btn {
+    min-height: 40px;
+    min-width: 0;
   }
 }
 
