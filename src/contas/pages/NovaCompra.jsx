@@ -334,8 +334,7 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
                   <span aria-hidden="true">R$</span>
                   <input
                     type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    inputMode="decimal"
                     className="c-nova-v2-input c-nova-v2-money"
                     placeholder="0,00"
                     value={total}
@@ -444,8 +443,7 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
                     {isSel && (
                       <input
                         type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
+                        inputMode="decimal"
                         className="c-nova-v2-input c-nova-v2-split-input"
                         placeholder="0,00"
                         value={splits[person.id]}
