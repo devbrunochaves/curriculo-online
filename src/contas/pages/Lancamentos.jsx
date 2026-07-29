@@ -67,6 +67,33 @@ function moveId(ids, activeId, overId) {
   return next
 }
 
+function createDragPreview(source) {
+  const row = source.closest('tr')
+  const card = source.closest('.c-lanc-v2-mobile-card')
+  const sourceEl = row || card
+  if (!sourceEl) return null
+
+  const rect = sourceEl.getBoundingClientRect()
+  const shell = document.createElement('div')
+  shell.className = 'contas-root c-lanc-v2-drag-preview'
+  shell.style.width = `${rect.width}px`
+
+  if (row) {
+    const table = document.createElement('table')
+    const tbody = document.createElement('tbody')
+    table.className = 'c-lanc-v2-table c-lanc-v2-drag-preview-table'
+    table.style.width = `${rect.width}px`
+    tbody.appendChild(row.cloneNode(true))
+    table.appendChild(tbody)
+    shell.appendChild(table)
+  } else {
+    shell.appendChild(card.cloneNode(true))
+  }
+
+  document.body.appendChild(shell)
+  return { element: shell, x: Math.min(48, rect.width / 2), y: Math.min(28, rect.height / 2) }
+}
+
 /* ── Modal de detalhes ─────────────────────────────────────────── */
 function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
   // Fecha ao pressionar Escape
@@ -328,6 +355,7 @@ export default function Lancamentos() {
   const [editingId, setEditingId]       = useState(null)
   const [orderIds, setOrderIds]         = useState([])
   const [draggingId, setDraggingId]     = useState(null)
+  const [dragOverId, setDragOverId]     = useState(null)
 
   const monthRef = format(currentDate, 'yyyy-MM')
   const orderStorageKey = `${ORDER_STORAGE_PREFIX}:${monthRef}`
@@ -437,8 +465,20 @@ export default function Lancamentos() {
   function handleDragStart(ev, id) {
     ev.stopPropagation()
     setDraggingId(id)
+    setDragOverId(null)
     ev.dataTransfer.effectAllowed = 'move'
     ev.dataTransfer.setData('text/plain', id)
+    const preview = createDragPreview(ev.currentTarget)
+    if (preview) {
+      ev.dataTransfer.setDragImage(preview.element, preview.x, preview.y)
+      window.setTimeout(() => preview.element.remove(), 0)
+    }
+  }
+
+  function handleDragOver(ev, overId) {
+    if (!draggingId || draggingId === overId) return
+    ev.preventDefault()
+    setDragOverId(overId)
   }
 
   function handleDrop(ev, overId) {
@@ -447,6 +487,7 @@ export default function Lancamentos() {
     const activeId = ev.dataTransfer.getData('text/plain') || draggingId
     reorderExpense(activeId, overId)
     setDraggingId(null)
+    setDragOverId(null)
   }
 
   function handleDragKeyDown(ev, id) {
@@ -596,8 +637,8 @@ export default function Lancamentos() {
                     <tr
                       key={e.id}
                       onClick={() => setSelected(e)}
-                      className={`${e.reconciled ? 'is-reconciled' : ''}${draggingId === e.id ? ' is-dragging' : ''}`}
-                      onDragOver={ev => { if (draggingId && draggingId !== e.id) ev.preventDefault() }}
+                      className={`${e.reconciled ? 'is-reconciled' : ''}${draggingId === e.id ? ' is-dragging' : ''}${dragOverId === e.id ? ' is-drag-over' : ''}`}
+                      onDragOver={ev => handleDragOver(ev, e.id)}
                       onDrop={ev => handleDrop(ev, e.id)}
                     >
                       <td onClick={ev => ev.stopPropagation()} className="is-check">
@@ -610,7 +651,7 @@ export default function Lancamentos() {
                             title="Arrastar para reordenar"
                             onClick={ev => ev.stopPropagation()}
                             onDragStart={ev => handleDragStart(ev, e.id)}
-                            onDragEnd={() => setDraggingId(null)}
+                            onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
                             onKeyDown={ev => handleDragKeyDown(ev, e.id)}
                           >
                             <GripVertical aria-hidden="true" />
@@ -656,10 +697,10 @@ export default function Lancamentos() {
               {filtered.map(e => (
                 <article
                   key={e.id}
-                  className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}${draggingId === e.id ? ' is-dragging' : ''}`}
+                  className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}${draggingId === e.id ? ' is-dragging' : ''}${dragOverId === e.id ? ' is-drag-over' : ''}`}
                   role="button"
                   tabIndex={0}
-                  onDragOver={ev => { if (draggingId && draggingId !== e.id) ev.preventDefault() }}
+                  onDragOver={ev => handleDragOver(ev, e.id)}
                   onDrop={ev => handleDrop(ev, e.id)}
                   onClick={() => setSelected(e)}
                   onKeyDown={ev => {
@@ -678,7 +719,7 @@ export default function Lancamentos() {
                       title="Arrastar para reordenar"
                       onClick={ev => ev.stopPropagation()}
                       onDragStart={ev => handleDragStart(ev, e.id)}
-                      onDragEnd={() => setDraggingId(null)}
+                      onDragEnd={() => { setDraggingId(null); setDragOverId(null) }}
                       onKeyDown={ev => handleDragKeyDown(ev, e.id)}
                     >
                       <GripVertical aria-hidden="true" />

@@ -219,7 +219,53 @@
 
 .contas-root .c-lanc-v2-table tbody tr.is-dragging,
 .contas-root .c-lanc-v2-mobile-card.is-dragging {
-  opacity: 0.56;
+  opacity: 0.38;
+}
+
+.contas-root .c-lanc-v2-table tbody tr.is-drag-over {
+  background: var(--v2-color-accent-subtle);
+  box-shadow: inset 4px 0 0 var(--v2-color-accent);
+}
+
+.contas-root .c-lanc-v2-mobile-card.is-drag-over {
+  border-color: var(--v2-color-accent);
+  background: var(--v2-color-accent-subtle);
+  box-shadow: var(--v2-shadow-md);
+  transform: translateY(-2px);
+}
+
+.contas-root.c-lanc-v2-drag-preview {
+  position: fixed;
+  top: -1000px;
+  left: -1000px;
+  z-index: 2147483647;
+  pointer-events: none;
+  opacity: 0.96;
+  filter: drop-shadow(0 18px 28px rgba(15, 23, 42, 0.18));
+  transform: rotate(0.35deg) scale(1.012);
+}
+
+.contas-root.c-lanc-v2-drag-preview .c-lanc-v2-drag-handle {
+  color: var(--v2-color-accent);
+}
+
+.contas-root.c-lanc-v2-drag-preview .c-lanc-v2-table {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+  box-shadow: var(--v2-shadow-lg);
+}
+
+.contas-root.c-lanc-v2-drag-preview .c-lanc-v2-table td {
+  border-top: 0;
+}
+
+.contas-root.c-lanc-v2-drag-preview .c-lanc-v2-mobile-card {
+  margin: 0;
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-lg);
 }
 
 .contas-root .c-lanc-v2-check-cell {
@@ -749,8 +795,10 @@
 @media (prefers-reduced-motion: reduce) {
   .contas-root .c-lanc-v2-context-card,
   .contas-root .c-lanc-v2-mobile-card,
-  .contas-root .c-lanc-v2-table tbody tr {
+  .contas-root .c-lanc-v2-table tbody tr,
+  .contas-root.c-lanc-v2-drag-preview {
     transition: none;
+    transform: none;
   }
 
   .contas-root .c-lanc-v2-context-card:hover:not(.is-selected),
