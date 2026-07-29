@@ -358,7 +358,7 @@ export default function Lancamentos() {
   const [loading, setLoading]   = useState(true)
   const [filterCard, setFilterCard]     = useState('')
   const [filterPerson, setFilterPerson] = useState('')
-  const [filterFixed, setFilterFixed]   = useState('')
+  const [filterCategory, setFilterCategory] = useState('')
   const [sortMode, setSortMode]         = useState('')
   const [search, setSearch]             = useState('')
   const [deleting, setDeleting]         = useState(null)
@@ -422,9 +422,23 @@ export default function Lancamentos() {
     setSelected(null)
   }
 
+  const categoryOptions = Array.from(
+    new Map(
+      expenses
+        .filter(e => e.category?.id)
+        .map(e => [
+          e.category.id,
+          {
+            value: e.category.id,
+            label: `${e.category.icon ? `${e.category.icon} ` : ''}${e.category.name}`,
+          },
+        ])
+    ).values()
+  ).sort((a, b) => a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }))
+
   let filtered = expenses
   if (filterCard)   filtered = filtered.filter(e => e.card_id === filterCard)
-  if (filterFixed)  filtered = filtered.filter(e => filterFixed === 'fixed' ? e.is_fixed : !e.is_fixed)
+  if (filterCategory) filtered = filtered.filter(e => e.category_id === filterCategory || e.category?.id === filterCategory)
   if (filterPerson) filtered = filtered.filter(e => e.splits?.some(s => s.person_id === filterPerson))
   if (search)       filtered = filtered.filter(e => e.description.toLowerCase().includes(search.toLowerCase()))
   filtered = applyManualOrder(filtered, orderIds)
@@ -531,7 +545,7 @@ export default function Lancamentos() {
     : 0
   const reconciledCount = filtered.filter(e => e.reconciled).length
   const pendingCount = filtered.length - reconciledCount
-  const activeFilters = [filterCard, filterPerson, filterFixed, sortMode, search].filter(Boolean).length
+  const activeFilters = [filterCard, filterPerson, filterCategory, sortMode, search].filter(Boolean).length
 
   return (
     <div className="c-lanc-v2-page">
@@ -556,7 +570,7 @@ export default function Lancamentos() {
         <MetricCard label="Total do mês" value={fmt(totalMes)} tone="accent" icon={<WalletCards />} description={`${expenses.length} lançamento${expenses.length !== 1 ? 's' : ''}`} />
         <MetricCard label="Total filtrado" value={fmt(total)} tone="neutral" icon={<Filter />} description={`${filtered.length} registro${filtered.length !== 1 ? 's' : ''} visível${filtered.length !== 1 ? 'is' : ''}`} />
         <MetricCard label="Conciliados" value={String(reconciledCount)} tone={reconciledCount ? 'success' : 'neutral'} icon={<Check />} description={`${pendingCount} pendente${pendingCount !== 1 ? 's' : ''}`} />
-        <MetricCard label="Filtros ativos" value={String(activeFilters)} tone={activeFilters ? 'warning' : 'neutral'} icon={<Search />} description="Busca, cartão, pessoa, tipo e classificação" />
+        <MetricCard label="Filtros ativos" value={String(activeFilters)} tone={activeFilters ? 'warning' : 'neutral'} icon={<Search />} description="Busca, cartão, pessoa, categoria e classificação" />
       </section>
 
       {(totalPorCartao.length > 0 || cartaoSelecionado || pessoaSelecionada) && (
@@ -598,7 +612,7 @@ export default function Lancamentos() {
           </label>
           <SelectField label="Cartão" value={filterCard} onChange={e => setFilterCard(e.target.value)} options={[{ value: '', label: 'Todos' }, ...cards.map(c => ({ value: c.id, label: c.name }))]} />
           <SelectField label="Pessoa" value={filterPerson} onChange={e => setFilterPerson(e.target.value)} options={[{ value: '', label: 'Todas' }, ...people.map(p => ({ value: p.id, label: p.name }))]} />
-          <SelectField label="Tipo" value={filterFixed} onChange={e => setFilterFixed(e.target.value)} options={[{ value: '', label: 'Todos' }, { value: 'fixed', label: 'Fixos' }, { value: 'variable', label: 'Variáveis' }]} />
+          <SelectField label="Categoria" value={filterCategory} onChange={e => setFilterCategory(e.target.value)} options={[{ value: '', label: 'Todas' }, ...categoryOptions]} />
           <SelectField label="Classificar" value={sortMode} onChange={e => setSortMode(e.target.value)} options={[{ value: '', label: 'Classificar' }, { value: 'date-asc', label: 'Data crescente' }, { value: 'date-desc', label: 'Data decrescente' }, { value: 'az', label: 'A-Z' }, { value: 'za', label: 'Z-A' }]} />
         </div>
       </SectionCard>
@@ -940,11 +954,10 @@ export default function Lancamentos() {
             </select>
           </div>
           <div>
-            <label className="c-form-label">Tipo</label>
-            <select className="c-form-select" value={filterFixed} onChange={e => setFilterFixed(e.target.value)}>
-              <option value="">Todos</option>
-              <option value="fixed">Fixos</option>
-              <option value="variable">Variáveis</option>
+            <label className="c-form-label">Categoria</label>
+            <select className="c-form-select" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+              <option value="">Todas</option>
+              {categoryOptions.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
             </select>
           </div>
         </div>
