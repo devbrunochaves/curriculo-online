@@ -57,6 +57,7 @@
 
 .contas-root .c-lanc-v2-context-card:focus-visible,
 .contas-root .c-lanc-v2-check:focus-visible,
+.contas-root .c-lanc-v2-drag-handle:focus-visible,
 .contas-root .c-lanc-v2-search input:focus-visible {
   outline: 3px solid var(--v2-color-accent);
   outline-offset: 3px;
@@ -191,7 +192,7 @@
 
 .contas-root .c-lanc-v2-table th.is-check,
 .contas-root .c-lanc-v2-table td.is-check {
-  width: 42px;
+  width: 76px;
   text-align: center;
 }
 
@@ -214,6 +215,53 @@
 
 .contas-root .c-lanc-v2-table tbody tr.is-reconciled {
   background: color-mix(in srgb, var(--v2-color-success-soft) 72%, transparent);
+}
+
+.contas-root .c-lanc-v2-table tbody tr.is-dragging,
+.contas-root .c-lanc-v2-mobile-card.is-dragging {
+  opacity: 0.56;
+}
+
+.contas-root .c-lanc-v2-check-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-lanc-v2-drag-spacer,
+.contas-root .c-lanc-v2-drag-handle {
+  width: 24px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+.contas-root .c-lanc-v2-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--v2-radius-sm);
+  background: transparent;
+  color: var(--v2-color-text-subtle);
+  cursor: grab;
+  padding: 0;
+  touch-action: none;
+}
+
+.contas-root .c-lanc-v2-drag-handle:active {
+  cursor: grabbing;
+}
+
+.contas-root .c-lanc-v2-drag-handle:hover {
+  background: var(--v2-color-surface-muted);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-lanc-v2-drag-handle svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2;
 }
 
 .contas-root .c-lanc-v2-check {
@@ -346,8 +394,8 @@
 
 .contas-root .c-lanc-v2-mobile-top {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--v2-space-3);
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: var(--v2-space-2);
   align-items: start;
 }
 
@@ -681,11 +729,11 @@
   }
 
   .contas-root .c-lanc-v2-mobile-top {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto auto minmax(0, 1fr);
   }
 
   .contas-root .c-lanc-v2-mobile-top span:last-child {
-    grid-column: 2;
+    grid-column: 3;
     justify-self: start;
   }
 

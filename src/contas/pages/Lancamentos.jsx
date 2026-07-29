@@ -11,6 +11,7 @@ import {
   ExternalLink,
   FileText,
   Filter,
+  GripVertical,
   Inbox,
   Minus,
   Paperclip,
@@ -35,6 +36,36 @@ import {
 } from '../components/ui'
 
 const fmt = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
+const ORDER_STORAGE_PREFIX = 'contas:lancamentos-order'
+
+function normalizeOrder(ids, items) {
+  const itemIds = items.map(item => item.id)
+  const current = new Set(itemIds)
+  const ordered = ids.filter(id => current.has(id))
+  const missing = itemIds.filter(id => !ordered.includes(id))
+  return [...ordered, ...missing]
+}
+
+function applyManualOrder(items, orderIds) {
+  if (!orderIds.length) return items
+  const positions = new Map(orderIds.map((id, index) => [id, index]))
+  return [...items].sort((a, b) => {
+    const aPos = positions.has(a.id) ? positions.get(a.id) : Number.MAX_SAFE_INTEGER
+    const bPos = positions.has(b.id) ? positions.get(b.id) : Number.MAX_SAFE_INTEGER
+    return aPos - bPos
+  })
+}
+
+function moveId(ids, activeId, overId) {
+  if (!activeId || !overId || activeId === overId) return ids
+  const from = ids.indexOf(activeId)
+  const to = ids.indexOf(overId)
+  if (from < 0 || to < 0) return ids
+  const next = [...ids]
+  const [moved] = next.splice(from, 1)
+  next.splice(to, 0, moved)
+  return next
+}
 
 /* ── Modal de detalhes ─────────────────────────────────────────── */
 function ExpenseModal({ expense: e, onClose, onEdit, onDelete, deleting }) {
@@ -295,8 +326,11 @@ export default function Lancamentos() {
   const [selected, setSelected]         = useState(null)  // expense aberta no modal de detalhes
   const [showForm, setShowForm]         = useState(false)
   const [editingId, setEditingId]       = useState(null)
+  const [orderIds, setOrderIds]         = useState([])
+  const [draggingId, setDraggingId]     = useState(null)
 
   const monthRef = format(currentDate, 'yyyy-MM')
+  const orderStorageKey = `${ORDER_STORAGE_PREFIX}:${monthRef}`
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -313,6 +347,15 @@ export default function Lancamentos() {
   }, [monthRef])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(orderStorageKey)
+      setOrderIds(saved ? JSON.parse(saved) : [])
+    } catch {
+      setOrderIds([])
+    }
+  }, [orderStorageKey])
 
   useEffect(() => {
     function openNovaCompraModal() {
@@ -344,6 +387,7 @@ export default function Lancamentos() {
   if (filterFixed)  filtered = filtered.filter(e => filterFixed === 'fixed' ? e.is_fixed : !e.is_fixed)
   if (filterPerson) filtered = filtered.filter(e => e.splits?.some(s => s.person_id === filterPerson))
   if (search)       filtered = filtered.filter(e => e.description.toLowerCase().includes(search.toLowerCase()))
+  filtered = applyManualOrder(filtered, orderIds)
 
   const total    = filtered.reduce((s, e) => s + Number(e.total_amount), 0)
   const totalMes = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
@@ -362,6 +406,57 @@ export default function Lancamentos() {
     const ids = filtered.map(e => e.id)
     setExpenses(prev => prev.map(e => ids.includes(e.id) ? { ...e, reconciled: next } : e))
     await supabase.from('expenses').update({ reconciled: next }).in('id', ids)
+  }
+
+  function saveManualOrder(nextOrder) {
+    setOrderIds(nextOrder)
+    try {
+      window.localStorage.setItem(orderStorageKey, JSON.stringify(nextOrder))
+    } catch {
+      // A ordenação manual continua válida na sessão atual mesmo sem persistência local.
+    }
+  }
+
+  function reorderExpense(activeId, overId) {
+    if (!activeId || !overId || activeId === overId) return
+    const visibleIds = filtered.map(e => e.id)
+    const nextVisibleIds = moveId(visibleIds, activeId, overId)
+    if (nextVisibleIds === visibleIds) return
+    const visibleSet = new Set(visibleIds)
+    const baseOrder = normalizeOrder(orderIds, expenses)
+    let visibleIndex = 0
+    const nextOrder = baseOrder.map(id => {
+      if (!visibleSet.has(id)) return id
+      const nextId = nextVisibleIds[visibleIndex]
+      visibleIndex += 1
+      return nextId
+    })
+    saveManualOrder(nextOrder)
+  }
+
+  function handleDragStart(ev, id) {
+    ev.stopPropagation()
+    setDraggingId(id)
+    ev.dataTransfer.effectAllowed = 'move'
+    ev.dataTransfer.setData('text/plain', id)
+  }
+
+  function handleDrop(ev, overId) {
+    ev.preventDefault()
+    ev.stopPropagation()
+    const activeId = ev.dataTransfer.getData('text/plain') || draggingId
+    reorderExpense(activeId, overId)
+    setDraggingId(null)
+  }
+
+  function handleDragKeyDown(ev, id) {
+    if (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown') return
+    const visibleIds = filtered.map(e => e.id)
+    const index = visibleIds.indexOf(id)
+    const nextIndex = ev.key === 'ArrowUp' ? index - 1 : index + 1
+    if (index < 0 || nextIndex < 0 || nextIndex >= visibleIds.length) return
+    ev.preventDefault()
+    reorderExpense(id, visibleIds[nextIndex])
   }
 
   const cartaoSelecionado = filterCard ? cards.find(c => c.id === filterCard) : null
@@ -480,9 +575,12 @@ export default function Lancamentos() {
                 <thead>
                   <tr>
                     <th className="is-check">
-                      <button className={`c-lanc-v2-check ${allReconciled ? 'is-checked' : someReconciled ? 'is-partial' : ''}`} onClick={toggleAll} title={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'} aria-label={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'}>
-                        {allReconciled ? <Check /> : someReconciled ? <Minus /> : null}
-                      </button>
+                      <div className="c-lanc-v2-check-cell">
+                        <span className="c-lanc-v2-drag-spacer" aria-hidden="true" />
+                        <button className={`c-lanc-v2-check ${allReconciled ? 'is-checked' : someReconciled ? 'is-partial' : ''}`} onClick={toggleAll} title={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'} aria-label={allReconciled ? 'Desmarcar todos' : 'Marcar todos como conciliados'}>
+                          {allReconciled ? <Check /> : someReconciled ? <Minus /> : null}
+                        </button>
+                      </div>
                     </th>
                     <th>Data</th>
                     <th>Lançamento</th>
@@ -495,11 +593,32 @@ export default function Lancamentos() {
                 </thead>
                 <tbody>
                   {filtered.map(e => (
-                    <tr key={e.id} onClick={() => setSelected(e)} className={e.reconciled ? 'is-reconciled' : ''}>
+                    <tr
+                      key={e.id}
+                      onClick={() => setSelected(e)}
+                      className={`${e.reconciled ? 'is-reconciled' : ''}${draggingId === e.id ? ' is-dragging' : ''}`}
+                      onDragOver={ev => { if (draggingId && draggingId !== e.id) ev.preventDefault() }}
+                      onDrop={ev => handleDrop(ev, e.id)}
+                    >
                       <td onClick={ev => ev.stopPropagation()} className="is-check">
-                        <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={() => toggleReconciled(e.id, e.reconciled)} title={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} aria-label={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
-                          {e.reconciled ? <Check /> : null}
-                        </button>
+                        <div className="c-lanc-v2-check-cell">
+                          <button
+                            type="button"
+                            className="c-lanc-v2-drag-handle"
+                            draggable
+                            aria-label={`Reordenar ${e.description}`}
+                            title="Arrastar para reordenar"
+                            onClick={ev => ev.stopPropagation()}
+                            onDragStart={ev => handleDragStart(ev, e.id)}
+                            onDragEnd={() => setDraggingId(null)}
+                            onKeyDown={ev => handleDragKeyDown(ev, e.id)}
+                          >
+                            <GripVertical aria-hidden="true" />
+                          </button>
+                          <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={() => toggleReconciled(e.id, e.reconciled)} title={e.reconciled ? 'Desmarcar conciliacao' : 'Marcar como conciliado'} aria-label={e.reconciled ? 'Desmarcar conciliacao' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
+                            {e.reconciled ? <Check /> : null}
+                          </button>
+                        </div>
                       </td>
                       <td className="c-lanc-v2-date">{format(new Date(e.date + 'T12:00:00'), 'dd/MM/yy')}</td>
                       <td>
@@ -537,9 +656,11 @@ export default function Lancamentos() {
               {filtered.map(e => (
                 <article
                   key={e.id}
-                  className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}`}
+                  className={`c-lanc-v2-mobile-card ${e.reconciled ? 'is-reconciled' : ''}${draggingId === e.id ? ' is-dragging' : ''}`}
                   role="button"
                   tabIndex={0}
+                  onDragOver={ev => { if (draggingId && draggingId !== e.id) ev.preventDefault() }}
+                  onDrop={ev => handleDrop(ev, e.id)}
                   onClick={() => setSelected(e)}
                   onKeyDown={ev => {
                     if (ev.key === 'Enter' || ev.key === ' ') {
@@ -549,7 +670,20 @@ export default function Lancamentos() {
                   }}
                 >
                   <div className="c-lanc-v2-mobile-top">
-                    <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={ev => { ev.stopPropagation(); toggleReconciled(e.id, e.reconciled) }} aria-label={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
+                    <button
+                      type="button"
+                      className="c-lanc-v2-drag-handle"
+                      draggable
+                      aria-label={`Reordenar ${e.description}`}
+                      title="Arrastar para reordenar"
+                      onClick={ev => ev.stopPropagation()}
+                      onDragStart={ev => handleDragStart(ev, e.id)}
+                      onDragEnd={() => setDraggingId(null)}
+                      onKeyDown={ev => handleDragKeyDown(ev, e.id)}
+                    >
+                      <GripVertical aria-hidden="true" />
+                    </button>
+                    <button className={`c-lanc-v2-check ${e.reconciled ? 'is-checked' : ''}`} onClick={ev => { ev.stopPropagation(); toggleReconciled(e.id, e.reconciled) }} aria-label={e.reconciled ? 'Desmarcar conciliacao' : 'Marcar como conciliado'} style={{ '--row-color': e.card?.color || 'var(--v2-color-success)' }}>
                       {e.reconciled ? <Check /> : null}
                     </button>
                     <div>
@@ -812,7 +946,7 @@ export default function Lancamentos() {
                     <td onClick={ev => ev.stopPropagation()} style={{ textAlign: 'center', paddingRight: 0 }}>
                       <button
                         onClick={() => toggleReconciled(e.id, e.reconciled)}
-                        title={e.reconciled ? 'Desmarcar conciliação' : 'Marcar como conciliado'}
+                        title={e.reconciled ? 'Desmarcar conciliacao' : 'Marcar como conciliado'}
                         style={{
                           width: 22,
                           height: 22,
