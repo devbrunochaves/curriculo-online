@@ -96,8 +96,7 @@
 .contas-root .c-v2-nav-item:focus-visible,
 .contas-root .c-v2-logout-button:focus-visible,
 .contas-root .c-v2-bottom-item:focus-visible,
-.contas-root .c-v2-fab-nova:focus-visible,
-.contas-root .c-v2-mobile-group-toggle:focus-visible {
+.contas-root .c-v2-fab-nova:focus-visible {
   outline: none;
   box-shadow: var(--v2-shadow-focus);
 }
@@ -107,8 +106,7 @@
 .contas-root .c-v2-logout-button svg,
 .contas-root .c-v2-mobile-icon-button svg,
 .contas-root .c-v2-bottom-item svg,
-.contas-root .c-v2-fab-nova svg,
-.contas-root .c-v2-mobile-group-toggle svg {
+.contas-root .c-v2-fab-nova svg {
   width: 18px;
   height: 18px;
   stroke-width: 1.75;
@@ -155,15 +153,6 @@
 .contas-root .c-v2-nav-list {
   display: grid;
   gap: var(--v2-space-1);
-  overflow: hidden;
-  transition:
-    max-height var(--v2-duration-slow) var(--v2-ease-standard),
-    opacity var(--v2-duration-base) var(--v2-ease-standard);
-}
-
-.contas-root .c-v2-nav-list.is-collapsed {
-  max-height: 0;
-  opacity: 0;
 }
 
 .contas-root .c-v2-nav-item {
@@ -428,37 +417,6 @@
     padding-right: var(--v2-space-1);
   }
 
-  .contas-root .c-v2-mobile-group-toggle {
-    width: 100%;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-    gap: var(--v2-space-3);
-    margin-bottom: var(--v2-space-3);
-    border: 1px solid var(--v2-color-border-soft);
-    border-radius: var(--v2-radius-md);
-    background: var(--v2-color-surface-muted);
-    color: var(--v2-color-text);
-    cursor: pointer;
-    font: inherit;
-    font-size: var(--v2-font-size-body-sm);
-    font-weight: var(--v2-font-weight-bold);
-    padding: 0 var(--v2-space-3);
-  }
-
-  .contas-root .c-v2-mobile-group-toggle span {
-    flex: 1;
-    text-align: left;
-  }
-
-  .contas-root .c-v2-mobile-group-toggle svg:last-child {
-    transition: transform var(--v2-duration-base) var(--v2-ease-standard);
-  }
-
-  .contas-root .c-v2-mobile-group-toggle.is-open svg:last-child {
-    transform: rotate(180deg);
-  }
-
   .contas-root .c-v2-bottom-nav {
     position: fixed;
     left: max(var(--v2-space-3), env(safe-area-inset-left));
@@ -529,9 +487,7 @@
 @media (prefers-reduced-motion: reduce) {
   .contas-root .c-v2-sidebar-action,
   .contas-root .c-v2-nav-item,
-  .contas-root .c-v2-nav-list,
-  .contas-root .c-v2-mobile-drawer,
-  .contas-root .c-v2-mobile-group-toggle svg:last-child {
+  .contas-root .c-v2-mobile-drawer {
     transition: none;
   }
 }

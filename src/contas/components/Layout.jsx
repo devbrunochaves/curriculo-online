@@ -6,8 +6,6 @@ import {
   BarChart3,
   CalendarDays,
   Car,
-  ChevronDown,
-  CreditCard,
   FileText,
   HeartPulse,
   Home,
@@ -102,13 +100,13 @@ function NavItem({ item, onClick }) {
   )
 }
 
-function NavGroups({ onNavigate, financeOpen = true }) {
+function NavGroups({ onNavigate }) {
   return (
     <nav className="c-v2-sidebar-nav" aria-label="Navegacao principal">
       {navGroups.map(group => (
         <section className="c-v2-nav-group" key={group.label}>
           <h2 className="c-v2-nav-label">{group.label}</h2>
-          <div className={`c-v2-nav-list${group.label === 'Financeiro' && !financeOpen ? ' is-collapsed' : ''}`}>
+          <div className="c-v2-nav-list">
             {group.items.map(item => (
               <NavItem key={item.to} item={item} onClick={onNavigate} />
             ))}
@@ -123,7 +121,6 @@ export default function Layout({ session, children }) {
   const navigate = useNavigate()
   const location = useLocation()
   const [open, setOpen] = useState(false)
-  const [contasOpen, setContasOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -150,14 +147,6 @@ export default function Layout({ session, children }) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open])
 
-  const isContasActive = navGroups
-    .find(group => group.label === 'Financeiro')
-    ?.items.some(item => location.pathname.startsWith(item.to))
-
-  useEffect(() => {
-    if (isContasActive) setContasOpen(true)
-  }, [isContasActive])
-
   async function handleLogout() {
     await supabase.auth.signOut()
     navigate('/contas/login')
@@ -183,10 +172,10 @@ export default function Layout({ session, children }) {
     <div className="c-v2-app-shell">
       <aside className="c-v2-sidebar" aria-label="Menu lateral">
         <div className="c-v2-brand">
-          <div className="c-v2-brand-mark" aria-hidden="true">C</div>
+          <div className="c-v2-brand-mark" aria-hidden="true">B</div>
           <div>
-            <div className="c-v2-brand-name">Contas</div>
-            <div className="c-v2-brand-subtitle">Life OS pessoal</div>
+            <div className="c-v2-brand-name">Bruno Chaves</div>
+            <div className="c-v2-brand-subtitle">Life OS Pessoal</div>
           </div>
         </div>
 
@@ -230,7 +219,7 @@ export default function Layout({ session, children }) {
             <Menu aria-hidden="true" />
           </button>
           <div className="c-v2-mobile-title-wrap">
-            <span className="c-v2-mobile-kicker">Contas</span>
+            <span className="c-v2-mobile-kicker">Bruno Chaves</span>
             <span className="c-v2-mobile-title">{currentPage?.label || 'Meu Dia'}</span>
           </div>
           {!hideFab ? (
@@ -259,10 +248,10 @@ export default function Layout({ session, children }) {
       <aside className={`c-v2-mobile-drawer ${open ? 'is-open' : ''}`} aria-label="Menu mobile" aria-hidden={drawerHidden}>
         <div className="c-v2-drawer-header">
           <div className="c-v2-brand">
-            <div className="c-v2-brand-mark" aria-hidden="true">C</div>
+            <div className="c-v2-brand-mark" aria-hidden="true">B</div>
             <div>
-              <div className="c-v2-brand-name">Contas</div>
-              <div className="c-v2-brand-subtitle">Life OS pessoal</div>
+              <div className="c-v2-brand-name">Bruno Chaves</div>
+              <div className="c-v2-brand-subtitle">Life OS Pessoal</div>
             </div>
           </div>
           <button
@@ -285,17 +274,7 @@ export default function Layout({ session, children }) {
         </button>
 
         <div className="c-v2-drawer-scroll">
-          <button
-            type="button"
-            className={`c-v2-mobile-group-toggle${contasOpen ? ' is-open' : ''}`}
-            onClick={() => setContasOpen(value => !value)}
-            aria-expanded={contasOpen}
-          >
-            <CreditCard aria-hidden="true" />
-            <span>Financeiro</span>
-            <ChevronDown aria-hidden="true" />
-          </button>
-          <NavGroups onNavigate={() => setOpen(false)} financeOpen={contasOpen} />
+          <NavGroups onNavigate={() => setOpen(false)} />
         </div>
 
         <div className="c-v2-sidebar-footer">
