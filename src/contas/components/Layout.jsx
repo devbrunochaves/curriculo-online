@@ -152,6 +152,15 @@ export default function Layout({ session, children }) {
     navigate('/contas/login')
   }
 
+  function handleNovaCompra() {
+    if (location.pathname.startsWith('/contas/lancamentos')) {
+      window.dispatchEvent(new CustomEvent('contas:open-nova-compra'))
+      setOpen(false)
+      return
+    }
+    navigate('/contas/nova')
+  }
+
   const currentPage = allNavItems.find(item =>
     item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
   )
@@ -182,7 +191,7 @@ export default function Layout({ session, children }) {
         <button
           type="button"
           className="c-v2-sidebar-action"
-          onClick={() => navigate('/contas/nova')}
+          onClick={handleNovaCompra}
         >
           <Plus aria-hidden="true" />
           Nova Compra
@@ -226,7 +235,7 @@ export default function Layout({ session, children }) {
             <button
               type="button"
               className="c-v2-mobile-icon-button"
-              onClick={() => navigate('/contas/nova')}
+              onClick={handleNovaCompra}
               aria-label="Nova compra"
             >
               <Plus aria-hidden="true" />
@@ -267,7 +276,7 @@ export default function Layout({ session, children }) {
         <button
           type="button"
           className="c-v2-sidebar-action"
-          onClick={() => navigate('/contas/nova')}
+          onClick={handleNovaCompra}
         >
           <Plus aria-hidden="true" />
           Nova Compra
@@ -324,7 +333,7 @@ export default function Layout({ session, children }) {
       {!hideFab && (
         <button
           type="button"
-          onClick={() => navigate('/contas/nova')}
+          onClick={handleNovaCompra}
           aria-label="Nova Compra"
           className="c-v2-fab-nova"
         >

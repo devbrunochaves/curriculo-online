@@ -314,6 +314,16 @@ export default function Lancamentos() {
 
   useEffect(() => { load() }, [load])
 
+  useEffect(() => {
+    function openNovaCompraModal() {
+      setSelected(null)
+      setEditingId(null)
+      setShowForm(true)
+    }
+    window.addEventListener('contas:open-nova-compra', openNovaCompraModal)
+    return () => window.removeEventListener('contas:open-nova-compra', openNovaCompraModal)
+  }, [])
+
   async function toggleReconciled(id, current) {
     const next = !current
     setExpenses(prev => prev.map(e => e.id === id ? { ...e, reconciled: next } : e))
