@@ -332,7 +332,16 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
               <FormField label="Valor total (R$)" required help="Use o mesmo formato atual, como 149,90.">
                 <div className="c-nova-v2-money-field">
                   <span aria-hidden="true">R$</span>
-                  <input type="text" className="c-nova-v2-input c-nova-v2-money" placeholder="0,00" value={total} onChange={e => setTotal(formatBRLInput(e.target.value))} required />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="c-nova-v2-input c-nova-v2-money"
+                    placeholder="0,00"
+                    value={total}
+                    onChange={e => setTotal(formatBRLInput(e.target.value))}
+                    required
+                  />
                 </div>
               </FormField>
             </div>
@@ -435,10 +444,12 @@ export default function NovaCompra({ onSuccess, onCancel, editId: editIdProp }) 
                     {isSel && (
                       <input
                         type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         className="c-nova-v2-input c-nova-v2-split-input"
                         placeholder="0,00"
                         value={splits[person.id]}
-                        onChange={e => setSplits(prev => ({ ...prev, [person.id]: e.target.value }))}
+                        onChange={e => setSplits(prev => ({ ...prev, [person.id]: formatBRLInput(e.target.value) }))}
                       />
                     )}
                   </div>
