@@ -100,7 +100,7 @@
 
 .contas-root .c-lanc-v2-filter-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 1.4fr) repeat(3, minmax(160px, 1fr));
+  grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(150px, 1fr));
   gap: var(--v2-space-4);
   align-items: end;
 }

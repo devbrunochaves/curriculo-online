@@ -56,6 +56,17 @@ function applyManualOrder(items, orderIds) {
   })
 }
 
+function applySortMode(items, sortMode) {
+  if (!sortMode) return items
+  return [...items].sort((a, b) => {
+    if (sortMode === 'date-asc') return String(a.date || '').localeCompare(String(b.date || ''))
+    if (sortMode === 'date-desc') return String(b.date || '').localeCompare(String(a.date || ''))
+    if (sortMode === 'az') return String(a.description || '').localeCompare(String(b.description || ''), 'pt-BR', { sensitivity: 'base' })
+    if (sortMode === 'za') return String(b.description || '').localeCompare(String(a.description || ''), 'pt-BR', { sensitivity: 'base' })
+    return 0
+  })
+}
+
 function moveId(ids, activeId, overId) {
   if (!activeId || !overId || activeId === overId) return ids
   const from = ids.indexOf(activeId)
@@ -348,6 +359,7 @@ export default function Lancamentos() {
   const [filterCard, setFilterCard]     = useState('')
   const [filterPerson, setFilterPerson] = useState('')
   const [filterFixed, setFilterFixed]   = useState('')
+  const [sortMode, setSortMode]         = useState('')
   const [search, setSearch]             = useState('')
   const [deleting, setDeleting]         = useState(null)
   const [selected, setSelected]         = useState(null)  // expense aberta no modal de detalhes
@@ -416,6 +428,7 @@ export default function Lancamentos() {
   if (filterPerson) filtered = filtered.filter(e => e.splits?.some(s => s.person_id === filterPerson))
   if (search)       filtered = filtered.filter(e => e.description.toLowerCase().includes(search.toLowerCase()))
   filtered = applyManualOrder(filtered, orderIds)
+  filtered = applySortMode(filtered, sortMode)
 
   const total    = filtered.reduce((s, e) => s + Number(e.total_amount), 0)
   const totalMes = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
@@ -518,7 +531,7 @@ export default function Lancamentos() {
     : 0
   const reconciledCount = filtered.filter(e => e.reconciled).length
   const pendingCount = filtered.length - reconciledCount
-  const activeFilters = [filterCard, filterPerson, filterFixed, search].filter(Boolean).length
+  const activeFilters = [filterCard, filterPerson, filterFixed, sortMode, search].filter(Boolean).length
 
   return (
     <div className="c-lanc-v2-page">
@@ -543,7 +556,7 @@ export default function Lancamentos() {
         <MetricCard label="Total do mês" value={fmt(totalMes)} tone="accent" icon={<WalletCards />} description={`${expenses.length} lançamento${expenses.length !== 1 ? 's' : ''}`} />
         <MetricCard label="Total filtrado" value={fmt(total)} tone="neutral" icon={<Filter />} description={`${filtered.length} registro${filtered.length !== 1 ? 's' : ''} visível${filtered.length !== 1 ? 'is' : ''}`} />
         <MetricCard label="Conciliados" value={String(reconciledCount)} tone={reconciledCount ? 'success' : 'neutral'} icon={<Check />} description={`${pendingCount} pendente${pendingCount !== 1 ? 's' : ''}`} />
-        <MetricCard label="Filtros ativos" value={String(activeFilters)} tone={activeFilters ? 'warning' : 'neutral'} icon={<Search />} description="Busca, cartão, pessoa e tipo" />
+        <MetricCard label="Filtros ativos" value={String(activeFilters)} tone={activeFilters ? 'warning' : 'neutral'} icon={<Search />} description="Busca, cartão, pessoa, tipo e classificação" />
       </section>
 
       {(totalPorCartao.length > 0 || cartaoSelecionado || pessoaSelecionada) && (
@@ -586,6 +599,7 @@ export default function Lancamentos() {
           <SelectField label="Cartão" value={filterCard} onChange={e => setFilterCard(e.target.value)} options={[{ value: '', label: 'Todos' }, ...cards.map(c => ({ value: c.id, label: c.name }))]} />
           <SelectField label="Pessoa" value={filterPerson} onChange={e => setFilterPerson(e.target.value)} options={[{ value: '', label: 'Todas' }, ...people.map(p => ({ value: p.id, label: p.name }))]} />
           <SelectField label="Tipo" value={filterFixed} onChange={e => setFilterFixed(e.target.value)} options={[{ value: '', label: 'Todos' }, { value: 'fixed', label: 'Fixos' }, { value: 'variable', label: 'Variáveis' }]} />
+          <SelectField label="Classificar" value={sortMode} onChange={e => setSortMode(e.target.value)} options={[{ value: '', label: 'Classificar' }, { value: 'date-asc', label: 'Data crescente' }, { value: 'date-desc', label: 'Data decrescente' }, { value: 'az', label: 'A-Z' }, { value: 'za', label: 'Z-A' }]} />
         </div>
       </SectionCard>
 
