@@ -142,6 +142,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [catModal, setCatModal]       = useState(null)
   const [personModal, setPersonModal] = useState(null)
+  const [historyPersonId, setHistoryPersonId] = useState('')
 
   const monthRef   = format(currentDate, 'yyyy-MM')
   const monthLabel = format(currentDate, "MMMM 'de' yyyy", { locale: ptBR })
@@ -234,9 +235,18 @@ export default function Dashboard() {
 
     const months = []
     for (let i = 5; i >= 0; i--) months.push(format(subMonths(currentDate, i), 'yyyy-MM'))
-    const { data: history } = await supabase.from('expenses').select('total_amount, month_ref').in('month_ref', months)
+    const [{ data: history }, { data: historyBillEntries }] = await Promise.all([
+      supabase
+        .from('expenses')
+        .select('total_amount, month_ref, splits:expense_splits(person_id, amount)')
+        .in('month_ref', months),
+      supabase
+        .from('bill_entries')
+        .select('amount, month_ref, bill:recurring_bills(person_id), splits:bill_entry_splits(person_id, amount)')
+        .in('month_ref', months),
+    ])
 
-    setData({ expenses: expenses || [], cards: cards || [], history: history || [], months, billEntries: billEntries || [], people: people || [] })
+    setData({ expenses: expenses || [], cards: cards || [], history: history || [], historyBillEntries: historyBillEntries || [], months, billEntries: billEntries || [], people: people || [] })
     setLoading(false)
   }, [monthRef])
 
@@ -248,7 +258,7 @@ export default function Dashboard() {
     </div>
   )
 
-  const { expenses, cards, history, months, billEntries, people } = data
+  const { expenses, cards, history, historyBillEntries = [], months, billEntries, people } = data
 
   const totalCartoes  = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
   const totalFixo     = expenses.filter(e => e.is_fixed).reduce((s, e) => s + Number(e.total_amount), 0)
@@ -301,10 +311,34 @@ export default function Dashboard() {
   })
   const catData = Object.values(catMap).sort((a, b) => b.value - a.value).slice(0, 6)
 
-  const historyData = months.map(m => ({
-    month: format(parseISO(m + '-01'), 'MMM', { locale: ptBR }),
-    total: history.filter(h => h.month_ref === m).reduce((s, h) => s + Number(h.total_amount), 0)
-  }))
+  const selectedHistoryPerson = historyPersonId ? people.find(p => p.id === historyPersonId) : null
+  const historyData = months.map(m => {
+    const monthExpenses = history.filter(h => h.month_ref === m)
+    const monthBills = historyBillEntries.filter(h => h.month_ref === m)
+    return {
+      month: format(parseISO(m + '-01'), 'MMM', { locale: ptBR }),
+      total: monthExpenses.reduce((s, h) => s + Number(h.total_amount), 0),
+      cartoes: selectedHistoryPerson
+        ? monthExpenses.reduce((sum, expense) => {
+            return sum + (expense.splits || [])
+              .filter(split => split.person_id === selectedHistoryPerson.id)
+              .reduce((splitSum, split) => splitSum + Number(split.amount || 0), 0)
+          }, 0)
+        : 0,
+      fixas: selectedHistoryPerson
+        ? monthBills.reduce((sum, billEntry) => {
+            if (billEntry.splits?.length) {
+              return sum + billEntry.splits
+                .filter(split => split.person_id === selectedHistoryPerson.id)
+                .reduce((splitSum, split) => splitSum + Number(split.amount || 0), 0)
+            }
+            return billEntry.bill?.person_id === selectedHistoryPerson.id
+              ? sum + Number(billEntry.amount || 0)
+              : sum
+          }, 0)
+        : 0,
+    }
+  })
 
   const alerts = cardTotals.filter(c => c.pct !== null && c.pct >= 80)
   const latestExpenses = [...expenses].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6)
@@ -448,7 +482,22 @@ export default function Dashboard() {
         </div>
 
         <div className="c-dashboard-v2-grid">
-          <SectionCard title="Histórico de 6 meses" description="Mesma janela histórica do dashboard atual." actions={<StatusBadge tone="accent">6 meses</StatusBadge>}>
+          <SectionCard
+            title="Histórico de 6 meses"
+            description={selectedHistoryPerson ? `Cartões e contas fixas de ${selectedHistoryPerson.name}.` : 'Mesma janela histórica do dashboard atual.'}
+            actions={(
+              <div className="c-dashboard-v2-history-actions">
+                <label className="c-dashboard-v2-history-filter">
+                  <span>Pessoa</span>
+                  <select value={historyPersonId} onChange={e => setHistoryPersonId(e.target.value)} aria-label="Filtrar histórico por pessoa">
+                    <option value="">Todas</option>
+                    {people.map(person => <option key={person.id} value={person.id}>{person.name}</option>)}
+                  </select>
+                </label>
+                <StatusBadge tone="accent">6 meses</StatusBadge>
+              </div>
+            )}
+          >
             <div className="c-dashboard-v2-chart">
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={historyData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
@@ -456,10 +505,23 @@ export default function Dashboard() {
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
                   <YAxis tickFormatter={v => `R$${(v/1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: 'var(--v2-color-text-muted)' }} />
                   <Tooltip formatter={v => fmt(v)} />
-                  <Line type="monotone" dataKey="total" stroke="var(--v2-color-accent)" strokeWidth={2.5} dot={{ r: 4 }} />
+                  {selectedHistoryPerson ? (
+                    <>
+                      <Line name="Contas fixas" type="monotone" dataKey="fixas" stroke="var(--v2-history-fixed)" strokeWidth={2.5} dot={{ r: 4 }} />
+                      <Line name="Contas do mês" type="monotone" dataKey="cartoes" stroke="var(--v2-history-cards)" strokeWidth={2.5} dot={{ r: 4 }} />
+                    </>
+                  ) : (
+                    <Line name="Total" type="monotone" dataKey="total" stroke="var(--v2-color-accent)" strokeWidth={2.5} dot={{ r: 4 }} />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            {selectedHistoryPerson && (
+              <div className="c-dashboard-v2-history-legend" aria-label="Legenda do histórico por pessoa">
+                <span><i className="is-fixed" />Contas fixas</span>
+                <span><i className="is-cards" />Contas do mês</span>
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard title="Por categoria" description="Clique em uma fatia para ver os lançamentos." actions={<StatusBadge tone="neutral">{catData.length} categoria{catData.length !== 1 ? 's' : ''}</StatusBadge>}>
