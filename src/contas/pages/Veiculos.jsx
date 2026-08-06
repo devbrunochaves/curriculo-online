@@ -24,6 +24,43 @@ const FOTO_ALBUMS = ['Geral', 'Manutenções', 'Sinistros', 'Venda', 'Outros']
 const fmtBRL = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 const fmtDate = d => d ? format(parseISO(d), 'dd/MM/yyyy') : '—'
 
+// Máscara BRL: dígitos → centavos → "1.234,56"
+const formatBRLInput = raw => {
+  const digits = String(raw).replace(/\D/g, '')
+  if (!digits) return ''
+  return (parseInt(digits, 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+// Parse "1.234,56" → 1234.56
+const parseBRLInput = str => {
+  if (!str) return 0
+  const cleaned = String(str).replace(/[^\d,]/g, '').replace(',', '.')
+  return parseFloat(cleaned) || 0
+}
+
+// Máscara quilometragem: dígitos → "85.000"
+const formatQuilometragem = raw => {
+  const digits = String(raw).replace(/\D/g, '')
+  if (!digits) return ''
+  return parseInt(digits, 10).toLocaleString('pt-BR')
+}
+
+// Parse "85.000" → 85000
+const parseQuilometragem = str => {
+  if (!str) return null
+  const digits = String(str).replace(/\D/g, '')
+  return digits ? parseInt(digits, 10) : null
+}
+
+// litros = valor / preco, com segurança total
+const calcLitros = (valor, preco) => {
+  if (!valor || valor <= 0) return 0
+  if (!preco || preco <= 0) return 0
+  const resultado = valor / preco
+  if (!isFinite(resultado) || isNaN(resultado) || resultado <= 0) return 0
+  return resultado
+}
+
 async function getSignedUrl(path) {
   if (!path) return null
   const { data } = await supabase.storage.from('veiculos').createSignedUrl(path, 3600)
@@ -772,11 +809,17 @@ function ManutencoesTab({ veiculo }) {
    ABASTECIMENTOS TAB
 ══════════════════════════════════════════════════════════════════════════ */
 function AbastecimentosTab({ veiculo }) {
+  const FORM_INICIAL = { data: '', combustivel: COMBUSTIVEIS[0], valor: '', preco: '', quilometragem: '', posto: '' }
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ data: '', combustivel: COMBUSTIVEIS[0], valor: '', litros: '', quilometragem: '', posto: '' })
+  const [form, setForm] = useState(FORM_INICIAL)
   const [saving, setSaving] = useState(false)
+
+  // Litros calculados em tempo real a partir do estado do formulário
+  const valorNum = parseBRLInput(form.valor)
+  const precoNum = parseBRLInput(form.preco)
+  const litrosCalc = calcLitros(valorNum, precoNum)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -789,21 +832,42 @@ function AbastecimentosTab({ veiculo }) {
 
   async function handleSave() {
     if (!form.data) return alert('Data é obrigatória.')
+    if (valorNum <= 0) return alert('Informe o valor abastecido.')
+    if (precoNum <= 0) return alert('Informe o preço por litro.')
+    if (litrosCalc <= 0) return alert('Não foi possível calcular os litros. Verifique os valores informados.')
+
     setSaving(true)
     try {
       const payload = {
-        veiculo_id: veiculo.id, data: form.data, combustivel: form.combustivel,
-        valor: form.valor ? Number(String(form.valor).replace(/[^\d,\.]/g, '').replace(',', '.')) : null,
-        litros: form.litros ? Number(form.litros) : null,
-        quilometragem: form.quilometragem ? Number(form.quilometragem) : null,
+        veiculo_id: veiculo.id,
+        data: form.data,
+        combustivel: form.combustivel,
+        valor: valorNum,
+        litros: Math.round(litrosCalc * 10000) / 10000,   // precisão 4 casas
+        quilometragem: parseQuilometragem(form.quilometragem),
         posto: form.posto || null,
+        preco_por_litro: precoNum,
       }
-      const { error } = await supabase.from('veiculos_abastecimentos').insert(payload)
+
+      let { error } = await supabase.from('veiculos_abastecimentos').insert(payload)
+
+      // Fallback de compatibilidade: se a coluna preco_por_litro ainda não existe
+      // no banco (migration pendente), reenvia sem ela para não bloquear o usuário
+      if (error && error.message?.includes('preco_por_litro')) {
+        const { preco_por_litro: _ignorado, ...payloadSemPreco } = payload
+        const { error: err2 } = await supabase.from('veiculos_abastecimentos').insert(payloadSemPreco)
+        error = err2
+      }
+
       if (error) throw error
       setShowForm(false)
-      setForm({ data: '', combustivel: COMBUSTIVEIS[0], valor: '', litros: '', quilometragem: '', posto: '' })
+      setForm(FORM_INICIAL)
       await load()
-    } catch (err) { alert(err.message) } finally { setSaving(false) }
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function handleDelete(item) {
@@ -812,6 +876,7 @@ function AbastecimentosTab({ veiculo }) {
     await load()
   }
 
+  // Métricas — preservam todos os cálculos existentes
   const totalLitros = items.reduce((s, i) => s + Number(i.litros || 0), 0)
   const totalGasto = items.reduce((s, i) => s + Number(i.valor || 0), 0)
 
@@ -841,15 +906,15 @@ function AbastecimentosTab({ veiculo }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#6366f1' }}>{totalLitros.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}L</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#6366f1', fontVariantNumeric: 'tabular-nums' }}>{totalLitros.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}L</div>
           <div style={{ fontSize: 11, color: 'var(--c-text-muted)' }}>Total Litros</div>
         </div>
         <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#3b82f6' }}>{fmtBRL(totalGasto)}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#3b82f6', fontVariantNumeric: 'tabular-nums' }}>{fmtBRL(totalGasto)}</div>
           <div style={{ fontSize: 11, color: 'var(--c-text-muted)' }}>Total Gasto</div>
         </div>
         <div style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, padding: '12px 14px', textAlign: 'center' }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: '#10b981' }}>{consumoMedio ? `${consumoMedio} km/l` : 'N/D'}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#10b981', fontVariantNumeric: 'tabular-nums' }}>{consumoMedio ? `${consumoMedio} km/l` : 'N/D'}</div>
           <div style={{ fontSize: 11, color: 'var(--c-text-muted)' }}>Consumo Médio</div>
         </div>
       </div>
@@ -862,10 +927,11 @@ function AbastecimentosTab({ veiculo }) {
             <div key={item.id} style={{ background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 700, marginBottom: 4 }}>⛽ {item.combustivel}</div>
-                <div style={{ fontSize: 13, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 13, color: 'var(--c-text-muted)', display: 'flex', gap: 10, flexWrap: 'wrap', fontVariantNumeric: 'tabular-nums' }}>
                   {item.data && <span>📅 {fmtDate(item.data)}</span>}
                   {item.litros && <span>{Number(item.litros).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}L</span>}
                   {item.valor && <span>{fmtBRL(item.valor)}</span>}
+                  {item.preco_por_litro && <span>{fmtBRL(item.preco_por_litro)}/L</span>}
                   {item.quilometragem && <span>🛣️ {Number(item.quilometragem).toLocaleString('pt-BR')} km</span>}
                   {item.posto && <span>📍 {item.posto}</span>}
                 </div>
@@ -877,27 +943,93 @@ function AbastecimentosTab({ veiculo }) {
       )}
 
       {showForm && (
-        <ModalShell title="Novo Abastecimento" onClose={() => setShowForm(false)} onSave={handleSave} saving={saving}>
+        <ModalShell title="Novo Abastecimento" onClose={() => { setShowForm(false); setForm(FORM_INICIAL) }} onSave={handleSave} saving={saving}>
+          {/* 1. DATA */}
           <Field label="Data *">
-            <input type="date" value={form.data} onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
-              style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1.5px solid var(--c-border)', borderRadius: 8, fontSize: 16, color: 'var(--c-text)', background: 'var(--c-surface)', fontFamily: 'inherit' }} />
+            <input
+              type="date"
+              value={form.data}
+              onChange={e => setForm(f => ({ ...f, data: e.target.value }))}
+              style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1.5px solid var(--c-border)', borderRadius: 8, fontSize: 16, color: 'var(--c-text)', background: 'var(--c-surface)', fontFamily: 'inherit' }}
+            />
           </Field>
+
+          {/* 2. COMBUSTÍVEL */}
           <Field label="Combustível">
             <select className="c-form-select" value={form.combustivel} onChange={e => setForm(f => ({ ...f, combustivel: e.target.value }))}>
               {COMBUSTIVEIS.map(c => <option key={c}>{c}</option>)}
             </select>
           </Field>
-          <Field label="Valor (R$)">
-            <input className="c-form-input" value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} placeholder="150,00" />
+
+          {/* 3. VALOR ABASTECIDO */}
+          <Field label="Valor abastecido (R$)">
+            <input
+              className="c-form-input"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder="0,00"
+              value={form.valor}
+              onChange={e => setForm(f => ({ ...f, valor: formatBRLInput(e.target.value) }))}
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            />
           </Field>
-          <Field label="Litros">
-            <input className="c-form-input" type="number" step="0.01" value={form.litros} onChange={e => setForm(f => ({ ...f, litros: e.target.value }))} placeholder="40.5" />
+
+          {/* 4. PREÇO POR LITRO */}
+          <Field label="Preço por litro (R$)">
+            <input
+              className="c-form-input"
+              type="text"
+              inputMode="decimal"
+              autoComplete="off"
+              placeholder="0,00"
+              value={form.preco}
+              onChange={e => setForm(f => ({ ...f, preco: formatBRLInput(e.target.value) }))}
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            />
           </Field>
+
+          {/* 5. LITROS CALCULADOS — somente leitura */}
+          <Field label="Litros calculados">
+            <div
+              className="c-form-input"
+              style={{ background: 'var(--c-surface2, #f8fafc)', color: litrosCalc > 0 ? 'var(--c-text)' : 'var(--c-text-muted)', cursor: 'default', display: 'flex', alignItems: 'center', gap: 8, fontVariantNumeric: 'tabular-nums' }}
+              aria-readonly="true"
+            >
+              <span style={{ flex: 1 }}>
+                {litrosCalc > 0
+                  ? `${litrosCalc.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L`
+                  : '—'}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--c-text-muted)', fontStyle: 'italic', flexShrink: 0 }}>automático</span>
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 4, lineHeight: 1.4 }}>
+              Calculado automaticamente a partir do valor abastecido e do preço por litro.
+            </div>
+          </Field>
+
+          {/* 6. QUILOMETRAGEM */}
           <Field label="Quilometragem">
-            <input className="c-form-input" type="number" value={form.quilometragem} onChange={e => setForm(f => ({ ...f, quilometragem: e.target.value }))} placeholder="85000" />
+            <input
+              className="c-form-input"
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="85.000"
+              value={form.quilometragem}
+              onChange={e => setForm(f => ({ ...f, quilometragem: formatQuilometragem(e.target.value) }))}
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            />
           </Field>
+
+          {/* 7. POSTO */}
           <Field label="Posto">
-            <input className="c-form-input" value={form.posto} onChange={e => setForm(f => ({ ...f, posto: e.target.value }))} placeholder="Nome do posto" />
+            <input
+              className="c-form-input"
+              value={form.posto}
+              placeholder="Nome do posto"
+              onChange={e => setForm(f => ({ ...f, posto: e.target.value }))}
+            />
           </Field>
         </ModalShell>
       )}
