@@ -432,7 +432,12 @@ export default function ContasFixas() {
       .select('*, bill:recurring_bills(*), splits:bill_entry_splits(*, person:people(*))')
       .eq('month_ref', currentMonth)
 
-    setEntries(ents || [])
+    const validEntries = (ents || []).filter(e => {
+      if (!e.bill?.total_installments || !e.bill?.start_month) return true
+      const n = getInstallmentNumber(e.bill.start_month, currentMonth)
+      return n !== null && n <= e.bill.total_installments
+    })
+    setEntries(validEntries)
     setLoading(false)
   }
 
@@ -443,6 +448,11 @@ export default function ContasFixas() {
     const existingIds = new Set((existing || []).map(e => e.bill_id))
     const toCreate = activeBills
       .filter(b => !existingIds.has(b.id))
+      .filter(b => {
+        if (!b.total_installments || !b.start_month) return true
+        const n = getInstallmentNumber(b.start_month, currentMonth)
+        return n !== null && n <= b.total_installments
+      })
       .map(b => ({ bill_id: b.id, month_ref: currentMonth, amount: b.default_amount ?? 0 }))
     if (toCreate.length) {
       const { data: created } = await supabase.from('bill_entries').insert(toCreate).select()
