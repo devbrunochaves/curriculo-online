@@ -249,8 +249,8 @@ function HistoricoAcertos({ acertos, cards, billEntries, onDelete }) {
       <div className="c-acertos-v2-history__list">
         {acertos.map(ac => {
           const card  = cards.find(c => c.id === ac.card_id)
-          const entry = billEntries.find(e => e.id === ac.bill_entry_id)
-          const nome  = card?.name || entry?.bill?.name || '-'
+          const bill  = billEntries.find(b => (b.entries || []).some(e => e.id === ac.bill_entry_id))
+          const nome  = card?.name || bill?.name || '-'
           return (
             <div key={ac.id} className="c-acertos-v2-history-row">
               <div className="c-acertos-v2-history-row__main">
