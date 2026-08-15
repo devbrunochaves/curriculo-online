@@ -235,7 +235,20 @@
     padding-bottom: calc(var(--v2-bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
-  .contas-root .c-compras-v2-metrics,
+  .contas-root .c-compras-v2-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--v2-space-2);
+  }
+
+  .contas-root .c-compras-v2-metrics .c-v2-metric-card {
+    padding: var(--v2-space-3);
+  }
+
+  .contas-root .c-compras-v2-metrics .c-v2-metric-card__icon {
+    width: 28px;
+    height: 28px;
+  }
+
   .contas-root .c-compras-v2-form {
     grid-template-columns: 1fr;
   }
