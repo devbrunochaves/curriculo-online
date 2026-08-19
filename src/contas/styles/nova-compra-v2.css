@@ -85,8 +85,10 @@
   margin-top: var(--v2-space-4);
 }
 
-.contas-root .c-nova-v2-input {
+.contas-root .c-nova-v2-input,
+.contas-root .c-nova-v2-card-basic .c-v2-select-field {
   width: 100%;
+  box-sizing: border-box;
   min-height: 44px;
   border: 1px solid var(--v2-color-border);
   border-radius: var(--v2-radius-md);
@@ -95,12 +97,28 @@
   font: inherit;
   font-size: var(--v2-font-size-body);
   padding: 0 var(--v2-space-4);
+  -webkit-appearance: none;
+  appearance: none;
   transition: border-color var(--v2-duration-base) var(--v2-ease-standard),
     box-shadow var(--v2-duration-base) var(--v2-ease-standard),
     background-color var(--v2-duration-base) var(--v2-ease-standard);
 }
 
-.contas-root .c-nova-v2-input:focus-visible {
+.contas-root .c-nova-v2-input[type="date"] {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.contas-root .c-nova-v2-card-basic .c-v2-select-field {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--v2-space-3) center;
+  padding-right: calc(var(--v2-space-4) + 20px);
+}
+
+.contas-root .c-nova-v2-input:focus-visible,
+.contas-root .c-nova-v2-card-basic .c-v2-select-field:focus-visible {
   border-color: var(--v2-color-accent);
   outline: none;
   box-shadow: var(--v2-shadow-focus);
