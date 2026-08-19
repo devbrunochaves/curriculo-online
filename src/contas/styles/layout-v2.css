@@ -9,7 +9,7 @@
   background: var(--v2-color-bg);
   color: var(--v2-color-text);
   font-family: var(--v2-font-family-sans);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .contas-root .c-v2-sidebar {
