@@ -76,7 +76,7 @@ export default function ContasAvulsas() {
     setModal({ bill })
   }
 
-  function closeModal() { setModal(null) }
+  const closeModal = useCallback(() => setModal(null), [])
 
   // ── Split helpers ─────────────────────────────────────────────────────────
   function togglePerson(id) {
