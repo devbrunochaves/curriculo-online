@@ -227,9 +227,12 @@ export default function Dashboard() {
       }
     }
 
-    const [{ data: billEntries }] = await Promise.all([
+    const [{ data: billEntries }, { data: avulsas }] = await Promise.all([
       supabase.from('bill_entries')
         .select('*, bill:recurring_bills(*), splits:bill_entry_splits(*, person:people(*))')
+        .eq('month_ref', monthRef),
+      supabase.from('one_time_bills')
+        .select('*, splits:one_time_bill_splits(*, person:people(*))')
         .eq('month_ref', monthRef),
     ])
 
@@ -246,7 +249,7 @@ export default function Dashboard() {
         .in('month_ref', months),
     ])
 
-    setData({ expenses: expenses || [], cards: cards || [], history: history || [], historyBillEntries: historyBillEntries || [], months, billEntries: billEntries || [], people: people || [] })
+    setData({ expenses: expenses || [], cards: cards || [], history: history || [], historyBillEntries: historyBillEntries || [], months, billEntries: billEntries || [], avulsas: avulsas || [], people: people || [] })
     setLoading(false)
   }, [monthRef])
 
@@ -258,13 +261,14 @@ export default function Dashboard() {
     </div>
   )
 
-  const { expenses, cards, history, historyBillEntries = [], months, billEntries, people } = data
+  const { expenses, cards, history, historyBillEntries = [], months, billEntries, avulsas = [], people } = data
 
   const totalCartoes  = expenses.reduce((s, e) => s + Number(e.total_amount), 0)
   const totalFixo     = expenses.filter(e => e.is_fixed).reduce((s, e) => s + Number(e.total_amount), 0)
   const totalVariavel = totalCartoes - totalFixo
   const totalFixas    = billEntries.reduce((s, e) => s + Number(e.amount), 0)
-  const totalGasto    = totalCartoes + totalFixas
+  const totalAvulsas  = avulsas.reduce((s, b) => s + Number(b.amount), 0)
+  const totalGasto    = totalCartoes + totalFixas + totalAvulsas
 
   const cardTotals = cards.map(c => {
     const spent = expenses.filter(e => e.card_id === c.id).reduce((s, e) => s + Number(e.total_amount), 0)
@@ -275,7 +279,7 @@ export default function Dashboard() {
   // Gastos por pessoa: cartões + contas fixas
   const personMap = {}
   const initPerson = (person) => {
-    if (!personMap[person.id]) personMap[person.id] = { id: person.id, name: person.name, color: person.color, total: 0, fixasTotal: 0 }
+    if (!personMap[person.id]) personMap[person.id] = { id: person.id, name: person.name, color: person.color, total: 0, fixasTotal: 0, avulsasTotal: 0 }
   }
   expenses.forEach(e => {
     e.splits?.forEach(s => {
@@ -297,6 +301,15 @@ export default function Dashboard() {
         personMap[person.id].total      += Number(e.amount)
         personMap[person.id].fixasTotal += Number(e.amount)
       }
+    }
+  })
+  avulsas.forEach(b => {
+    if (b.splits?.length > 0) {
+      b.splits.forEach(s => {
+        initPerson(s.person)
+        personMap[s.person.id].total        += Number(s.amount)
+        personMap[s.person.id].avulsasTotal += Number(s.amount)
+      })
     }
   })
   const personData = Object.values(personMap).sort((a, b) => b.total - a.total)
@@ -425,6 +438,7 @@ export default function Dashboard() {
               <div><span>Fixo em cartão</span><strong>{fmt(totalFixo)}</strong></div>
               <div><span>Variável</span><strong>{fmt(totalVariavel)}</strong></div>
               <div><span>Contas fixas</span><strong>{fmt(totalFixas)}</strong></div>
+              {totalAvulsas > 0 && <div><span>Contas avulsas</span><strong>{fmt(totalAvulsas)}</strong></div>}
             </div>
           </SectionCard>
         </div>
@@ -742,6 +756,7 @@ export default function Dashboard() {
           <span>Fixo: <strong>{fmt(totalFixo)}</strong></span>
           <span>Variável: <strong>{fmt(totalVariavel)}</strong></span>
           <span style={{ color: '#7c3aed' }}>🏠 Contas Fixas: <strong>{fmt(totalFixas)}</strong></span>
+          {totalAvulsas > 0 && <span style={{ color: '#0e7490' }}>⚡ Avulsas: <strong>{fmt(totalAvulsas)}</strong></span>}
         </div>
       </div>
 

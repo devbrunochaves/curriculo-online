@@ -1,0 +1,222 @@
+/* ── Contas Avulsas ──────────────────────────────────── */
+
+/* Input dentro do ModalShell (reutiliza padrão do fixas) */
+.contas-root .c-fixas-v2-input {
+  background: var(--v2-color-surface);
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  color: var(--v2-color-text);
+  font-family: var(--v2-font-family-sans);
+  font-size: var(--v2-font-size-body);
+  font-variant-numeric: tabular-nums;
+  min-height: 42px;
+  padding: 0 var(--v2-space-4);
+  width: 100%;
+  transition: border-color var(--v2-duration-base) var(--v2-ease-standard),
+              box-shadow var(--v2-duration-base) var(--v2-ease-standard);
+}
+
+.contas-root .c-fixas-v2-input:focus-visible {
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-focus);
+  outline: none;
+}
+
+.contas-root .c-fixas-v2-input::placeholder {
+  color: var(--v2-color-text-subtle);
+}
+
+.contas-root .c-avulsas-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-6);
+  padding-bottom: var(--v2-space-8);
+}
+
+/* ── Seletor de mês ── */
+.contas-root .c-avulsas-month-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-avulsas-month-label {
+  flex: 1;
+  text-align: center;
+  font-size: var(--v2-font-size-heading-2);
+  font-weight: var(--v2-font-weight-semibold);
+  color: var(--v2-color-text);
+  text-transform: capitalize;
+}
+
+/* ── Divisão splits (reutilizado do padrão NovaCompra) ── */
+.contas-root .c-avulsas-split-item {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+  padding: var(--v2-space-3) var(--v2-space-4);
+  border-radius: var(--v2-radius-md);
+  border: 1.5px solid var(--v2-color-border);
+  background: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.contas-root .c-avulsas-split-item.selected {
+  border-color: var(--person-color, var(--v2-color-accent));
+  background: color-mix(in srgb, var(--person-color, var(--v2-color-accent)) 8%, transparent);
+}
+
+.contas-root .c-avulsas-split-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.contas-root .c-avulsas-split-name {
+  flex: 1;
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-medium);
+  color: var(--v2-color-text);
+}
+
+.contas-root .c-avulsas-split-input {
+  width: 110px;
+  text-align: right;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-sm);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text);
+  font: inherit;
+  font-size: var(--v2-font-size-body);
+  padding: var(--v2-space-2) var(--v2-space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.contas-root .c-avulsas-split-input:focus {
+  outline: none;
+  border-color: var(--v2-color-accent);
+  box-shadow: var(--v2-shadow-focus);
+}
+
+/* ── Status badge de diferença ── */
+.contas-root .c-avulsas-diff-badge {
+  font-size: var(--v2-font-size-caption);
+  font-weight: var(--v2-font-weight-semibold);
+  padding: 2px var(--v2-space-2);
+  border-radius: var(--v2-radius-full);
+}
+
+.contas-root .c-avulsas-diff-badge.ok {
+  background: var(--v2-color-success-soft);
+  color: var(--v2-color-success-text);
+}
+
+.contas-root .c-avulsas-diff-badge.err {
+  background: var(--v2-color-danger-soft);
+  color: var(--v2-color-danger-text);
+}
+
+/* ── Bill list items ── */
+.contas-root .c-avulsas-bill-list {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--v2-radius-xl);
+  border: 1px solid var(--v2-color-border-soft);
+  background: var(--v2-color-surface);
+  overflow: hidden;
+  box-shadow: var(--v2-shadow-sm);
+}
+
+.contas-root .c-avulsas-bill-row {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-3);
+  padding: var(--v2-space-4) var(--v2-space-5);
+  border-bottom: 1px solid var(--v2-color-border-soft);
+}
+
+.contas-root .c-avulsas-bill-row:last-child {
+  border-bottom: none;
+}
+
+.contas-root .c-avulsas-bill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.contas-root .c-avulsas-bill-dot.paid    { background: var(--v2-color-success); }
+.contas-root .c-avulsas-bill-dot.pending { background: var(--v2-color-warning); }
+
+.contas-root .c-avulsas-bill-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.contas-root .c-avulsas-bill-name {
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-semibold);
+  color: var(--v2-color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contas-root .c-avulsas-bill-meta {
+  font-size: var(--v2-font-size-caption);
+  color: var(--v2-color-text-muted);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-2);
+  flex-wrap: wrap;
+}
+
+.contas-root .c-avulsas-bill-amount {
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-bold);
+  color: var(--v2-color-text);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.contas-root .c-avulsas-bill-amount.paid {
+  color: var(--v2-color-success-text);
+}
+
+.contas-root .c-avulsas-bill-actions {
+  display: flex;
+  gap: var(--v2-space-1);
+  flex-shrink: 0;
+}
+
+/* ── Empty state ── */
+.contas-root .c-avulsas-empty {
+  text-align: center;
+  padding: var(--v2-space-16) var(--v2-space-6);
+  color: var(--v2-color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--v2-space-3);
+}
+
+.contas-root .c-avulsas-empty-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.contas-root .c-avulsas-empty-title {
+  font-size: var(--v2-font-size-body);
+  font-weight: var(--v2-font-weight-semibold);
+  color: var(--v2-color-text-soft);
+}
+
+.contas-root .c-avulsas-empty-sub {
+  font-size: var(--v2-font-size-body-sm);
+  color: var(--v2-color-text-muted);
+  max-width: 260px;
+  line-height: 1.5;
+}

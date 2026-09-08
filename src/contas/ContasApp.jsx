@@ -10,6 +10,7 @@ import Pessoas from './pages/Pessoas'
 import Configuracoes from './pages/Configuracoes'
 import Previsao from './pages/Previsao'
 import ContasFixas from './pages/ContasFixas'
+import ContasAvulsas from './pages/ContasAvulsas'
 import Agenda from './pages/Agenda'
 import Cardapio from './pages/Cardapio'
 import Documentos from './pages/Documentos'
@@ -70,6 +71,7 @@ export default function ContasApp() {
                 <Route path="acertos" element={<Acertos />} />
                 <Route path="entradas" element={<Entradas />} />
                 <Route path="fixas" element={<ContasFixas />} />
+                <Route path="avulsas" element={<ContasAvulsas />} />
                 <Route path="pessoas" element={<Pessoas />} />
                 <Route path="previsao" element={<Previsao />} />
                 <Route path="cartoes" element={<Navigate to="/contas/configuracoes" replace />} />

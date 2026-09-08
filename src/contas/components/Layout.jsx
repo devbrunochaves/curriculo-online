@@ -20,6 +20,7 @@ import {
   Utensils,
   Users,
   X,
+  Zap,
 } from 'lucide-react'
 
 import { supabase } from '../lib/supabase'
@@ -37,6 +38,7 @@ const navGroups = [
       { to: '/contas/dashboard', icon: BarChart3, label: 'Dashboard' },
       { to: '/contas/lancamentos', icon: ReceiptText, label: 'Lançamentos' },
       { to: '/contas/fixas', icon: Landmark, label: 'Contas Fixas' },
+      { to: '/contas/avulsas', icon: Zap, label: 'Contas Avulsas' },
       { to: '/contas/entradas', icon: Banknote, label: 'Entradas' },
       { to: '/contas/acertos', icon: BadgeDollarSign, label: 'Acertos' },
       { to: '/contas/previsao', icon: CalendarDays, label: 'Previsão' },
@@ -172,7 +174,8 @@ export default function Layout({ session, children }) {
   const isVeiculos = location.pathname.startsWith('/contas/veiculos')
   const isSaude = location.pathname.startsWith('/contas/saude')
   const isAcertos = location.pathname.startsWith('/contas/acertos')
-  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude || isAcertos
+  const isAvulsas = location.pathname.startsWith('/contas/avulsas')
+  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude || isAcertos || isAvulsas
   const userEmail = session?.user?.email || 'Sessão ativa'
   const userInitials = initialsFromEmail(session?.user?.email)
   const drawerHidden = !open || !isMobile
