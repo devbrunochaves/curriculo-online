@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { format, addMonths, subMonths, parseISO } from 'date-fns'
+import { format, addMonths, subMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '../lib/supabase'
 import {
-  ArrowLeft, ArrowRight, Check, Pencil, Plus, Trash2,
+  ArrowLeft, ArrowRight, Check, Pencil, Plus, Split, Trash2,
 } from 'lucide-react'
 import {
   Button, FormField, IconButton, MetricCard, ModalShell, PageHeader,
   SectionCard, StatusBadge,
 } from '../components/ui'
 import '../styles/contas-avulsas-v2.css'
+import '../styles/nova-compra-v2.css'
 
 const fmt      = v => Number(v)?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) ?? 'R$ 0,00'
 const parseBRL = str => { if (!str) return 0; return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0 }
@@ -293,42 +294,38 @@ export default function ContasAvulsas() {
           </FormField>
 
           {/* Divisão entre pessoas */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--v2-space-2)', marginBottom: 'var(--v2-space-3)' }}>
-              <span className="c-v2-label" style={{ margin: 0, flex: 1 }}>Divisão entre pessoas</span>
-              {hasSplits && totalNum > 0 && (
-                <button type="button" className="c-v2-btn-link" onClick={splitEqually} style={{ fontSize: 12, color: 'var(--v2-color-accent)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 600 }}>
-                  Dividir igualmente
-                </button>
-              )}
-              {hasSplits && (
-                <span className={`c-avulsas-diff-badge ${splitsOk ? 'ok' : 'err'}`}>
-                  {splitsOk ? '✓ Conferido' : `Falta ${fmt(diff)}`}
-                </span>
-              )}
+          <SectionCard
+            title="Divisão entre pessoas"
+            description="Opcional — se não dividir, a conta entra sem vínculo de pessoa."
+            actions={
+              hasSplits
+                ? <StatusBadge tone={splitsOk ? 'success' : 'danger'}>{splitsOk ? 'Conferido' : `Falta ${fmt(diff)}`}</StatusBadge>
+                : <StatusBadge tone="warning">Selecione pessoas</StatusBadge>
+            }
+          >
+            <div className="c-nova-v2-split-actions">
+              <Button type="button" variant="secondary" size="sm" icon={<Split />} onClick={splitEqually}>Dividir igualmente</Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => setSplits({})}>Limpar</Button>
+              <div className="c-nova-v2-split-total">
+                <span>Total dividido</span>
+                <strong>{fmt(splitTotal)}</strong>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--v2-space-2)' }}>
+            <div className="c-nova-v2-people">
               {people.map(person => {
                 const isSel = splits[person.id] !== undefined
                 return (
-                  <div
-                    key={person.id}
-                    className={`c-avulsas-split-item ${isSel ? 'selected' : ''}`}
-                    style={{ '--person-color': person.color }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSel}
-                      onChange={() => togglePerson(person.id)}
-                      style={{ width: 16, height: 16, accentColor: person.color, cursor: 'pointer', flexShrink: 0 }}
-                    />
-                    <span className="c-avulsas-split-dot" style={{ background: person.color }} />
-                    <span className="c-avulsas-split-name">{person.name}</span>
+                  <div key={person.id} className={`c-nova-v2-person ${isSel ? 'is-selected' : ''}`} style={{ '--person-color': person.color }}>
+                    <label>
+                      <input type="checkbox" checked={isSel} onChange={() => togglePerson(person.id)} />
+                      <span className="c-nova-v2-person-dot" aria-hidden="true" />
+                      <strong>{person.name}</strong>
+                    </label>
                     {isSel && (
                       <input
                         type="text"
                         inputMode="numeric"
-                        className="c-avulsas-split-input"
+                        className="c-nova-v2-input c-nova-v2-split-input"
                         placeholder="0,00"
                         value={splits[person.id]}
                         onChange={e => setSplits(prev => ({ ...prev, [person.id]: formatBRLInput(e.target.value) }))}
@@ -338,10 +335,7 @@ export default function ContasAvulsas() {
                 )
               })}
             </div>
-            <p style={{ fontSize: 11, color: 'var(--v2-color-text-subtle)', marginTop: 'var(--v2-space-2)' }}>
-              Opcional — se não dividir, a conta entra sem vínculo de pessoa.
-            </p>
-          </div>
+          </SectionCard>
       </ModalShell>
     </div>
   )
