@@ -521,8 +521,10 @@ function BoletosTab() {
   }
 
   async function handleDownload(b) {
+    const win = window.open('', '_blank')
     const url = await getSignedUrl(b.pdf_path)
-    if (url) window.open(url, '_blank')
+    if (url && win) win.location.href = url
+    else if (win) win.close()
   }
 
   const totalPago = boletos.filter(b=>b.status==='pago').reduce((s,b)=>s+Number(b.valor||0),0)
@@ -874,8 +876,10 @@ function DocumentosTab() {
 
   async function handleOpen(d) {
     if (!d.storage_path) return
+    const win = window.open('', '_blank')
     const url = await getSignedUrl(d.storage_path)
-    if (url) window.open(url, '_blank')
+    if (url && win) win.location.href = url
+    else if (win) win.close()
   }
 
   if (loading) return <Loading />
@@ -1304,8 +1308,10 @@ function GarantiasTab() {
   }
 
   async function handleNF(item) {
+    const win = window.open('', '_blank')
     const url = await getSignedUrl(item.nf_path)
-    if (url) window.open(url, '_blank')
+    if (url && win) win.location.href = url
+    else if (win) win.close()
   }
 
   function getStatus(fim) {

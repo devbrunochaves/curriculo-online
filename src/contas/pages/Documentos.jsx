@@ -350,8 +350,10 @@ function ArquivoItem({ arquivo, onDelete }) {
   }
 
   async function handleOpen() {
+    const win = window.open('', '_blank')
     const u = await loadUrl()
-    if (u) window.open(u, '_blank')
+    if (u && win) win.location.href = u
+    else if (win) win.close()
   }
 
   async function handleDownload() {
