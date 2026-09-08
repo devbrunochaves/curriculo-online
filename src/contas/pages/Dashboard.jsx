@@ -22,6 +22,7 @@ import {
   UsersRound,
   WalletCards,
   X,
+  Zap,
 } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -45,7 +46,7 @@ function hexToRgb(hex) {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 
-function gerarPDF(person, personExpenses, personBills, monthLabel) {
+function gerarPDF(person, personExpenses, personBills, personAvulsas, monthLabel) {
   const doc = new jsPDF()
   const rgb = hexToRgb(person.color)
 
@@ -115,6 +116,35 @@ function gerarPDF(person, personExpenses, personBills, monthLabel) {
         fmt(b.myAmount),
       ]),
       foot: [['', 'Subtotal', fmt(subtotalFixas)]],
+      theme: 'striped',
+      headStyles: { fillColor: rgb, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+      footStyles: { fillColor: [241, 245, 249], textColor: [30, 30, 30], fontStyle: 'bold', fontSize: 9 },
+      styles: { fontSize: 9, cellPadding: 3 },
+      columnStyles: { 2: { halign: 'right' } },
+    })
+    y = doc.lastAutoTable.finalY + 12
+  }
+
+  // ── Contas avulsas ──────────────────────────────────────
+  if (personAvulsas.length > 0) {
+    if (y > 230) { doc.addPage(); y = 20 }
+    doc.setTextColor(30, 30, 30)
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Contas Avulsas', 14, y)
+    doc.setFont('helvetica', 'normal')
+
+    const subtotalAvulsas = personAvulsas.reduce((s, b) => s + Number(b.myAmount), 0)
+
+    autoTable(doc, {
+      startY: y + 4,
+      head: [['Conta', 'Situação', 'Meu valor']],
+      body: personAvulsas.map(b => [
+        b.name || '—',
+        b.paid ? 'Pago' : 'Pendente',
+        fmt(b.myAmount),
+      ]),
+      foot: [['', 'Subtotal', fmt(subtotalAvulsas)]],
       theme: 'striped',
       headStyles: { fillColor: rgb, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
       footStyles: { fillColor: [241, 245, 249], textColor: [30, 30, 30], fontStyle: 'bold', fontSize: 9 },
@@ -415,10 +445,11 @@ export default function Dashboard() {
                     </span>
                     <span className="c-dashboard-v2-person-value">{fmt(p.total)}</span>
                     <span className="c-dashboard-v2-progress"><span style={{ width: `${totalGasto > 0 ? Math.min((p.total / totalGasto) * 100, 100) : 0}%`, background: p.color }} /></span>
-                    {p.fixasTotal > 0 && (
+                    {(p.fixasTotal > 0 || p.avulsasTotal > 0) && (
                       <span className="c-dashboard-v2-breakdown">
-                        <span><CreditCard aria-hidden="true" /> Cartões <strong>{fmt(p.total - p.fixasTotal)}</strong></span>
-                        <span><Home aria-hidden="true" /> Contas fixas <strong>{fmt(p.fixasTotal)}</strong></span>
+                        <span><CreditCard aria-hidden="true" /> Cartões <strong>{fmt(p.total - p.fixasTotal - p.avulsasTotal)}</strong></span>
+                        {p.fixasTotal > 0 && <span><Home aria-hidden="true" /> Contas fixas <strong>{fmt(p.fixasTotal)}</strong></span>}
+                        {p.avulsasTotal > 0 && <span><Zap aria-hidden="true" /> Avulsas <strong>{fmt(p.avulsasTotal)}</strong></span>}
                       </span>
                     )}
                   </button>
@@ -613,8 +644,12 @@ export default function Dashboard() {
               myAmount: e.splits?.find(s => s.person?.id === p.id)?.amount ??
                         (e.bill?.person_id === p.id ? Number(e.amount) : 0)
             }))
+          const personAvulsas = avulsas
+            .filter(b => b.splits?.some(s => s.person?.id === p.id))
+            .map(b => ({ ...b, myAmount: b.splits.find(s => s.person?.id === p.id)?.amount || 0 }))
           const subtotalCartoes = personExpenses.reduce((s, e) => s + Number(e.myAmount), 0)
           const subtotalFixas   = personBills.reduce((s, b) => s + Number(b.myAmount), 0)
+          const subtotalAvulsas = personAvulsas.reduce((s, b) => s + Number(b.myAmount), 0)
 
           return (
             <div className="c-dashboard-v2-modal" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setPersonModal(null) }}>
@@ -624,11 +659,11 @@ export default function Dashboard() {
                     <span className="c-dashboard-v2-modal-avatar">{p.name[0]}</span>
                     <div>
                       <h2>{p.name}</h2>
-                      <p>Total: <strong>{fmt(p.total)}</strong> · {personExpenses.length} lançamentos · {personBills.length} contas fixas</p>
+                      <p>Total: <strong>{fmt(p.total)}</strong> · {personExpenses.length} lançamentos · {personBills.length} contas fixas{personAvulsas.length > 0 ? ` · ${personAvulsas.length} avulsa${personAvulsas.length !== 1 ? 's' : ''}` : ''}</p>
                     </div>
                   </div>
                   <div className="c-dashboard-v2-modal-actions">
-                    <Button size="sm" icon={<Download />} onClick={() => gerarPDF(p, personExpenses, personBills, monthLabel)}>Baixar PDF</Button>
+                    <Button size="sm" icon={<Download />} onClick={() => gerarPDF(p, personExpenses, personBills, personAvulsas, monthLabel)}>Baixar PDF</Button>
                     <IconButton icon={<X />} label="Fechar modal de pessoa" variant="ghost" size="sm" onClick={() => setPersonModal(null)} />
                   </div>
                 </header>
@@ -660,7 +695,19 @@ export default function Dashboard() {
                       ))}
                     </section>
                   )}
-                  {personExpenses.length === 0 && personBills.length === 0 && (
+                  {personAvulsas.length > 0 && (
+                    <section className="c-dashboard-v2-modal-section">
+                      <div className="c-dashboard-v2-modal-section-head"><strong><Zap aria-hidden="true" /> Contas avulsas</strong><span>{fmt(subtotalAvulsas)}</span></div>
+                      {personAvulsas.map(b => (
+                        <div key={b.id} className="c-dashboard-v2-modal-row">
+                          <span className="c-dashboard-v2-dot" style={{ background: p.color }} />
+                          <span><strong>{b.name || '—'}</strong><small>{b.paid ? 'Pago' : 'Pendente'}</small></span>
+                          <span><strong>{fmt(b.myAmount)}</strong></span>
+                        </div>
+                      ))}
+                    </section>
+                  )}
+                  {personExpenses.length === 0 && personBills.length === 0 && personAvulsas.length === 0 && (
                     <EmptyState compact icon={<FileText />} title="Nenhum lançamento encontrado" description="Não existem despesas para esta pessoa no mês selecionado." />
                   )}
                 </div>
@@ -916,8 +963,12 @@ export default function Dashboard() {
                       (e.bill?.person_id === p.id ? Number(e.amount) : 0)
           }))
 
-        const subtotalCartoes = personExpenses.reduce((s, e) => s + Number(e.myAmount), 0)
-        const subtotalFixas   = personBills.reduce((s, b) => s + Number(b.myAmount), 0)
+        const personAvulsasMobile = avulsas
+          .filter(b => b.splits?.some(s => s.person?.id === p.id))
+          .map(b => ({ ...b, myAmount: b.splits.find(s => s.person?.id === p.id)?.amount || 0 }))
+        const subtotalCartoes  = personExpenses.reduce((s, e) => s + Number(e.myAmount), 0)
+        const subtotalFixas    = personBills.reduce((s, b) => s + Number(b.myAmount), 0)
+        const subtotalAvulsasMobile = personAvulsasMobile.reduce((s, b) => s + Number(b.myAmount), 0)
 
         return (
           <div
@@ -942,7 +993,7 @@ export default function Dashboard() {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button
-                    onClick={() => gerarPDF(p, personExpenses, personBills, monthLabel)}
+                    onClick={() => gerarPDF(p, personExpenses, personBills, personAvulsasMobile, monthLabel)}
                     style={{ background: p.color, color: '#fff', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
                   >
                     ⬇️ Baixar PDF
@@ -1005,7 +1056,27 @@ export default function Dashboard() {
                   </>
                 )}
 
-                {personExpenses.length === 0 && personBills.length === 0 && (
+                {/* Contas avulsas */}
+                {personAvulsasMobile.length > 0 && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0 8px' }}>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--c-text-muted)', textTransform: 'uppercase', letterSpacing: '.05em' }}>⚡ Contas Avulsas</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: p.color }}>{fmt(subtotalAvulsasMobile)}</span>
+                    </div>
+                    {personAvulsasMobile.map(b => (
+                      <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--c-border)' }}>
+                        <div style={{ width: 9, height: 9, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{b.name || '—'}</div>
+                          <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2 }}>{b.paid ? '✓ Pago' : 'Pendente'}</div>
+                        </div>
+                        <div style={{ fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{fmt(b.myAmount)}</div>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {personExpenses.length === 0 && personBills.length === 0 && personAvulsasMobile.length === 0 && (
                   <div style={{ textAlign: 'center', padding: 40, color: 'var(--c-text-muted)', fontSize: 13 }}>Nenhum lançamento encontrado.</div>
                 )}
               </div>

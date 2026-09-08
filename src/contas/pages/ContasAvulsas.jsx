@@ -22,7 +22,7 @@ const formatBRLInput = str => {
 const EMPTY_FORM = { name: '', amount: '', notes: '', paid: false }
 
 export default function ContasAvulsas() {
-  const [currentDate, setCurrentDate] = useState(new Date())
+  const [currentDate, setCurrentDate] = useState(addMonths(new Date(), 1))
   const [bills,   setBills]   = useState([])
   const [people,  setPeople]  = useState([])
   const [loading, setLoading] = useState(true)
@@ -169,16 +169,16 @@ export default function ContasAvulsas() {
         title="Contas Avulsas"
         description="Contas de valor variável cadastradas manualmente para um mês específico."
         actions={(
-          <Button icon={<Plus />} onClick={openNew}>Adicionar</Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--v2-space-2)' }}>
+            <div className="c-avulsas-month-nav" style={{ margin: 0 }}>
+              <IconButton icon={<ArrowLeft />} label="Mês anterior" variant="secondary" size="sm" onClick={() => setCurrentDate(d => subMonths(d, 1))} />
+              <span className="c-avulsas-month-label" style={{ textTransform: 'capitalize', fontSize: 13 }}>{monthLabel}</span>
+              <IconButton icon={<ArrowRight />} label="Mês seguinte" variant="secondary" size="sm" onClick={() => setCurrentDate(d => addMonths(d, 1))} />
+            </div>
+            <Button icon={<Plus />} onClick={openNew}>Adicionar</Button>
+          </div>
         )}
       />
-
-      {/* Month nav */}
-      <div className="c-avulsas-month-nav">
-        <IconButton icon={<ArrowLeft />} label="Mês anterior" variant="secondary" size="sm" onClick={() => setCurrentDate(d => subMonths(d, 1))} />
-        <span className="c-avulsas-month-label" style={{ textTransform: 'capitalize' }}>{monthLabel}</span>
-        <IconButton icon={<ArrowRight />} label="Mês seguinte" variant="secondary" size="sm" onClick={() => setCurrentDate(d => addMonths(d, 1))} />
-      </div>
 
       {/* Metrics */}
       <section className="c-v2-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--v2-space-3)' }}>
