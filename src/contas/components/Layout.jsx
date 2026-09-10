@@ -4,6 +4,7 @@ import {
   BadgeDollarSign,
   Banknote,
   BarChart3,
+  Building2,
   CalendarDays,
   Car,
   FileText,
@@ -40,6 +41,7 @@ const navGroups = [
       { to: '/contas/fixas', icon: Landmark, label: 'Contas Fixas' },
       { to: '/contas/avulsas', icon: Zap, label: 'Contas Avulsas' },
       { to: '/contas/entradas', icon: Banknote, label: 'Entradas' },
+      { to: '/contas/mei', icon: Building2, label: 'MEI' },
       { to: '/contas/acertos', icon: BadgeDollarSign, label: 'Acertos' },
       { to: '/contas/previsao', icon: CalendarDays, label: 'Previsão' },
       { to: '/contas/pessoas', icon: Users, label: 'Pessoas' },
@@ -175,7 +177,8 @@ export default function Layout({ session, children }) {
   const isSaude = location.pathname.startsWith('/contas/saude')
   const isAcertos = location.pathname.startsWith('/contas/acertos')
   const isAvulsas = location.pathname.startsWith('/contas/avulsas')
-  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude || isAcertos || isAvulsas
+  const isMei     = location.pathname.startsWith('/contas/mei')
+  const hideFab = isAgenda || isApartamento || isMeuDia || isMetas || isVeiculos || isSaude || isAcertos || isAvulsas || isMei
   const userEmail = session?.user?.email || 'Sessão ativa'
   const userInitials = initialsFromEmail(session?.user?.email)
   const drawerHidden = !open || !isMobile

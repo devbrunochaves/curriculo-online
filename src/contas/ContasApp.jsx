@@ -21,6 +21,7 @@ import Veiculos from './pages/Veiculos'
 import Saude from './pages/Saude'
 import Acertos from './pages/Acertos'
 import Entradas from './pages/Entradas'
+import Mei from './pages/Mei'
 import './styles/contas.css'
 
 function ProtectedRoute({ session, children }) {
@@ -72,6 +73,7 @@ export default function ContasApp() {
                 <Route path="entradas" element={<Entradas />} />
                 <Route path="fixas" element={<ContasFixas />} />
                 <Route path="avulsas" element={<ContasAvulsas />} />
+                <Route path="mei" element={<Mei />} />
                 <Route path="pessoas" element={<Pessoas />} />
                 <Route path="previsao" element={<Previsao />} />
                 <Route path="cartoes" element={<Navigate to="/contas/configuracoes" replace />} />

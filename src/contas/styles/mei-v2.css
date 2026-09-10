@@ -1,0 +1,382 @@
+/* ── MEI Module v2 ─────────────────────────────────────────────────────── */
+
+/* Input (reuse do padrão fixas) */
+.c-fixas-v2-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--v2-color-text);
+  background: var(--v2-color-surface);
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.c-fixas-v2-input:focus {
+  outline: none;
+  border-color: var(--v2-color-accent);
+}
+.c-fixas-v2-input[type="file"] {
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+.c-mei-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+  padding-bottom: var(--v2-space-8);
+}
+
+/* ── Year selector ──────────────────────────────────────────────────────── */
+.c-mei-year-select {
+  padding: 6px 10px 6px 12px;
+  border: 1.5px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--v2-color-text);
+  background: var(--v2-color-surface);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.c-mei-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--v2-space-3);
+  padding: var(--v2-space-10) var(--v2-space-4);
+}
+.c-mei-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--v2-radius-xl);
+  background: var(--v2-color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--v2-color-accent);
+}
+.c-mei-empty-icon svg { width: 28px; height: 28px; }
+.c-mei-empty-title { font-size: 20px; font-weight: 700; color: var(--v2-color-text); margin: 0; }
+.c-mei-empty-sub   { font-size: 14px; color: var(--v2-color-text-muted); max-width: 400px; margin: 0; }
+
+/* ── Tabs ───────────────────────────────────────────────────────────────── */
+.c-mei-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 2px solid var(--v2-color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.c-mei-tabs::-webkit-scrollbar { display: none; }
+
+.c-mei-tab {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--v2-color-text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.c-mei-tab:hover { color: var(--v2-color-text); }
+.c-mei-tab.active {
+  color: var(--v2-color-accent);
+  border-bottom-color: var(--v2-color-accent);
+  font-weight: 600;
+}
+
+/* ── Content ────────────────────────────────────────────────────────────── */
+.c-mei-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-4);
+}
+
+/* ── Metrics grid ───────────────────────────────────────────────────────── */
+.c-mei-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--v2-space-3);
+}
+
+.c-mei-metric-card {
+  background: var(--v2-color-surface);
+  border: 1.5px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  padding: var(--v2-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--v2-space-1);
+}
+.c-mei-metric-card.accent { border-left: 4px solid var(--v2-color-accent); }
+
+.c-mei-metric-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--v2-color-text-muted);
+  text-transform: capitalize;
+}
+.c-mei-metric-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--v2-color-text);
+  font-variant-numeric: tabular-nums;
+  margin: 2px 0;
+}
+.c-mei-metric-sub {
+  font-size: 11px;
+  color: var(--v2-color-text-subtle);
+}
+
+/* Progress bar */
+.c-mei-progress-bar-wrap {
+  height: 6px;
+  background: var(--v2-color-bg-subtle);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 4px 0;
+}
+.c-mei-progress-bar {
+  height: 100%;
+  width: var(--pct, 0%);
+  background: var(--tone, var(--v2-color-accent));
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* ── Overview layout ────────────────────────────────────────────────────── */
+.c-mei-overview-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--v2-space-4);
+  align-items: start;
+}
+.c-mei-overview-main  { display: flex; flex-direction: column; gap: var(--v2-space-4); }
+.c-mei-overview-aside { display: flex; flex-direction: column; gap: var(--v2-space-4); }
+
+/* Chart */
+.c-mei-chart-wrap { padding: var(--v2-space-2) 0; }
+.c-mei-chart-tooltip {
+  background: var(--v2-color-surface);
+  border: 1.5px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  padding: 6px 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.c-mei-chart-tooltip-label { font-size: 11px; color: var(--v2-color-text-muted); }
+.c-mei-chart-tooltip-value { font-size: 14px; font-weight: 700; color: var(--v2-color-text); }
+
+/* Resumo */
+.c-mei-resumo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  overflow: hidden;
+}
+.c-mei-resumo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--v2-space-3);
+  background: var(--v2-color-surface);
+}
+.c-mei-resumo-item span { font-size: 12px; color: var(--v2-color-text-muted); }
+.c-mei-resumo-item strong { font-size: 16px; font-variant-numeric: tabular-nums; color: var(--v2-color-text); }
+.c-mei-resumo-item strong.success { color: var(--v2-color-success); }
+.c-mei-resumo-item strong.warning { color: var(--v2-color-warning); }
+
+/* ── Alerts ─────────────────────────────────────────────────────────────── */
+.c-mei-alerts { display: flex; flex-direction: column; gap: var(--v2-space-2); }
+.c-mei-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--v2-space-2);
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: var(--v2-radius-md);
+  line-height: 1.4;
+}
+.c-mei-alert svg { flex-shrink: 0; margin-top: 1px; }
+.c-mei-alert.warning { background: color-mix(in srgb, var(--v2-color-warning) 10%, transparent); color: var(--v2-color-warning); }
+.c-mei-alert.danger  { background: color-mix(in srgb, var(--v2-color-danger)  10%, transparent); color: var(--v2-color-danger); }
+.c-mei-alert.success { background: color-mix(in srgb, var(--v2-color-success) 10%, transparent); color: var(--v2-color-success); }
+
+/* ── DAS sidebar list ───────────────────────────────────────────────────── */
+.c-mei-das-list { display: flex; flex-direction: column; gap: var(--v2-space-2); }
+.c-mei-das-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--v2-space-2);
+  padding: var(--v2-space-2) var(--v2-space-3);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-bg-subtle);
+  font-size: 13px;
+}
+.c-mei-das-item.atrasado { background: color-mix(in srgb, var(--v2-color-danger) 8%, transparent); }
+.c-mei-das-comp { font-weight: 600; color: var(--v2-color-text); text-transform: capitalize; }
+.c-mei-das-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.c-mei-das-valor { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+.c-mei-das-venc  { font-size: 11px; color: var(--v2-color-text-muted); }
+
+/* ── Links úteis ────────────────────────────────────────────────────────── */
+.c-mei-links { display: flex; flex-direction: column; gap: var(--v2-space-1); }
+.c-mei-link {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-2);
+  font-size: 13px;
+  color: var(--v2-color-accent);
+  text-decoration: none;
+  padding: 5px 0;
+}
+.c-mei-link:hover { text-decoration: underline; }
+
+/* ── Profile info ───────────────────────────────────────────────────────── */
+.c-mei-profile-info { display: flex; flex-direction: column; gap: var(--v2-space-2); }
+.c-mei-profile-info > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: var(--v2-space-2);
+}
+.c-mei-profile-info span { color: var(--v2-color-text-muted); }
+.c-mei-profile-info strong { color: var(--v2-color-text); text-align: right; }
+
+/* ── Table ──────────────────────────────────────────────────────────────── */
+.c-mei-table-wrap { overflow-x: auto; }
+.c-mei-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.c-mei-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--v2-color-text-muted);
+  border-bottom: 1.5px solid var(--v2-color-border);
+  white-space: nowrap;
+}
+.c-mei-table td {
+  padding: 10px 10px;
+  color: var(--v2-color-text);
+  border-bottom: 1px solid var(--v2-color-border);
+  white-space: nowrap;
+}
+.c-mei-table tr:last-child td { border-bottom: none; }
+.c-mei-table tr:hover td { background: var(--v2-color-bg-subtle); }
+.c-mei-table .c-mei-num { font-variant-numeric: tabular-nums; text-align: right; }
+.c-mei-row-cancelled { opacity: 0.5; }
+.c-mei-table-empty {
+  padding: var(--v2-space-6) var(--v2-space-4);
+  text-align: center;
+  color: var(--v2-color-text-muted);
+  font-size: 14px;
+}
+
+/* ── Declaração ─────────────────────────────────────────────────────────── */
+.c-mei-decl-wrap { display: flex; flex-direction: column; gap: var(--v2-space-4); }
+.c-mei-decl-calc {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: var(--v2-space-3);
+  border-radius: var(--v2-radius-md);
+  overflow: hidden;
+  border: 1.5px solid var(--v2-color-border);
+}
+.c-mei-decl-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--v2-space-3) var(--v2-space-4);
+  background: var(--v2-color-surface);
+  font-size: 14px;
+}
+.c-mei-decl-row span { color: var(--v2-color-text-muted); }
+.c-mei-decl-row strong { font-variant-numeric: tabular-nums; color: var(--v2-color-text); }
+.c-mei-decl-row.total { background: var(--v2-color-bg-subtle); }
+.c-mei-decl-row.total strong { font-size: 16px; font-weight: 700; color: var(--v2-color-accent); }
+.c-mei-decl-submitted { display: flex; align-items: center; gap: var(--v2-space-3); flex-wrap: wrap; margin-bottom: var(--v2-space-3); }
+.c-mei-decl-actions { display: flex; gap: var(--v2-space-2); flex-wrap: wrap; }
+
+/* ── Documentos ─────────────────────────────────────────────────────────── */
+.c-mei-docs-wrap { display: flex; flex-direction: column; gap: var(--v2-space-4); }
+.c-mei-docs-header { display: flex; justify-content: flex-end; }
+.c-mei-doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--v2-space-3);
+}
+.c-mei-doc-card {
+  display: flex;
+  gap: var(--v2-space-3);
+  padding: var(--v2-space-3);
+  border: 1.5px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-color-surface);
+}
+.c-mei-doc-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--v2-color-text-muted);
+}
+.c-mei-doc-body { flex: 1; min-width: 0; }
+.c-mei-doc-nome { font-size: 13px; font-weight: 600; color: var(--v2-color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-mei-doc-desc { font-size: 11px; color: var(--v2-color-text-muted); margin-top: 2px; }
+.c-mei-doc-date { font-size: 11px; color: var(--v2-color-text-subtle); margin-top: 2px; }
+.c-mei-doc-actions { display: flex; flex-direction: column; gap: 2px; }
+
+/* ── Misc helpers ───────────────────────────────────────────────────────── */
+.c-mei-muted  { color: var(--v2-color-text-muted); }
+.c-mei-check-label { display: flex; align-items: center; gap: var(--v2-space-2); font-size: 14px; cursor: pointer; }
+.c-mei-check-label input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--v2-color-accent); }
+.c-mei-recebida-row { display: flex; flex-direction: column; gap: var(--v2-space-2); }
+.c-mei-relatorio-filter { max-width: 220px; margin-bottom: var(--v2-space-4); }
+
+/* ── Responsividade ─────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .c-mei-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .c-mei-overview-body { grid-template-columns: 1fr; }
+  .c-mei-overview-aside { display: grid; grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 720px) {
+  .c-mei-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .c-mei-overview-aside { grid-template-columns: 1fr; }
+  .c-mei-doc-grid { grid-template-columns: 1fr; }
+  .c-mei-resumo-grid { grid-template-columns: 1fr; }
+  .c-mei-tab { font-size: 12px; padding: 8px 12px; }
+}
+
+@media (max-width: 480px) {
+  .c-mei-metrics-grid { grid-template-columns: 1fr; }
+  .c-mei-metric-value { font-size: 18px; }
+}
