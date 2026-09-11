@@ -41,10 +41,10 @@ const navGroups = [
       { to: '/contas/fixas', icon: Landmark, label: 'Contas Fixas' },
       { to: '/contas/avulsas', icon: Zap, label: 'Contas Avulsas' },
       { to: '/contas/entradas', icon: Banknote, label: 'Entradas' },
-      { to: '/contas/mei', icon: Building2, label: 'MEI' },
       { to: '/contas/acertos', icon: BadgeDollarSign, label: 'Acertos' },
       { to: '/contas/previsao', icon: CalendarDays, label: 'Previsão' },
       { to: '/contas/pessoas', icon: Users, label: 'Pessoas' },
+      { to: '/contas/mei', icon: Building2, label: 'MEI' },
     ],
   },
   {
