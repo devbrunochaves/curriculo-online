@@ -19,20 +19,9 @@ export async function getMyWorkspaceId() {
  * Usado no fluxo de configuração do MEI quando o usuário não tem workspace.
  */
 export async function createWorkspace(name) {
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: ws, error: wsErr } = await supabase
-    .from('workspaces')
-    .insert({ name, owner_user_id: user.id })
-    .select('id')
-    .single()
-  if (wsErr) throw wsErr
-
-  const { error: memErr } = await supabase
-    .from('workspace_members')
-    .insert({ workspace_id: ws.id, user_id: user.id, role: 'owner' })
-  if (memErr) throw memErr
-
-  return ws.id
+  const { data: wsId, error } = await supabase.rpc('create_my_workspace', { p_name: name })
+  if (error) throw error
+  return wsId
 }
 
 // ── MEI Profile ────────────────────────────────────────────────────────────
