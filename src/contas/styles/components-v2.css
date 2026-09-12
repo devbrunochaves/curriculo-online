@@ -612,3 +612,14 @@
     transition: none;
   }
 }
+
+@media (max-width: 520px) {
+  .contas-root .c-v2-metric-card {
+    padding: var(--v2-space-3);
+  }
+
+  .contas-root .c-v2-metric-card__value {
+    font-size: 1.05rem;
+    letter-spacing: -.02em;
+  }
+}
