@@ -668,7 +668,6 @@
     gap: var(--v2-space-4);
   }
 
-  .contas-root .c-nova-v2-person,
   .contas-root .c-nova-v2-receipt {
     grid-template-columns: 1fr;
   }
