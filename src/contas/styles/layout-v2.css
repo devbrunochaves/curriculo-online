@@ -258,7 +258,6 @@
 .contas-root .c-v2-theme-toggle svg { width: 16px; height: 16px; }
 
 .contas-root .c-v2-logout-button {
-  flex: 1;
   min-height: 36px;
   display: inline-flex;
   align-items: center;

@@ -233,15 +233,10 @@ export default function Layout({ session, children }) {
               <div className="c-v2-user-email">{userEmail}</div>
             </div>
           </div>
-          <div className="c-v2-sidebar-footer-actions">
-            <button type="button" className="c-v2-theme-toggle" onClick={toggleTheme} aria-label={isDark ? 'Modo claro' : 'Modo escuro'}>
-              {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-            </button>
-            <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
-              <LogOut aria-hidden="true" />
-              Sair
-            </button>
-          </div>
+          <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
+            <LogOut aria-hidden="true" />
+            Sair
+          </button>
         </div>
       </aside>
 
@@ -270,7 +265,14 @@ export default function Layout({ session, children }) {
               <Plus aria-hidden="true" />
             </button>
           ) : (
-            <span className="c-v2-mobile-header-spacer" aria-hidden="true" />
+            <button
+              type="button"
+              className="c-v2-mobile-icon-button"
+              onClick={toggleTheme}
+              aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
+            >
+              {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+            </button>
           )}
         </header>
 
@@ -323,15 +325,10 @@ export default function Layout({ session, children }) {
               <div className="c-v2-user-email">{userEmail}</div>
             </div>
           </div>
-          <div className="c-v2-sidebar-footer-actions">
-            <button type="button" className="c-v2-theme-toggle" onClick={toggleTheme} aria-label={isDark ? 'Modo claro' : 'Modo escuro'}>
-              {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-            </button>
-            <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
-              <LogOut aria-hidden="true" />
-              Sair
-            </button>
-          </div>
+          <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
+            <LogOut aria-hidden="true" />
+            Sair
+          </button>
         </div>
       </aside>
 
