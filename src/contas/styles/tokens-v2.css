@@ -140,11 +140,11 @@
 
 .contas-root[data-contas-theme="dark"],
 [data-contas-theme="dark"] .contas-root {
-  --v2-color-bg: #111827;
-  --v2-color-bg-soft: #181b25;
-  --v2-color-surface: #1c1e26;
-  --v2-color-surface-raised: #232632;
-  --v2-color-surface-muted: #171a22;
+  --v2-color-bg: #14151d;
+  --v2-color-bg-soft: #181921;
+  --v2-color-surface: #22242f;
+  --v2-color-surface-raised: #282a36;
+  --v2-color-surface-muted: #111219;
   --v2-color-overlay: rgba(4, 7, 13, 0.62);
 
   --v2-color-text: #f6f7fb;

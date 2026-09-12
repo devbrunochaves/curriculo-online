@@ -13,11 +13,13 @@ import {
   Landmark,
   LogOut,
   Menu,
+  Moon,
   MoreHorizontal,
   PiggyBank,
   Plus,
   ReceiptText,
   Settings,
+  Sun,
   Utensils,
   Users,
   X,
@@ -126,6 +128,22 @@ export default function Layout({ session, children }) {
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [isDark, setIsDark] = useState(() => {
+    try { return localStorage.getItem('contas-theme') === 'dark' } catch { return false }
+  })
+
+  useEffect(() => {
+    const root = document.querySelector('.contas-root')
+    if (!root) return
+    if (isDark) {
+      root.setAttribute('data-contas-theme', 'dark')
+    } else {
+      root.removeAttribute('data-contas-theme')
+    }
+    try { localStorage.setItem('contas-theme', isDark ? 'dark' : 'light') } catch {}
+  }, [isDark])
+
+  function toggleTheme() { setIsDark(d => !d) }
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 980px)')
@@ -215,10 +233,15 @@ export default function Layout({ session, children }) {
               <div className="c-v2-user-email">{userEmail}</div>
             </div>
           </div>
-          <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
-            <LogOut aria-hidden="true" />
-            Sair
-          </button>
+          <div className="c-v2-sidebar-footer-actions">
+            <button type="button" className="c-v2-theme-toggle" onClick={toggleTheme} aria-label={isDark ? 'Modo claro' : 'Modo escuro'}>
+              {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+            </button>
+            <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
+              <LogOut aria-hidden="true" />
+              Sair
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -300,10 +323,15 @@ export default function Layout({ session, children }) {
               <div className="c-v2-user-email">{userEmail}</div>
             </div>
           </div>
-          <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
-            <LogOut aria-hidden="true" />
-            Sair
-          </button>
+          <div className="c-v2-sidebar-footer-actions">
+            <button type="button" className="c-v2-theme-toggle" onClick={toggleTheme} aria-label={isDark ? 'Modo claro' : 'Modo escuro'}>
+              {isDark ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+            </button>
+            <button type="button" className="c-v2-logout-button" onClick={handleLogout}>
+              <LogOut aria-hidden="true" />
+              Sair
+            </button>
+          </div>
         </div>
       </aside>
 

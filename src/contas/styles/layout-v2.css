@@ -229,7 +229,36 @@
   white-space: nowrap;
 }
 
+.contas-root .c-v2-sidebar-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--v2-space-2);
+}
+
+.contas-root .c-v2-theme-toggle {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--v2-color-border);
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-color-surface);
+  color: var(--v2-color-text-muted);
+  cursor: pointer;
+  transition: color var(--v2-duration-fast), background var(--v2-duration-fast), border-color var(--v2-duration-fast);
+}
+
+.contas-root .c-v2-theme-toggle:hover {
+  color: var(--v2-color-accent);
+  background: var(--v2-color-accent-subtle);
+  border-color: var(--v2-color-accent-soft);
+}
+
+.contas-root .c-v2-theme-toggle svg { width: 16px; height: 16px; }
+
 .contas-root .c-v2-logout-button {
+  flex: 1;
   min-height: 36px;
   display: inline-flex;
   align-items: center;
