@@ -666,13 +666,8 @@
     flex-direction: column;
   }
 
-  .contas-root .c-fixas-v2-person-row {
-    flex-wrap: wrap;
-  }
-
   .contas-root .c-fixas-v2-split-input {
-    flex: 1 1 100%;
-    width: 100%;
+    flex: 0 0 96px;
   }
 
   .contas-root .c-fixas-v2-modal__header,
@@ -683,6 +678,13 @@
 
   .contas-root .c-fixas-v2-modal__footer,
   .contas-root .c-fixas-v2-confirm__actions {
+    align-items: stretch;
     flex-direction: column-reverse;
+  }
+
+  .contas-root .c-fixas-v2-modal__footer .c-v2-button,
+  .contas-root .c-fixas-v2-confirm__actions .c-v2-button {
+    width: 100%;
+    justify-content: center;
   }
 }
