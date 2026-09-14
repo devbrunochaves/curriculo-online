@@ -771,7 +771,19 @@
 
 @media (max-width: 520px) {
   .contas-root .c-lanc-v2-metrics {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-root .c-lanc-v2-context {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contas-root .c-lanc-v2-context-card {
+    padding: var(--v2-space-3);
+  }
+
+  .contas-root .c-lanc-v2-context-card strong {
+    font-size: var(--v2-font-size-heading-2);
   }
 
   .contas-root .c-lanc-v2-mobile-top {
