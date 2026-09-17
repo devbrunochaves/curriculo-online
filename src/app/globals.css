@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Inter+Tight:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -21,6 +21,39 @@
   --scroll-bg:    #F2EBDF;
   --ghost-c:      #084a8a;
   --ghost-hover:  rgba(8,74,138,0.07);
+}
+
+/* ── Brand tokens (new home / portfolio) ──────────────────────────────── */
+:root {
+  --color-black:      #0B0B0D;
+  --color-dark:        #151517;
+  --color-white:       #FFFFFF;
+  --color-offwhite:    #F6F6F4;
+  --color-gray-100:    #ECECEC;
+  --color-gray-300:    #CACACA;
+  --color-gray-500:    #777777;
+  --color-gray-700:    #343434;
+  --color-red:         #D71920;
+  --color-red-dark:    #A90F16;
+  --color-red-light:   #FBEAEC;
+
+  --brand-bg:          var(--color-offwhite);
+  --brand-bg-alt:      var(--color-white);
+  --brand-fg:          var(--color-black);
+  --brand-fg-muted:    var(--color-gray-500);
+  --brand-border:      var(--color-gray-100);
+  --brand-accent:      var(--color-red);
+  --brand-accent-dark: var(--color-red-dark);
+}
+
+html.dark {
+  --brand-bg:          var(--color-black);
+  --brand-bg-alt:      var(--color-dark);
+  --brand-fg:          var(--color-white);
+  --brand-fg-muted:    var(--color-gray-300);
+  --brand-border:      var(--color-gray-700);
+  --brand-accent:      var(--color-red);
+  --brand-accent-dark: #ff4d55;
 }
 
 html.dark {
