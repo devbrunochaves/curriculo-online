@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import styles from './brand-home.module.css'
@@ -40,12 +40,19 @@ export default function HomePage() {
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const revealNodes = document.querySelectorAll('[data-reveal]')
+    const heroRevealNodes = document.querySelectorAll('#top [data-reveal]')
 
     if (reduced) {
       revealNodes.forEach((node) => node.classList.add(styles.revealVisible))
       setAnimatedStats(stats.map(([value]) => value))
       return
     }
+
+    // Hero is initially in the viewport. Reveal it explicitly so clip-path
+    // animations never prevent IntersectionObserver from seeing the headline.
+    requestAnimationFrame(() => {
+      heroRevealNodes.forEach((node) => node.classList.add(styles.revealVisible))
+    })
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -56,7 +63,9 @@ export default function HomePage() {
       })
     }, { threshold: 0.18 })
 
-    revealNodes.forEach((node) => observer.observe(node))
+    revealNodes.forEach((node) => {
+      if (!node.closest('#top')) observer.observe(node)
+    })
 
     const duration = 950
     const start = performance.now()

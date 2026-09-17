@@ -879,3 +879,63 @@
     transform: none !important;
   }
 }
+
+/* ===== Contrast + CTA hover refinements ===== */
+.page[data-theme='dark'] .blackBand {
+  background: #ffffff;
+  color: #0b0b0d;
+}
+
+.page[data-theme='dark'] .blackBand .marqueeTrack,
+.page[data-theme='dark'] .blackBand .bandLink {
+  color: #0b0b0d;
+}
+
+.page[data-theme='dark'] .blackBand .bandLink {
+  border-bottom-color: rgba(11,11,13,.32);
+}
+
+.ctaPrimary {
+  border: 1px solid transparent;
+}
+
+.ctaSmall::before,
+.ctaPrimary::before,
+.ctaSecondary::before {
+  display: none;
+}
+
+.ctaSmall:hover {
+  background: var(--red);
+  color: #ffffff;
+  border-color: var(--red);
+}
+
+.ctaPrimary:hover {
+  background: #0b0b0d;
+  color: #ffffff;
+  border-color: var(--red);
+}
+
+.ctaSecondary:hover {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.page[data-theme='dark'] .ctaSmall:hover {
+  background: var(--red);
+  color: #ffffff;
+}
+
+.page[data-theme='dark'] .ctaPrimary:hover {
+  background: #0b0b0d;
+  color: #ffffff;
+  border-color: var(--red);
+}
+
+.page[data-theme='dark'] .ctaSecondary:hover {
+  background: #f5f5f3;
+  color: #0b0b0d;
+  border-color: #f5f5f3;
+}
