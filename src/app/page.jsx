@@ -38,7 +38,7 @@ export default function HomePage() {
 
           <div className={styles.headerActions}>
             <a className={styles.textLink} href="https://linkedin.com/in/brunochavess" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a className={styles.ctaSmall} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+            <a style={{ borderRadius: 0 }} className={styles.ctaSmall} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
           </div>
 
           <button
@@ -74,8 +74,8 @@ export default function HomePage() {
             </p>
 
             <div className={styles.heroCtas}>
-              <a className={styles.ctaPrimary} href="#projetos">Ver projetos →</a>
-              <a className={styles.ctaSecondary} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+              <a style={{ borderRadius: 0 }} className={styles.ctaPrimary} href="#projetos">Ver projetos →</a>
+              <a style={{ borderRadius: 0 }} className={styles.ctaSecondary} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
             </div>
 
             <div className={styles.stats} aria-label="Números profissionais">
