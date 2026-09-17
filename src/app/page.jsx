@@ -243,9 +243,150 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="servicos" style={{ minHeight: 1 }} aria-hidden="true" />
-      <section id="sobre" style={{ minHeight: 1 }} aria-hidden="true" />
-      <section id="contato" style={{ minHeight: 1 }} aria-hidden="true" />
+      <section className={styles.projectsSection} aria-labelledby="projects-title">
+        <div className={styles.sectionShell}>
+          <div className={styles.sectionHeader} data-reveal>
+            <div>
+              <span className={styles.sectionKicker}>/ Projetos selecionados</span>
+              <h2 id="projects-title" className={styles.sectionTitle}>Trabalho que une <span className={styles.red}>forma</span> e função.</h2>
+            </div>
+            <p className={styles.sectionIntro}>Uma seleção visual de projetos onde design, estratégia e tecnologia trabalham juntos.</p>
+          </div>
+          <div className={styles.projectsGrid}>
+            {[
+              ['/ARTE-GREEN-STATION.jpg', 'Identidade visual', 'Marca & direção visual', '01'],
+              ['/ARTE-ARTICULATO.jpg', 'Projeto digital', 'Design & experiência', '02'],
+              ['/ARTE-HAMBURGUER.png', 'Campanha visual', 'Conteúdo & performance', '03'],
+            ].map(([image, title, category, number]) => (
+              <a className={styles.projectCard} href="/projetos" key={number} data-reveal>
+                <div className={styles.projectImageWrap}>
+                  <img src={image} alt="" className={styles.projectImage} />
+                  <span className={styles.projectNumber}>{number}</span>
+                  <span className={styles.projectView}>Ver case ↗</span>
+                </div>
+                <div className={styles.projectMeta}>
+                  <div><strong>{title}</strong><span>{category}</span></div>
+                  <span className={styles.projectArrow}>↗</span>
+                </div>
+              </a>
+            ))}
+          </div>
+          <a href="/projetos" className={styles.textCta} data-reveal>Ver todos os projetos <span>→</span></a>
+        </div>
+      </section>
+
+      <section className={styles.servicesSection} id="servicos">
+        <div className={styles.sectionShell}>
+          <div className={styles.sectionHeader} data-reveal>
+            <div>
+              <span className={styles.sectionKicker}>/ O que eu faço</span>
+              <h2 className={styles.sectionTitle}>Do conceito ao <span className={styles.red}>resultado.</span></h2>
+            </div>
+            <p className={styles.sectionIntro}>Soluções para marcas que precisam parecer, funcionar e comunicar melhor.</p>
+          </div>
+          <div className={styles.servicesList}>
+            {[
+              ['01', 'Branding', 'Identidades visuais e sistemas de marca para posicionar empresas com clareza e personalidade.'],
+              ['02', 'Sites & Landing Pages', 'Experiências digitais rápidas, responsivas e desenhadas para comunicar e converter.'],
+              ['03', 'Produtos Digitais', 'Interfaces, dashboards e aplicações web construídas para resolver problemas reais.'],
+              ['04', 'Conteúdo & Performance', 'Direção visual e conteúdo para transformar presença digital em oportunidade.'],
+            ].map(([number, title, description]) => (
+              <article className={styles.serviceRow} key={number} data-reveal>
+                <span className={styles.serviceNumber}>{number}</span>
+                <h3>{title}</h3>
+                <p>{description}</p>
+                <span className={styles.serviceArrow}>↗</span>
+              </article>
+            ))}
+          </div>
+          <p className={styles.aiNote} data-reveal>IA faz parte do processo. <strong>Estratégia continua sendo humana.</strong></p>
+        </div>
+      </section>
+
+      <section className={styles.aboutSection} id="sobre">
+        <div className={styles.sectionShell}>
+          <div className={styles.aboutGrid}>
+            <div className={styles.aboutCopy} data-reveal>
+              <span className={styles.sectionKicker}>/ Sobre</span>
+              <h2 className={styles.sectionTitle}>Mais que um profissional, um parceiro no <span className={styles.red}>seu projeto.</span></h2>
+              <p>Sou Bruno Chaves, designer e desenvolvedor com mais de 20 anos de experiência no universo criativo.</p>
+              <p>Minha trajetória começou no design e evoluiu para desenvolvimento web, produtos digitais e tecnologia. Hoje consigo enxergar um projeto de ponta a ponta — da estratégia à implementação.</p>
+              <a href="/dominio" className={styles.textCta}>Conheça minha trajetória <span>→</span></a>
+              <div className={styles.aboutStats}>
+                <div><strong>+20</strong><span>anos de experiência</span></div>
+                <div><strong>+8</strong><span>empresas atendidas</span></div>
+                <div><strong>2</strong><span>países de atuação</span></div>
+              </div>
+            </div>
+            <div className={styles.aboutVisual} data-reveal>
+              <img src="/foto-aside.jpg" alt="Bruno Chaves" />
+              <div className={styles.aboutStamp}><span>Design</span><span>Web</span><span>IA</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.manifestoSection} aria-label="Manifesto">
+        <div className={styles.manifestoInner}>
+          <div className={styles.manifestoWords} data-reveal>
+            <span>DESIGN <em>NÃO É DECORAÇÃO.</em></span>
+            <span>CÓDIGO <em>NÃO É O PRODUTO.</em></span>
+            <span className={styles.manifestoRed}>O RESULTADO É O QUE IMPORTA.</span>
+          </div>
+          <p data-reveal>Meu trabalho está justamente na interseção entre estratégia, experiência, comunicação e tecnologia.</p>
+        </div>
+      </section>
+
+      <section className={styles.processSection}>
+        <div className={styles.sectionShell}>
+          <span className={styles.sectionKicker} data-reveal>/ Processo</span>
+          <h2 className={styles.sectionTitle} data-reveal>Do briefing ao <span className={styles.red}>resultado.</span></h2>
+          <div className={styles.processLine} data-reveal>
+            {[
+              ['01', 'Entendimento', 'Imersão no negócio, problema, público e objetivos.'],
+              ['02', 'Estratégia', 'Definição da direção visual, técnica e comercial.'],
+              ['03', 'Desenvolvimento', 'Design, prototipação, implementação e testes.'],
+              ['04', 'Entrega', 'Publicação, documentação e acompanhamento.'],
+            ].map(([number, title, text]) => (
+              <article className={styles.processStep} key={number}>
+                <span>{number}</span><h3>{title}</h3><p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.toolsSection}>
+        <div className={styles.sectionShell}>
+          <span className={styles.sectionKicker} data-reveal>/ Ferramentas</span>
+          <h2 className={styles.sectionTitle} data-reveal>Tecnologia é meio. <span className={styles.red}>Resultado é o objetivo.</span></h2>
+          <div className={styles.toolsGrid} data-reveal>
+            <div><strong>DESIGN</strong><span>Figma</span><span>Photoshop</span><span>Illustrator</span><span>InDesign</span></div>
+            <div><strong>FRONT-END</strong><span>HTML5</span><span>CSS3</span><span>JavaScript</span><span>React</span><span>Next.js</span></div>
+            <div><strong>BACK-END</strong><span>PHP</span><span>Java</span><span>Supabase</span><span>PostgreSQL</span></div>
+            <div><strong>IA</strong><span>Google AI Studio</span><span>Generative AI</span><span>Claude Code</span></div>
+            <div><strong>PLATAFORMAS</strong><span>WordPress</span><span>RD Station</span><span>Google Ads</span><span>Meta Business</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.contactSection} id="contato">
+        <div className={styles.contactGlow} aria-hidden="true" />
+        <div className={styles.contactInner} data-reveal>
+          <span className={styles.sectionKicker}>Vamos conversar?</span>
+          <h2>Tem um <span>projeto em mente?</span></h2>
+          <p>Vamos transformar sua ideia em uma solução clara, bonita e funcional.</p>
+          <a className={styles.contactButton} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+        </div>
+      </section>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerInner}>
+          <div><strong>Bruno Chaves<span className={styles.logoDot}>•</span></strong><p>Design, código e estratégia.</p></div>
+          <div className={styles.footerLinks}><a href="https://linkedin.com/in/brunochavess" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="/dominio">Currículo</a></div>
+        </div>
+        <div className={styles.footerBottom}><span>© {new Date().getFullYear()} Bruno Chaves.</span><span>Do Brasil para o mundo.</span></div>
+      </footer>
     </main>
   )
 }
