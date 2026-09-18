@@ -442,7 +442,11 @@ export default function HomePage() {
                 }}
               >
                 <div className={styles.floatingToolInner}>
-                  <img src={tool.icon} alt="" aria-hidden="true" />
+                  <span
+                    className={styles.floatingToolIcon}
+                    style={{ '--tool-icon': `url("${tool.icon}")` }}
+                    aria-hidden="true"
+                  />
                   <span>{tool.name}</span>
                 </div>
               </div>
