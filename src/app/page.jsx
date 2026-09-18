@@ -23,8 +23,10 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [theme, setTheme] = useState('light')
   const [animatedStats, setAnimatedStats] = useState([0, 0, 0])
+  const [processProgress, setProcessProgress] = useState(0)
   const photoRef = useRef(null)
   const ghostRef = useRef(null)
+  const processRef = useRef(null)
 
   useEffect(() => {
     const stored = window.localStorage.getItem('bruno-theme')
@@ -93,6 +95,37 @@ export default function HomePage() {
     return () => {
       observer.disconnect()
       window.removeEventListener('scroll', onScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  useEffect(() => {
+    let raf = null
+
+    const updateProcess = () => {
+      if (!processRef.current) return
+      const rect = processRef.current.getBoundingClientRect()
+      const start = window.innerHeight * 0.82
+      const end = window.innerHeight * 0.32
+      const next = Math.min(Math.max((start - rect.top) / (start - end), 0), 1)
+      setProcessProgress(next)
+    }
+
+    const onScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        updateProcess()
+        raf = null
+      })
+    }
+
+    updateProcess()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
     }
   }, [])
@@ -319,7 +352,15 @@ export default function HomePage() {
               </div>
             </div>
             <div className={styles.aboutVisual} data-reveal>
-              <img src="/foto-aside.jpg" alt="Bruno Chaves" />
+              <div className={styles.aboutEffects} aria-hidden="true">
+                <div className={styles.aboutGlow} />
+                <div className={`${styles.aboutOrbit} ${styles.aboutOrbitOne}`}><span /></div>
+                <div className={`${styles.aboutOrbit} ${styles.aboutOrbitTwo}`}><span /></div>
+                <div className={`${styles.aboutOrbit} ${styles.aboutOrbitThree}`}><span /></div>
+              </div>
+              <div className={styles.aboutPhotoShell}>
+                <img src="/foto-aside.jpg" alt="Bruno Chaves" />
+              </div>
               <div className={styles.aboutStamp}><span>Design</span><span>Web</span><span>IA</span></div>
             </div>
           </div>
@@ -337,18 +378,21 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={styles.processSection}>
+      <section className={styles.processSection} id="processo">
         <div className={styles.sectionShell}>
           <span className={styles.sectionKicker} data-reveal>/ Processo</span>
           <h2 className={styles.sectionTitle} data-reveal>Do briefing ao <span className={styles.red}>resultado.</span></h2>
-          <div className={styles.processLine} data-reveal>
+          <div className={styles.processLine} data-reveal ref={processRef} style={{ '--process-progress': processProgress }}>
+            <div className={styles.processTrack} aria-hidden="true">
+              <span className={styles.processProgress} />
+            </div>
             {[
               ['01', 'Entendimento', 'Imersão no negócio, problema, público e objetivos.'],
               ['02', 'Estratégia', 'Definição da direção visual, técnica e comercial.'],
               ['03', 'Desenvolvimento', 'Design, prototipação, implementação e testes.'],
               ['04', 'Entrega', 'Publicação, documentação e acompanhamento.'],
-            ].map(([number, title, text]) => (
-              <article className={styles.processStep} key={number}>
+            ].map(([number, title, text], index) => (
+              <article className={`${styles.processStep} ${processProgress >= index / 3 ? styles.processStepActive : ''}`} key={number}>
                 <span>{number}</span><h3>{title}</h3><p>{text}</p>
               </article>
             ))}
@@ -356,17 +400,40 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={styles.toolsSection}>
+      <section className={styles.toolsSection} id="ferramentas">
         <div className={styles.sectionShell}>
           <span className={styles.sectionKicker} data-reveal>/ Ferramentas</span>
           <h2 className={styles.sectionTitle} data-reveal>Tecnologia é meio. <span className={styles.red}>Resultado é o objetivo.</span></h2>
-          <div className={styles.toolsGrid} data-reveal>
-            <div><strong>DESIGN</strong><span>Figma</span><span>Photoshop</span><span>Illustrator</span><span>InDesign</span></div>
-            <div><strong>FRONT-END</strong><span>HTML5</span><span>CSS3</span><span>JavaScript</span><span>React</span><span>Next.js</span></div>
-            <div><strong>BACK-END</strong><span>PHP</span><span>Java</span><span>Supabase</span><span>PostgreSQL</span></div>
-            <div><strong>IA</strong><span>Google AI Studio</span><span>Generative AI</span><span>Claude Code</span></div>
-            <div><strong>PLATAFORMAS</strong><span>WordPress</span><span>RD Station</span><span>Google Ads</span><span>Meta Business</span></div>
+          <div className={styles.toolsSolar} data-reveal>
+            <div className={styles.solarBackdrop} aria-hidden="true" />
+            <div className={styles.solarCore}>
+              <small>ECOSSISTEMA</small>
+              <strong>DESIGN<br />+ CÓDIGO</strong>
+              <span>+ IA</span>
+            </div>
+
+            <div className={`${styles.toolOrbit} ${styles.orbitOne}`} aria-label="Ferramentas de design">
+              <span className={`${styles.toolPlanet} ${styles.planetNorth}`}><span className={styles.planetInner}><b>Fi</b><i>Figma</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetEast}`}><span className={styles.planetInner}><b>Ps</b><i>Photoshop</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetSouth}`}><span className={styles.planetInner}><b>Ai</b><i>Illustrator</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetWest}`}><span className={styles.planetInner}><b>Id</b><i>InDesign</i></span></span>
+            </div>
+
+            <div className={`${styles.toolOrbit} ${styles.orbitTwo}`} aria-label="Ferramentas de desenvolvimento">
+              <span className={`${styles.toolPlanet} ${styles.planetNorth}`}><span className={styles.planetInner}><b>Re</b><i>React</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetEast}`}><span className={styles.planetInner}><b>Nx</b><i>Next.js</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetSouth}`}><span className={styles.planetInner}><b>JS</b><i>JavaScript</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetWest}`}><span className={styles.planetInner}><b>DB</b><i>Supabase</i></span></span>
+            </div>
+
+            <div className={`${styles.toolOrbit} ${styles.orbitThree}`} aria-label="IA e plataformas">
+              <span className={`${styles.toolPlanet} ${styles.planetNorth}`}><span className={styles.planetInner}><b>Cl</b><i>Claude</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetEast}`}><span className={styles.planetInner}><b>AI</b><i>AI Studio</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetSouth}`}><span className={styles.planetInner}><b>WP</b><i>WordPress</i></span></span>
+              <span className={`${styles.toolPlanet} ${styles.planetWest}`}><span className={styles.planetInner}><b>RD</b><i>RD Station</i></span></span>
+            </div>
           </div>
+          <p className={styles.toolsHint} data-reveal>Ferramentas orbitam o processo. <strong>O centro continua sendo o resultado.</strong></p>
         </div>
       </section>
 
