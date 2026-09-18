@@ -2102,3 +2102,323 @@
   }
   .processProgress { transition: none; }
 }
+
+/* ===== V4: section-wide ABOUT motion field ===== */
+.aboutSection {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.aboutSection .sectionShell {
+  position: relative;
+  z-index: 2;
+}
+
+.aboutSectionEffects {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-image: radial-gradient(circle, rgba(215,25,32,.26) 1px, transparent 1.25px);
+  background-size: 24px 24px;
+  opacity: .62;
+  mask-image: linear-gradient(90deg, rgba(0,0,0,.88), #000 58%, rgba(0,0,0,.72));
+}
+
+.aboutSectionGlow {
+  position: absolute;
+  width: 760px;
+  height: 760px;
+  right: -120px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(215,25,32,.14), rgba(215,25,32,.035) 38%, transparent 70%);
+  filter: blur(16px);
+  animation: aboutSectionPulse 7s ease-in-out infinite alternate;
+}
+
+.aboutSectionOrbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed rgba(215,25,32,.28);
+  transform-origin: center;
+}
+
+.aboutSectionOrbit span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 18px rgba(215,25,32,.7);
+}
+
+.aboutSectionOrbitOne {
+  width: 760px;
+  height: 760px;
+  left: -220px;
+  top: -250px;
+  animation: aboutOrbitSpin 34s linear infinite;
+}
+.aboutSectionOrbitOne span { right: 86px; bottom: 116px; }
+
+.aboutSectionOrbitTwo {
+  width: 1040px;
+  height: 1040px;
+  right: -360px;
+  top: -260px;
+  border-color: color-mix(in srgb, var(--ink) 20%, transparent);
+  animation: aboutOrbitSpinReverse 45s linear infinite;
+}
+.aboutSectionOrbitTwo span { left: 106px; top: 202px; width: 6px; height: 6px; }
+
+.aboutSectionOrbitThree {
+  width: 1320px;
+  height: 620px;
+  left: 16%;
+  bottom: -410px;
+  border-color: rgba(215,25,32,.16);
+  animation: aboutOrbitSpin 58s linear infinite;
+}
+.aboutSectionOrbitThree span { right: 190px; top: 94px; width: 5px; height: 5px; }
+
+.aboutVisual {
+  background: transparent;
+  overflow: visible;
+}
+
+@keyframes aboutSectionPulse {
+  from { transform: translateY(-50%) scale(.9); opacity: .55; }
+  to { transform: translateY(-50%) scale(1.08); opacity: 1; }
+}
+
+/* ===== V4: free-floating branded tools ===== */
+.toolsSection {
+  position: relative;
+  padding: 118px 0 132px;
+  overflow: hidden;
+  background: var(--soft);
+}
+
+.toolsHeading {
+  display: grid;
+  grid-template-columns: minmax(0,1.2fr) minmax(300px,.55fr);
+  gap: 64px;
+  align-items: end;
+  margin-top: 18px;
+}
+
+.toolsHeading h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(60px, 7.6vw, 124px);
+  line-height: .88;
+  letter-spacing: -.07em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.toolsHeading h2 span {
+  color: var(--red);
+}
+
+.toolsHeading p {
+  max-width: 470px;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.toolsFloatField {
+  position: relative;
+  min-height: 720px;
+  margin-top: 62px;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 76%, transparent);
+}
+
+.toolsFloatDots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--ink) 18%, transparent) 1px, transparent 1.2px);
+  background-size: 24px 24px;
+  opacity: .42;
+  mask-image: radial-gradient(circle at 50% 50%, #000 0%, rgba(0,0,0,.8) 60%, transparent 100%);
+}
+
+.toolsFloatGlow {
+  position: absolute;
+  width: 720px;
+  height: 520px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(215,25,32,.13), rgba(215,25,32,.035) 36%, transparent 72%);
+  filter: blur(20px);
+  pointer-events: none;
+  animation: toolsGlowFloat 8s ease-in-out infinite alternate;
+}
+
+.floatingTool {
+  position: absolute;
+  left: var(--tool-x);
+  top: var(--tool-y);
+  width: var(--tool-size);
+  height: var(--tool-size);
+  margin-left: calc(var(--tool-size) * -.5);
+  margin-top: calc(var(--tool-size) * -.5);
+  animation: toolWanderA var(--tool-duration) ease-in-out infinite;
+  animation-delay: var(--tool-delay);
+  will-change: transform;
+}
+
+.floatingTool:nth-of-type(3n) {
+  animation-name: toolWanderB;
+}
+
+.floatingTool:nth-of-type(3n + 1) {
+  animation-name: toolWanderC;
+}
+
+.floatingToolInner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid rgba(11,11,13,.08);
+  color: #111;
+  box-shadow: 0 18px 42px rgba(0,0,0,.12);
+  transition: transform .3s cubic-bezier(.22,1,.36,1), border-color .3s ease, box-shadow .3s ease;
+}
+
+.floatingToolInner img {
+  width: 40%;
+  height: 40%;
+  min-width: 26px;
+  min-height: 26px;
+  object-fit: contain;
+}
+
+.floatingToolInner span {
+  max-width: 100%;
+  color: #353539;
+  font-size: 9px;
+  line-height: 1.15;
+  font-weight: 700;
+  text-align: center;
+}
+
+.floatingTool:hover {
+  z-index: 8;
+  animation-play-state: paused;
+}
+
+.floatingTool:hover .floatingToolInner {
+  transform: translateY(-8px) scale(1.08);
+  border-color: rgba(215,25,32,.6);
+  box-shadow: 0 24px 54px rgba(0,0,0,.18), 0 0 0 4px rgba(215,25,32,.06);
+}
+
+@keyframes toolWanderA {
+  0%, 100% { transform: translate3d(0,0,0) rotate(-1deg); }
+  25% { transform: translate3d(14px,-18px,0) rotate(2deg); }
+  50% { transform: translate3d(-8px,-6px,0) rotate(-2deg); }
+  75% { transform: translate3d(-15px,14px,0) rotate(1deg); }
+}
+
+@keyframes toolWanderB {
+  0%, 100% { transform: translate3d(0,0,0) rotate(1deg); }
+  25% { transform: translate3d(-16px,10px,0) rotate(-2deg); }
+  50% { transform: translate3d(10px,18px,0) rotate(2deg); }
+  75% { transform: translate3d(18px,-12px,0) rotate(-1deg); }
+}
+
+@keyframes toolWanderC {
+  0%, 100% { transform: translate3d(0,0,0); }
+  30% { transform: translate3d(8px,16px,0) rotate(2deg); }
+  60% { transform: translate3d(-14px,-14px,0) rotate(-1deg); }
+  82% { transform: translate3d(16px,-4px,0) rotate(1deg); }
+}
+
+@keyframes toolsGlowFloat {
+  from { transform: translate(-54%,-48%) scale(.92); opacity: .65; }
+  to { transform: translate(-46%,-52%) scale(1.08); opacity: 1; }
+}
+
+@media (max-width: 1100px) {
+  .toolsHeading {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .toolsHeading p { max-width: 620px; }
+  .toolsFloatField { min-height: 680px; }
+  .aboutSectionOrbitOne { left: -360px; }
+  .aboutSectionOrbitTwo { right: -520px; }
+}
+
+@media (max-width: 820px) {
+  .toolsSection { padding: 92px 0 104px; }
+  .toolsHeading h2 { font-size: clamp(52px, 13vw, 86px); }
+  .toolsFloatField { min-height: 720px; margin-top: 46px; }
+  .floatingTool { transform: scale(.88); }
+  .aboutSectionEffects { opacity: .58; }
+  .aboutSectionOrbitThree { left: -10%; }
+}
+
+@media (max-width: 560px) {
+  .toolsHeading h2 {
+    font-size: clamp(44px, 14vw, 62px);
+    line-height: .91;
+  }
+  .toolsHeading p { font-size: 14px; }
+  .toolsFloatField {
+    min-height: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 28px 0;
+    background: transparent;
+  }
+  .floatingTool {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 94px;
+    margin: 0;
+    animation: toolMobileFloat 5s ease-in-out infinite;
+    animation-delay: var(--tool-delay);
+  }
+  .floatingToolInner { padding: 9px 5px; }
+  .floatingToolInner img { width: 30px; height: 30px; min-width: 0; min-height: 0; }
+  .toolsFloatGlow { width: 420px; height: 420px; }
+  .aboutSectionOrbitOne { width: 620px; height: 620px; left: -440px; top: -120px; }
+  .aboutSectionOrbitTwo { width: 760px; height: 760px; right: -600px; top: 100px; }
+  .aboutSectionOrbitThree { display: none; }
+}
+
+@keyframes toolMobileFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aboutSectionGlow,
+  .aboutSectionOrbit,
+  .floatingTool,
+  .toolsFloatGlow {
+    animation: none !important;
+  }
+}

@@ -19,6 +19,24 @@ const stats = [
   [2, 'países de atuação', ''],
 ]
 
+const floatingTools = [
+  { name: 'Figma', icon: '/icons/tools/figma.svg', x: '7%', y: '16%', size: 86, delay: 0, duration: 7.4 },
+  { name: 'Photoshop', icon: '/icons/tools/photoshop.svg', x: '23%', y: '54%', size: 92, delay: 1.1, duration: 8.6 },
+  { name: 'Illustrator', icon: '/icons/tools/illustrator.svg', x: '36%', y: '19%', size: 84, delay: 2.2, duration: 7.8 },
+  { name: 'InDesign', icon: '/icons/tools/indesign.svg', x: '45%', y: '70%', size: 82, delay: .7, duration: 9.1 },
+  { name: 'React', icon: '/icons/tools/react.svg', x: '61%', y: '17%', size: 94, delay: 1.5, duration: 8.2 },
+  { name: 'Next.js', icon: '/icons/tools/nextjs.svg', x: '76%', y: '58%', size: 90, delay: .4, duration: 7.7 },
+  { name: 'JavaScript', icon: '/icons/tools/javascript.svg', x: '11%', y: '72%', size: 82, delay: 1.9, duration: 8.9 },
+  { name: 'Supabase', icon: '/icons/tools/supabase.svg', x: '56%', y: '48%', size: 88, delay: 2.7, duration: 9.3 },
+  { name: 'WordPress', icon: '/icons/tools/wordpress.svg', x: '83%', y: '20%', size: 86, delay: .9, duration: 8.4 },
+  { name: 'Claude', icon: '/icons/tools/claude.svg', x: '88%', y: '75%', size: 84, delay: 1.3, duration: 7.9 },
+  { name: 'Google AI', icon: '/icons/tools/googleai.svg', x: '67%', y: '78%', size: 86, delay: 2.4, duration: 9.5 },
+  { name: 'Tailwind CSS', icon: '/icons/tools/tailwind.svg', x: '31%', y: '82%', size: 84, delay: .2, duration: 8.1 },
+  { name: 'PHP', icon: '/icons/tools/php.svg', x: '48%', y: '29%', size: 82, delay: 1.8, duration: 8.8 },
+  { name: 'Java', icon: '/icons/tools/java.svg', x: '18%', y: '30%', size: 82, delay: 2.9, duration: 9.2 },
+  { name: 'GitHub', icon: '/icons/tools/github.svg', x: '91%', y: '43%', size: 80, delay: .6, duration: 8.3 },
+]
+
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [theme, setTheme] = useState('light')
@@ -337,6 +355,12 @@ export default function HomePage() {
       </section>
 
       <section className={styles.aboutSection} id="sobre">
+        <div className={styles.aboutSectionEffects} aria-hidden="true">
+          <div className={`${styles.aboutSectionOrbit} ${styles.aboutSectionOrbitOne}`}><span /></div>
+          <div className={`${styles.aboutSectionOrbit} ${styles.aboutSectionOrbitTwo}`}><span /></div>
+          <div className={`${styles.aboutSectionOrbit} ${styles.aboutSectionOrbitThree}`}><span /></div>
+          <div className={styles.aboutSectionGlow} />
+        </div>
         <div className={styles.sectionShell}>
           <div className={styles.aboutGrid}>
             <div className={styles.aboutCopy} data-reveal>
@@ -352,12 +376,6 @@ export default function HomePage() {
               </div>
             </div>
             <div className={styles.aboutVisual} data-reveal>
-              <div className={styles.aboutEffects} aria-hidden="true">
-                <div className={styles.aboutGlow} />
-                <div className={`${styles.aboutOrbit} ${styles.aboutOrbitOne}`}><span /></div>
-                <div className={`${styles.aboutOrbit} ${styles.aboutOrbitTwo}`}><span /></div>
-                <div className={`${styles.aboutOrbit} ${styles.aboutOrbitThree}`}><span /></div>
-              </div>
               <div className={styles.aboutPhotoShell}>
                 <img src="/foto-aside.jpg" alt="Bruno Chaves" />
               </div>
@@ -403,37 +421,33 @@ export default function HomePage() {
       <section className={styles.toolsSection} id="ferramentas">
         <div className={styles.sectionShell}>
           <span className={styles.sectionKicker} data-reveal>/ Ferramentas</span>
-          <h2 className={styles.sectionTitle} data-reveal>Tecnologia é meio. <span className={styles.red}>Resultado é o objetivo.</span></h2>
-          <div className={styles.toolsSolar} data-reveal>
-            <div className={styles.solarBackdrop} aria-hidden="true" />
-            <div className={styles.solarCore}>
-              <small>ECOSSISTEMA</small>
-              <strong>DESIGN<br />+ CÓDIGO</strong>
-              <span>+ IA</span>
-            </div>
-
-            <div className={`${styles.toolOrbit} ${styles.orbitOne}`} aria-label="Ferramentas de design">
-              <span className={`${styles.toolPlanet} ${styles.planetNorth}`}><span className={styles.planetInner}><b>Fi</b><i>Figma</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetEast}`}><span className={styles.planetInner}><b>Ps</b><i>Photoshop</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetSouth}`}><span className={styles.planetInner}><b>Ai</b><i>Illustrator</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetWest}`}><span className={styles.planetInner}><b>Id</b><i>InDesign</i></span></span>
-            </div>
-
-            <div className={`${styles.toolOrbit} ${styles.orbitTwo}`} aria-label="Ferramentas de desenvolvimento">
-              <span className={`${styles.toolPlanet} ${styles.planetNorth}`}><span className={styles.planetInner}><b>Re</b><i>React</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetEast}`}><span className={styles.planetInner}><b>Nx</b><i>Next.js</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetSouth}`}><span className={styles.planetInner}><b>JS</b><i>JavaScript</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetWest}`}><span className={styles.planetInner}><b>DB</b><i>Supabase</i></span></span>
-            </div>
-
-            <div className={`${styles.toolOrbit} ${styles.orbitThree}`} aria-label="IA e plataformas">
-              <span className={`${styles.toolPlanet} ${styles.planetNorth}`}><span className={styles.planetInner}><b>Cl</b><i>Claude</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetEast}`}><span className={styles.planetInner}><b>AI</b><i>AI Studio</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetSouth}`}><span className={styles.planetInner}><b>WP</b><i>WordPress</i></span></span>
-              <span className={`${styles.toolPlanet} ${styles.planetWest}`}><span className={styles.planetInner}><b>RD</b><i>RD Station</i></span></span>
-            </div>
+          <div className={styles.toolsHeading} data-reveal>
+            <h2>DESIGN <span>+</span> CÓDIGO <span>+</span> IA</h2>
+            <p>Ferramentas são extensões do processo. Eu combino design, desenvolvimento e inteligência artificial para transformar ideias em experiências digitais mais fortes.</p>
           </div>
-          <p className={styles.toolsHint} data-reveal>Ferramentas orbitam o processo. <strong>O centro continua sendo o resultado.</strong></p>
+
+          <div className={styles.toolsFloatField} data-reveal>
+            <div className={styles.toolsFloatDots} aria-hidden="true" />
+            <div className={styles.toolsFloatGlow} aria-hidden="true" />
+            {floatingTools.map((tool) => (
+              <div
+                className={styles.floatingTool}
+                key={tool.name}
+                style={{
+                  '--tool-x': tool.x,
+                  '--tool-y': tool.y,
+                  '--tool-size': `${tool.size}px`,
+                  '--tool-delay': `${tool.delay}s`,
+                  '--tool-duration': `${tool.duration}s`,
+                }}
+              >
+                <div className={styles.floatingToolInner}>
+                  <img src={tool.icon} alt="" aria-hidden="true" />
+                  <span>{tool.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
