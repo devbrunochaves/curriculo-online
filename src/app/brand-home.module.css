@@ -2600,3 +2600,120 @@
   background-size: 100% 100%;
   color: #0b0b0d;
 }
+
+/* ===== V6: real lateral sweep hover for every CTA ===== */
+.ctaSmall,
+.ctaPrimary,
+.ctaSecondary,
+.contactButton,
+.mobileMenu > a:last-child {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image: none !important;
+  background-size: auto !important;
+  transition: color .22s ease, border-color .22s ease, transform .22s ease;
+}
+
+.ctaSmall > span,
+.ctaPrimary > span,
+.ctaSecondary > span,
+.contactButton > span,
+.mobileMenu > a:last-child > span {
+  position: relative;
+  z-index: 2;
+}
+
+.ctaSmall::before,
+.ctaPrimary::before,
+.ctaSecondary::before,
+.contactButton::before,
+.mobileMenu > a:last-child::before {
+  content: '';
+  display: block !important;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .46s cubic-bezier(.22,1,.36,1);
+  pointer-events: none;
+}
+
+.ctaSmall::before { background: #f5f5f3; }
+.ctaPrimary::before { background: #f5f5f3; }
+.ctaSecondary::before { background: var(--red); }
+.contactButton::before { background: #ffffff; }
+.mobileMenu > a:last-child::before { background: #ffffff; }
+
+.ctaSmall:hover::before,
+.ctaPrimary:hover::before,
+.ctaSecondary:hover::before,
+.contactButton:hover::before,
+.mobileMenu > a:last-child:hover::before {
+  transform: scaleX(1);
+}
+
+.ctaSmall:hover {
+  background: var(--ink);
+  color: #0b0b0d;
+  border-color: #f5f5f3;
+  transform: translateY(-2px);
+}
+
+.ctaPrimary:hover {
+  background: var(--red);
+  color: #0b0b0d;
+  border-color: var(--red);
+  transform: translateY(-2px);
+}
+
+.ctaSecondary:hover {
+  background: transparent;
+  color: #ffffff;
+  border-color: var(--red);
+  transform: translateY(-2px);
+}
+
+.contactButton:hover {
+  background: var(--red);
+  color: #0b0b0d;
+  border-color: var(--red);
+  transform: translateY(-2px);
+}
+
+.mobileMenu > a:last-child:hover {
+  background: var(--red);
+  color: #0b0b0d;
+}
+
+.page[data-theme='dark'] .ctaSmall::before { background: var(--red); }
+.page[data-theme='dark'] .ctaSmall:hover {
+  background: #f5f5f3;
+  color: #ffffff;
+  border-color: var(--red);
+}
+
+.page[data-theme='dark'] .ctaPrimary::before { background: #f5f5f3; }
+.page[data-theme='dark'] .ctaPrimary:hover {
+  background: var(--red);
+  color: #0b0b0d;
+  border-color: var(--red);
+}
+
+.page[data-theme='dark'] .ctaSecondary::before { background: var(--red); }
+.page[data-theme='dark'] .ctaSecondary:hover {
+  background: transparent;
+  color: #ffffff;
+  border-color: var(--red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctaSmall::before,
+  .ctaPrimary::before,
+  .ctaSecondary::before,
+  .contactButton::before,
+  .mobileMenu > a:last-child::before {
+    transition: none;
+  }
+}

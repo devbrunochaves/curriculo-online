@@ -192,7 +192,7 @@ export default function HomePage() {
             >
               <span className={styles.themeIcon}>{theme === 'light' ? '☾' : '☀'}</span>
             </button>
-            <a className={styles.ctaSmall} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+            <a className={styles.ctaSmall} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><span>Falar comigo ↗</span></a>
           </div>
 
           <button
@@ -213,7 +213,7 @@ export default function HomePage() {
           <button type="button" className={styles.mobileTheme} onClick={() => setTheme((current) => current === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? 'Ativar modo escuro' : 'Ativar modo claro'}
           </button>
-          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+          <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><span>Falar comigo ↗</span></a>
         </div>
       </header>
 
@@ -232,8 +232,8 @@ export default function HomePage() {
             </p>
 
             <div className={styles.heroCtas} data-reveal>
-              <a className={styles.ctaPrimary} href="#projetos">Ver projetos →</a>
-              <a className={styles.ctaSecondary} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+              <a className={styles.ctaPrimary} href="#projetos"><span>Ver projetos →</span></a>
+              <a className={styles.ctaSecondary} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><span>Falar comigo ↗</span></a>
             </div>
 
             <div className={styles.stats} aria-label="Números profissionais" data-reveal>
@@ -461,7 +461,7 @@ export default function HomePage() {
           <span className={styles.sectionKicker}>Vamos conversar?</span>
           <h2>Tem um <span>projeto em mente?</span></h2>
           <p>Vamos transformar sua ideia em uma solução clara, bonita e funcional.</p>
-          <a className={styles.contactButton} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">Falar comigo ↗</a>
+          <a className={styles.contactButton} href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"><span>Falar comigo ↗</span></a>
         </div>
       </section>
 
