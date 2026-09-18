@@ -33,7 +33,8 @@ const floatingTools = [
   { name: 'Google AI', icon: '/icons/tools/googleai.svg', x: '67%', y: '78%', size: 86, delay: 2.4, duration: 9.5 },
   { name: 'Tailwind CSS', icon: '/icons/tools/tailwind.svg', x: '31%', y: '82%', size: 84, delay: .2, duration: 8.1 },
   { name: 'PHP', icon: '/icons/tools/php.svg', x: '48%', y: '29%', size: 82, delay: 1.8, duration: 8.8 },
-  { name: 'Java', icon: '/icons/tools/java.svg', x: '18%', y: '30%', size: 82, delay: 2.9, duration: 9.2 },
+  { name: 'ChatGPT', icon: '/icons/tools/chatgpt.png', x: '18%', y: '30%', size: 82, delay: 2.9, duration: 9.2 },
+  { name: 'Magnific', icon: '/icons/tools/magnific.png', x: '53%', y: '86%', size: 84, delay: 1.1, duration: 8.7 },
   { name: 'GitHub', icon: '/icons/tools/github.svg', x: '91%', y: '43%', size: 80, delay: .6, duration: 8.3 },
 ]
 
