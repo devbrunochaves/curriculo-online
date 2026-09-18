@@ -9,7 +9,7 @@ const navItems = [
   ['Projetos', '#projetos'],
   ['Serviços', '#servicos'],
   ['Sobre', '#sobre'],
-  ['Currículo', '/dominio'],
+  ['Currículo', '/curriculo'],
   ['Contato', '#contato'],
 ]
 
@@ -369,7 +369,7 @@ export default function HomePage() {
               <h2 className={styles.sectionTitle}>Mais que um profissional, um parceiro no <span className={styles.red}>seu projeto.</span></h2>
               <p>Sou Bruno Chaves, designer e desenvolvedor com mais de 20 anos de experiência no universo criativo.</p>
               <p>Minha trajetória começou no design e evoluiu para desenvolvimento web, produtos digitais e tecnologia. Hoje consigo enxergar um projeto de ponta a ponta — da estratégia à implementação.</p>
-              <a href="/dominio" className={styles.textCta}>Conheça minha trajetória <span>→</span></a>
+              <a href="/curriculo" className={styles.textCta}>Conheça minha trajetória <span>→</span></a>
               <div className={styles.aboutStats}>
                 <div><strong>+20</strong><span>anos de experiência</span></div>
                 <div><strong>+8</strong><span>empresas atendidas</span></div>
@@ -469,7 +469,7 @@ export default function HomePage() {
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div><strong>Bruno Chaves<span className={styles.logoDot}>•</span></strong><p>Design, código e estratégia.</p></div>
-          <div className={styles.footerLinks}><a href="https://linkedin.com/in/brunochavess" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="/dominio">Currículo</a></div>
+          <div className={styles.footerLinks}><a href="https://linkedin.com/in/brunochavess" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a><a href="/curriculo">Currículo</a></div>
         </div>
         <div className={styles.footerBottom}><span>© {new Date().getFullYear()} Bruno Chaves.</span><span>Do Brasil para o mundo.</span></div>
       </footer>
