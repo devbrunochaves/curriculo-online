@@ -361,3 +361,43 @@
 @media (prefers-reduced-motion: reduce) {
   .timelineBase span::after { animation: none; }
 }
+
+/* ===== Hero photo: same mouse/parallax treatment as main home ===== */
+.heroPhoto {
+  --rx: 0deg;
+  --ry: 0deg;
+  --tx: 0px;
+  --ty: 0px;
+  transform: perspective(1100px) rotateX(var(--rx)) rotateY(var(--ry)) translate3d(var(--tx), var(--ty), 0);
+  transform-style: preserve-3d;
+  transition: transform .18s ease-out, box-shadow .3s ease;
+  will-change: transform;
+}
+
+.heroPhoto:hover {
+  box-shadow: 0 38px 95px rgba(11,11,13,.28);
+}
+
+.heroPhoto img {
+  filter: grayscale(.22) contrast(1.05) saturate(.66);
+  transform: scale(1.015);
+  transition: transform .55s cubic-bezier(.22,1,.36,1), filter .35s ease;
+  will-change: transform, filter;
+}
+
+.heroPhoto:hover img {
+  transform: scale(1.045);
+  filter: grayscale(.08) contrast(1.06) saturate(.78);
+}
+
+@media (max-width: 900px) {
+  .heroPhoto { transform: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroPhoto,
+  .heroPhoto img {
+    transition: none !important;
+    transform: none !important;
+  }
+}

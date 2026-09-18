@@ -19,6 +19,7 @@ function Resume() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [experienceProgress, setExperienceProgress] = useState(0)
   const experienceRef = useRef(null)
+  const heroPhotoRef = useRef(null)
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -62,6 +63,25 @@ function Resume() {
       if (raf) cancelAnimationFrame(raf)
     }
   }, [])
+
+  const handleHeroPhotoMove = (event) => {
+    if (!heroPhotoRef.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const rect = heroPhotoRef.current.getBoundingClientRect()
+    const x = (event.clientX - rect.left) / rect.width - 0.5
+    const y = (event.clientY - rect.top) / rect.height - 0.5
+    heroPhotoRef.current.style.setProperty('--rx', `${(-y * 3.5).toFixed(2)}deg`)
+    heroPhotoRef.current.style.setProperty('--ry', `${(x * 4.5).toFixed(2)}deg`)
+    heroPhotoRef.current.style.setProperty('--tx', `${(x * 8).toFixed(2)}px`)
+    heroPhotoRef.current.style.setProperty('--ty', `${(y * 8).toFixed(2)}px`)
+  }
+
+  const resetHeroPhoto = () => {
+    if (!heroPhotoRef.current) return
+    heroPhotoRef.current.style.setProperty('--rx', '0deg')
+    heroPhotoRef.current.style.setProperty('--ry', '0deg')
+    heroPhotoRef.current.style.setProperty('--tx', '0px')
+    heroPhotoRef.current.style.setProperty('--ty', '0px')
+  }
 
   const navItems = [
     [t.nav.about, '#sobre'],
@@ -123,7 +143,12 @@ function Resume() {
               </div>
               <div className={styles.heroVisual} data-cv-reveal>
                 <div className={styles.photoRings} aria-hidden="true"><span /><span /><span /></div>
-                <div className={styles.heroPhoto}><img src="/avatar.jpg" alt="Bruno Chaves" /></div>
+                <div
+                  className={styles.heroPhoto}
+                  ref={heroPhotoRef}
+                  onMouseMove={handleHeroPhotoMove}
+                  onMouseLeave={resetHeroPhoto}
+                ><img src="/avatar.jpg" alt="Bruno Chaves" /></div>
                 <div className={styles.heroBadge}>DESIGN<br />+ DEV<br /><b>+ IA</b></div>
                 <div className={styles.heroNote}>Do Brasil<br />para o mundo.</div>
               </div>
