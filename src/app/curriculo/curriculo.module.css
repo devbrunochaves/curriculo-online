@@ -312,3 +312,52 @@
   .page [data-cv-reveal] { opacity:1; transform:none; transition:none; }
   .headerCta::before, .primaryButton::before, .secondaryButton::before { transition:none; }
 }
+
+/* ===== Timeline neon progress tip ===== */
+.timelineBase span {
+  position: relative;
+  overflow: visible;
+}
+
+.timelineBase span::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff2028;
+  transform: translateX(-50%);
+  opacity: clamp(0, calc(var(--experience-progress, 0) * 12), 1);
+  box-shadow:
+    0 0 4px rgba(255,32,40,1),
+    0 0 10px rgba(255,32,40,.95),
+    0 0 20px rgba(255,32,40,.72),
+    0 0 34px rgba(255,32,40,.42);
+  animation: timelineNeonPulse 1.7s ease-in-out infinite;
+  z-index: 4;
+}
+
+@keyframes timelineNeonPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(.88);
+    box-shadow:
+      0 0 4px rgba(255,32,40,1),
+      0 0 10px rgba(255,32,40,.88),
+      0 0 20px rgba(255,32,40,.62),
+      0 0 30px rgba(255,32,40,.34);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.18);
+    box-shadow:
+      0 0 6px rgba(255,65,72,1),
+      0 0 14px rgba(255,32,40,1),
+      0 0 28px rgba(255,32,40,.8),
+      0 0 46px rgba(255,32,40,.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timelineBase span::after { animation: none; }
+}
